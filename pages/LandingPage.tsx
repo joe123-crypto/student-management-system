@@ -1,0 +1,282 @@
+
+import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PROGRESS_DATA, MOCK_ANNOUNCEMENTS } from '../constants';
+import Footer from '../components/Footer';
+
+const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+  const toolsRef = useRef<HTMLDivElement>(null);
+  const announcementsRef = useRef<HTMLDivElement>(null);
+
+  const tools = [
+    { name: 'FAST RECORD FINDER', icon: 'search' },
+    { name: 'DOCUMENT VAULT', icon: 'folder' },
+    { name: 'ACADEMIC TRACKER', icon: 'chart' },
+    { name: 'SUPPORT PORTAL', icon: 'chat' }
+  ];
+
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>, e: React.MouseEvent) => {
+    e.preventDefault();
+    ref.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'search':
+        return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+      case 'folder':
+        return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>;
+      case 'chart':
+        return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
+      case 'chat':
+        return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>;
+      default:
+        return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+    }
+  };
+
+  const latestAnnouncement = MOCK_ANNOUNCEMENTS[0];
+
+  return (
+    <div className="min-h-screen bg-[#f8f9ff] text-slate-900 overflow-x-hidden font-['Inter']">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-200/40 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-200/30 rounded-full blur-[120px]"></div>
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `radial-gradient(#4f46e5 1px, transparent 1px)`, backgroundSize: '40px 40px' }}></div>
+      </div>
+
+      {/* Floating Header */}
+      <div className="fixed top-6 left-0 right-0 z-50 px-6">
+        <nav className="max-w-5xl mx-auto h-16 px-6 bg-white/70 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">S</div>
+            <span className="text-xl font-bold tracking-tight">ScholarSphere</span>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
+            <a href="#" className="hover:text-indigo-600 transition-colors">How it works</a>
+            <a href="#tools" onClick={(e) => scrollToSection(toolsRef, e)} className="hover:text-indigo-600 transition-colors">Tools</a>
+            <a href="#announcements" onClick={(e) => scrollToSection(announcementsRef, e)} className="hover:text-indigo-600 transition-colors">Announcements</a>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => navigate('/login')}
+              className="text-sm font-semibold text-slate-600 px-4 py-2 hover:text-slate-900 transition-colors"
+            >
+              Login
+            </button>
+            <button 
+              onClick={() => navigate('/login')}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-6 rounded-full shadow-lg shadow-indigo-200 transition-all hover:scale-105"
+            >
+              Get Started
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      {/* Hero Section */}
+      <main className="relative z-10 pt-44 pb-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-20 items-center mb-24">
+            
+            {/* Hero Left Content */}
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full">
+                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse"></div>
+                <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Trusted by 1 governments</span>
+              </div>
+
+              <h1 className="text-4xl md:text-6xl font-bold text-[#1a1b3a] leading-[1.2] tracking-tight font-quicksand">
+                Manage <span className="inline-block px-4 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl shadow-xl shadow-indigo-100">Scholarships</span> and digital details in minutes
+              </h1>
+
+              <p className="text-lg text-slate-500 max-w-lg leading-relaxed font-medium">
+                The fastest way to manage your academic profile, banking details, and university progress in one unified stack.
+              </p>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => navigate('/login')}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-xl shadow-indigo-100 transition-all flex items-center gap-2 group hover:scale-105"
+                >
+                  Get Started for Free
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Hero Right: UI Mockup Preview */}
+            <div className="relative">
+              {/* Main Dashboard Card */}
+              <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_32px_120px_-20px_rgba(79,70,229,0.12)] border border-slate-100 relative overflow-hidden transform hover:scale-[1.02] transition-transform duration-700">
+                <div className="mb-8 pb-4 border-b-2 border-slate-50">
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Academic Status</h3>
+                  <div className="flex gap-2">
+                    <div className="w-16 h-1 bg-indigo-600 rounded-full"></div>
+                    <div className="w-8 h-1 bg-indigo-100 rounded-full"></div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6 items-center">
+                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-xs font-bold text-slate-400 uppercase mb-1">Current GPA</p>
+                      <p className="text-3xl font-black text-slate-900 tracking-tight">3.92</p>
+                    </div>
+                    
+                    {/* Glowing Status Box */}
+                    <div className="p-6 bg-indigo-600 rounded-2xl text-white shadow-[0_0_40px_rgba(79,70,229,0.5)] border border-indigo-400 relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <p className="text-xs font-bold text-indigo-200 uppercase mb-1 relative z-10">Status</p>
+                      <p className="text-3xl font-black tracking-tight relative z-10">Active</p>
+                    </div>
+                  </div>
+
+                  <div className="h-48 w-full mt-8">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={PROGRESS_DATA}>
+                        <defs>
+                          <linearGradient id="colorHero" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <Area 
+                          type="monotone" 
+                          dataKey="gpa" 
+                          stroke="#4f46e5" 
+                          strokeWidth={4} 
+                          fill="url(#colorHero)" 
+                          animationDuration={3000}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Overlay Card 1 (Deposit Status) */}
+              <div className="absolute top-12 -right-16 bg-white p-6 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-slate-50 hidden md:block animate-bounce-slow z-20">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Deposit Status</p>
+                    <p className="text-2xl font-black text-slate-900 tracking-tight">+$2,450.00</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Overlay Card 2 (Progress) */}
+              <div className="absolute -bottom-8 -left-12 bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-white/50 hidden md:block animate-float z-20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-slate-100"></div>
+                  <div className="space-y-1">
+                    <div className="w-20 h-2 bg-slate-200 rounded-full"></div>
+                    <div className="w-12 h-2 bg-slate-100 rounded-full"></div>
+                  </div>
+                </div>
+                <div className="w-full h-1 bg-indigo-600 rounded-full mb-2"></div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress to Degree</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Explore Tools Section */}
+          <div ref={toolsRef} className="mb-24 scroll-mt-24">
+            <h2 className="text-3xl font-black text-[#1a1b3a] mb-10 font-quicksand">Explore Tools</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {tools.map((tool, i) => (
+                <div 
+                  key={i} 
+                  className="aspect-video bg-white/50 backdrop-blur-md border border-white/60 rounded-[2rem] shadow-sm flex items-center justify-center group overflow-hidden relative transition-all hover:scale-105 cursor-pointer"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/40 to-purple-50/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative z-10 flex flex-col items-center gap-3 w-full px-4">
+                    <div className="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center text-indigo-400 transition-transform group-hover:rotate-12">
+                      {getIcon(tool.icon)}
+                    </div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">{tool.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Announcements Section */}
+          <div ref={announcementsRef} className="scroll-mt-24 mb-12">
+            <div className="flex items-center justify-between mb-10">
+              <h2 className="text-3xl font-black text-[#1a1b3a] font-quicksand">Announcements</h2>
+              <div className="h-[2px] flex-1 bg-slate-100 mx-8 hidden md:block"></div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Latest Updates</span>
+            </div>
+
+            <div className="bg-white/50 backdrop-blur-md border border-white/60 rounded-[3rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.02)] relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8">
+                <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 animate-pulse">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                </div>
+              </div>
+
+              <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full mb-6">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">New Announcement</span>
+                </div>
+                
+                <h3 className="text-3xl md:text-4xl font-black text-[#1a1b3a] mb-6 leading-tight group-hover:text-indigo-600 transition-colors">
+                  {latestAnnouncement.title}
+                </h3>
+                
+                <p className="text-lg text-slate-500 mb-8 leading-relaxed font-medium">
+                  {latestAnnouncement.content}
+                </p>
+
+                <div className="flex items-center gap-6 pt-8 border-t border-slate-100/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
+                      {latestAnnouncement.author[0]}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Posted by</p>
+                      <p className="text-sm font-bold text-slate-700">{latestAnnouncement.author}</p>
+                    </div>
+                  </div>
+                  <div className="w-[1px] h-8 bg-slate-100"></div>
+                  <div>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Published on</p>
+                    <p className="text-sm font-bold text-slate-700">{latestAnnouncement.date}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-bounce-slow { animation: bounce-slow 4s ease-in-out infinite; }
+      `}} />
+    </div>
+  );
+};
+
+export default LandingPage;
