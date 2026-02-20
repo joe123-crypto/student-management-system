@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { User, StudentProfile, UserRole } from '../types';
 
 interface OnboardingPageProps {
@@ -10,7 +10,7 @@ interface OnboardingPageProps {
 
 const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => {
   const [step, setStep] = useState(1);
-  const navigate = useNavigate();
+  const router = useRouter();
   
   const [formData, setFormData] = useState<Partial<StudentProfile>>({
     student: { fullName: '', givenName: '', familyName: '', inscriptionNumber: '', dateOfBirth: '', nationality: '', gender: 'M' },
@@ -43,7 +43,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
       status: 'ACTIVE'
     };
     onComplete(finalProfile);
-    navigate('/student-dashboard');
+    router.push('/student-dashboard');
   };
 
   const steps = [
@@ -139,7 +139,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
               <h2 className="text-2xl font-bold text-slate-900 font-rounded">University & Program</h2>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nom de l'Université</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nom de l'UniversitÃ©</label>
                   <input 
                     type="text" 
                     className="w-full px-5 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
@@ -167,13 +167,13 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Niveau d'études</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Niveau d'Ã©tudes</label>
                   <select 
                     className="w-full px-5 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                     value={formData.program?.degreeLevel}
                     onChange={(e) => updateField('program', 'degreeLevel', e.target.value)}
                   >
-                    <option value="">Sélectionner le niveau</option>
+                    <option value="">SÃ©lectionner le niveau</option>
                     <option value="Bachelors">Licence (Bachelors)</option>
                     <option value="Masters">Master (Masters)</option>
                     <option value="PhD">Doctorat (PhD)</option>
@@ -295,3 +295,5 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
 };
 
 export default OnboardingPage;
+
+

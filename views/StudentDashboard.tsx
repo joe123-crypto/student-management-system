@@ -116,7 +116,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user, student, anno
   };
 
   const getMissingItems = () => {
-    const items = [];
+    const items: string[] = [];
     if (!student.student.profilePicture) items.push('Profile picture is missing');
     if (!student.bankAccount.iban) items.push('Bank RIB Key is missing');
     if (!student.bank.branchCode) items.push('Bank Branch Code is missing');
@@ -661,3 +661,4 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user, student, anno
 };
 
 export default StudentDashboard;
+

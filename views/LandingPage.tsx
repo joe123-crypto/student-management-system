@@ -1,12 +1,12 @@
 
 import React, { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PROGRESS_DATA, MOCK_ANNOUNCEMENTS } from '../constants';
 import Footer from '../components/Footer';
 
 const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const toolsRef = useRef<HTMLDivElement>(null);
   const announcementsRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +51,7 @@ const LandingPage: React.FC = () => {
       {/* Floating Header */}
       <div className="fixed top-6 left-0 right-0 z-50 px-6">
         <nav className="max-w-5xl mx-auto h-16 px-6 bg-white/70 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">S</div>
             <span className="text-xl font-bold tracking-tight">ScholarSphere</span>
           </div>
@@ -64,13 +64,13 @@ const LandingPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => navigate('/login')}
+              onClick={() => router.push('/login')}
               className="text-sm font-semibold text-slate-600 px-4 py-2 hover:text-slate-900 transition-colors"
             >
               Login
             </button>
             <button 
-              onClick={() => navigate('/login')}
+              onClick={() => router.push('/login')}
               className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-6 rounded-full shadow-lg shadow-indigo-200 transition-all hover:scale-105"
             >
               Get Started
@@ -101,7 +101,7 @@ const LandingPage: React.FC = () => {
 
               <div className="flex gap-4">
                 <button 
-                  onClick={() => navigate('/login')}
+                  onClick={() => router.push('/login')}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-xl shadow-indigo-100 transition-all flex items-center gap-2 group hover:scale-105"
                 >
                   Get Started for Free
@@ -280,3 +280,7 @@ const LandingPage: React.FC = () => {
 };
 
 export default LandingPage;
+
+
+
+

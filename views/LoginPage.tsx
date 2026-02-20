@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { User, UserRole } from '../types';
 
 interface LoginPageProps {
@@ -11,7 +11,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,12 +24,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     
     if (role === UserRole.STUDENT) {
       if (email === 'jean.dupont@example.com' || email === 'amina.f@example.com') {
-        navigate('/student-dashboard');
+        router.push('/student-dashboard');
       } else {
-        navigate('/onboarding');
+        router.push('/onboarding');
       }
     } else {
-      navigate('/attache-dashboard');
+      router.push('/attache-dashboard');
     }
   };
 
@@ -52,10 +52,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </button>
             <button
               type="button"
-              onClick={() => setRole(UserRole.ATTACHÉ)}
-              className={`py-2 text-sm font-semibold rounded-lg transition-all ${role === UserRole.ATTACHÉ ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setRole(UserRole.ATTACHE)}
+              className={`py-2 text-sm font-semibold rounded-lg transition-all ${role === UserRole.ATTACHE ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              Attaché
+              Attache
             </button>
           </div>
 
@@ -77,7 +77,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              placeholder="••••••••"
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
             />
           </div>
 
@@ -106,3 +106,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 };
 
 export default LoginPage;
+
+
+

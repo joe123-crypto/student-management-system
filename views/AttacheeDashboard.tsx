@@ -42,7 +42,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({ user, students, ann
       title: newTitle,
       content: newContent,
       date: new Date().toISOString().split('T')[0],
-      author: 'Attaché Officer'
+      author: 'Attache Officer'
     };
     onAddAnnouncement(a);
     setNewTitle('');
@@ -65,7 +65,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({ user, students, ann
   };
 
   return (
-    <Layout role={UserRole.ATTACHÉ} userName="Attaché Admin" title="Attaché Management Console" onLogout={onLogout}>
+    <Layout role={UserRole.ATTACHE} userName="Attache Admin" title="Attache Management Console" onLogout={onLogout}>
       <div className="flex gap-4 mb-8 overflow-x-auto whitespace-nowrap">
         <button 
           onClick={() => setActiveView('students')}
@@ -235,3 +235,5 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({ user, students, ann
 };
 
 export default AttacheDashboard;
+
+

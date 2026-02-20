@@ -1,7 +1,7 @@
 
 export enum UserRole {
   STUDENT = 'STUDENT',
-  ATTACHÉ = 'ATTACHÉ'
+  ATTACHE = 'ATTACHE'
 }
 
 export interface StudentDetails {
@@ -108,3 +108,5 @@ export interface User {
   email: string;
   role: UserRole;
 }
+
+
