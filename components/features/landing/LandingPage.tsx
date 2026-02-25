@@ -1,9 +1,10 @@
 import React, { useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { PROGRESS_DATA, MOCK_ANNOUNCEMENTS } from '@/constants';
 import Footer from '@/components/layout/Footer';
 import Button from '@/components/ui/Button';
+import { ArrowRight, BarChart3, Bell, CalendarDays, DollarSign, FolderOpen, Globe2, MessageSquare, Search, User } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const router = useRouter();
@@ -25,50 +26,25 @@ const LandingPage: React.FC = () => {
   const getIcon = (type: string) => {
     switch (type) {
       case 'search':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        );
+        return <Search className="w-5 h-5" />;
       case 'folder':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-          </svg>
-        );
+        return <FolderOpen className="w-5 h-5" />;
       case 'chart':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        );
+        return <BarChart3 className="w-5 h-5" />;
       case 'chat':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-          </svg>
-        );
+        return <MessageSquare className="w-5 h-5" />;
       default:
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        );
+        return <ArrowRight className="w-5 h-5" />;
     }
   };
 
   const latestAnnouncement = MOCK_ANNOUNCEMENTS[0];
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] text-slate-900 overflow-x-hidden font-['Inter']">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-200/40 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-200/30 rounded-full blur-[120px]" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `radial-gradient(#4f46e5 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
-      </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden font-['Inter']">
 
       <div className="fixed top-6 left-0 right-0 z-50 px-6">
-        <nav className="max-w-5xl mx-auto h-16 px-6 bg-white/70 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
+        <nav className="max-w-5xl mx-auto h-16 px-6 bg-white border border-slate-200 rounded-full flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">S</div>
             <span className="text-xl font-bold tracking-tight">ScholarSphere</span>
@@ -102,12 +78,12 @@ const LandingPage: React.FC = () => {
           <div className="grid lg:grid-cols-2 gap-20 items-center mb-24">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full">
-                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" />
+                <Globe2 className="w-3.5 h-3.5 text-indigo-600" />
                 <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Trusted by 1 governments</span>
               </div>
 
               <h1 className="text-4xl md:text-6xl font-bold text-[#1a1b3a] leading-[1.2] tracking-tight font-quicksand">
-                Manage <span className="inline-block px-4 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl shadow-xl shadow-indigo-100">Scholarships</span> and digital details in minutes
+                Manage <span className="inline-block px-4 py-1 bg-indigo-600 text-white rounded-2xl shadow-sm">Scholarships</span> and digital details in minutes
               </h1>
 
               <p className="text-lg text-slate-500 max-w-lg leading-relaxed font-medium">
@@ -117,9 +93,7 @@ const LandingPage: React.FC = () => {
               <div className="flex gap-4">
                 <Button onClick={() => router.push('/login')} className="font-bold py-4 px-10 rounded-full shadow-xl shadow-indigo-100 flex items-center gap-2 group hover:scale-105">
                   Get Started for Free
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </div>
             </div>
@@ -168,9 +142,7 @@ const LandingPage: React.FC = () => {
               <div className="absolute top-12 -right-16 bg-white p-6 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-slate-50 hidden md:block animate-bounce-slow z-20">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <DollarSign className="w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Deposit Status</p>
@@ -201,7 +173,7 @@ const LandingPage: React.FC = () => {
                   key={i}
                   className="aspect-video bg-white/50 backdrop-blur-md border border-white/60 rounded-[2rem] shadow-sm flex items-center justify-center group overflow-hidden relative transition-all hover:scale-105 cursor-pointer"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/40 to-purple-50/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-indigo-50/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="relative z-10 flex flex-col items-center gap-3 w-full px-4">
                     <div className="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center text-indigo-400 transition-transform group-hover:rotate-12">
                       {getIcon(tool.icon)}
@@ -223,9 +195,7 @@ const LandingPage: React.FC = () => {
             <div className="bg-white/50 backdrop-blur-md border border-white/60 rounded-[3rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.02)] relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-8">
                 <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 animate-pulse">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
+                  <Bell className="w-8 h-8" />
                 </div>
               </div>
 
@@ -241,7 +211,9 @@ const LandingPage: React.FC = () => {
 
                 <div className="flex items-center gap-6 pt-8 border-t border-slate-100/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold">{latestAnnouncement.author[0]}</div>
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                      <User className="w-4 h-4" />
+                    </div>
                     <div>
                       <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Posted by</p>
                       <p className="text-sm font-bold text-slate-700">{latestAnnouncement.author}</p>
@@ -250,7 +222,10 @@ const LandingPage: React.FC = () => {
                   <div className="w-[1px] h-8 bg-slate-100" />
                   <div>
                     <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Published on</p>
-                    <p className="text-sm font-bold text-slate-700">{latestAnnouncement.date}</p>
+                    <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4 text-slate-400" />
+                      {latestAnnouncement.date}
+                    </p>
                   </div>
                 </div>
               </div>

@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { StudentProfile, User } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
+import { ArrowLeft, ArrowRight, GraduationCap, Landmark, MapPin, User as UserIcon } from 'lucide-react';
 
 interface OnboardingPageProps {
   user: User;
@@ -48,7 +49,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
     };
 
     onComplete(finalProfile);
-    router.push('/student-dashboard');
+    router.push('/student/dashboard');
   };
 
   const steps = [
@@ -77,7 +78,10 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
         <div className={`bg-white rounded-[2.5rem] shadow-sm border border-slate-200 transition-all ${step === 1 ? 'p-8 md:p-10' : 'p-8 md:p-12'}`}>
           {step === 1 && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-slate-900 font-rounded">Personal & Passport</h2>
+              <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
+                <UserIcon className="w-6 h-6 text-indigo-600" />
+                Personal & Passport
+              </h2>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
                 <FormField label="Full Name">
                   <input
@@ -121,6 +125,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                 </FormField>
                 <div className="flex justify-end">
                   <Button onClick={nextStep} className="w-full md:w-auto px-12 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700">
+                    <ArrowRight className="w-4 h-4" />
                     Continue
                   </Button>
                 </div>
@@ -130,7 +135,10 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
 
           {step === 2 && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-slate-900 font-rounded">University & Program</h2>
+              <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
+                <GraduationCap className="w-6 h-6 text-indigo-600" />
+                University & Program
+              </h2>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
                 <FormField label="University Name">
                   <input
@@ -171,9 +179,11 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                 </FormField>
                 <div className="col-span-2 pt-6 flex items-center justify-between">
                   <Button onClick={prevStep} variant="secondary" className="px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-600">
+                    <ArrowLeft className="w-4 h-4" />
                     Back
                   </Button>
                   <Button onClick={nextStep} className="px-12 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700">
+                    <ArrowRight className="w-4 h-4" />
                     Continue
                   </Button>
                 </div>
@@ -183,7 +193,10 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
 
           {step === 3 && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-slate-900 font-rounded">Bank Account Details</h2>
+              <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
+                <Landmark className="w-6 h-6 text-indigo-600" />
+                Bank Account Details
+              </h2>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
                 <FormField label="Bank Name" className="col-span-2">
                   <input
@@ -227,6 +240,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                 </FormField>
                 <div className="col-span-2 pt-6 flex items-center justify-between">
                   <Button onClick={prevStep} variant="secondary" className="px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-600">
+                    <ArrowLeft className="w-4 h-4" />
                     Back
                   </Button>
                   <div className="flex items-center gap-6">
@@ -234,6 +248,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                       Skip for now
                     </Button>
                     <Button onClick={nextStep} className="px-12 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700">
+                      <ArrowRight className="w-4 h-4" />
                       Continue
                     </Button>
                   </div>
@@ -244,7 +259,10 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
 
           {step === 4 && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-slate-900 font-rounded">Contact & Address</h2>
+              <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
+                <MapPin className="w-6 h-6 text-indigo-600" />
+                Contact & Address
+              </h2>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
                 <FormField label="Phone Number">
                   <input
@@ -272,6 +290,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                 </FormField>
                 <div className="col-span-2 pt-6 flex items-center justify-between">
                   <Button onClick={prevStep} variant="secondary" className="px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-600">
+                    <ArrowLeft className="w-4 h-4" />
                     Back
                   </Button>
                   <div className="flex items-center gap-6">
@@ -293,3 +312,4 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
 };
 
 export default OnboardingPage;
+

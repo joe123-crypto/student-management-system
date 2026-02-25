@@ -15,8 +15,10 @@ type AppRoute =
   | '/'
   | '/login'
   | '/onboarding'
-  | '/student-dashboard'
-  | '/attache-dashboard';
+  | '/student/dashboard'
+  | '/student/settings'
+  | '/attache/dashboard'
+  | '/attache/settings';
 
 function getFromStorage<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') {
@@ -46,6 +48,7 @@ function Redirect({ to }: { to: string }) {
 }
 
 export default function AppShell({ route }: { route: AppRoute }) {
+  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [students, setStudents] = useState<StudentProfile[]>(MOCK_STUDENTS);
@@ -85,6 +88,12 @@ export default function AppShell({ route }: { route: AppRoute }) {
     setStudents((prev) => prev.map((s) => (s.id === id ? { ...s, ...profile } : s)));
   };
   const addAnnouncement = (a: Announcement) => setAnnouncements((prev) => [a, ...prev]);
+  const deleteStudents = (studentIds: string[]) => {
+    setStudents((prev) => prev.filter((student) => !studentIds.includes(student.id)));
+  };
+  const importStudents = (records: StudentProfile[], mode: 'append' | 'replace') => {
+    setStudents((prev) => (mode === 'replace' ? records : [...prev, ...records]));
+  };
 
   if (route === '/') {
     return <LandingPage />;
@@ -106,33 +115,43 @@ export default function AppShell({ route }: { route: AppRoute }) {
     return <OnboardingPage user={user} onComplete={addStudent} />;
   }
 
-  if (route === '/student-dashboard') {
+  if (route === '/student/dashboard' || route === '/student/settings') {
     if (user?.role !== UserRole.STUDENT) {
       return <Redirect to="/login" />;
     }
+    const studentSection = route === '/student/settings' ? 'settings' : 'dashboard';
 
     return (
       <StudentDashboard
-        user={user}
         student={students.find((s) => s.contact.email === user.email) || null}
         announcements={announcements}
         onUpdate={updateStudent}
+        section={studentSection}
+        onNavigateSection={(section) =>
+          router.push(section === 'settings' ? '/student/settings' : '/student/dashboard')
+        }
         onLogout={handleLogout}
       />
     );
   }
 
-  if (route === '/attache-dashboard') {
+  if (route === '/attache/dashboard' || route === '/attache/settings') {
     if (user?.role !== UserRole.ATTACHE) {
       return <Redirect to="/login" />;
     }
+    const attacheSection = route === '/attache/settings' ? 'settings' : 'dashboard';
 
     return (
       <AttacheDashboard
-        user={user}
         students={students}
         announcements={announcements}
         onAddAnnouncement={addAnnouncement}
+        onDeleteStudents={deleteStudents}
+        onImportStudents={importStudents}
+        section={attacheSection}
+        onNavigateSection={(section) =>
+          router.push(section === 'settings' ? '/attache/settings' : '/attache/dashboard')
+        }
         onLogout={handleLogout}
       />
     );

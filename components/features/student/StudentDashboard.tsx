@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Announcement, ProgressDetails, StudentProfile, User, UserRole } from '@/types';
+import { Announcement, ProgressDetails, StudentProfile, UserRole } from '@/types';
 import { PROGRESS_DATA } from '@/constants';
 import Layout from '@/components/layout/Layout';
 import Tabs from '@/components/ui/Tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import StatCard from '@/components/ui/StatCard';
-import AnnouncementCard from '@/components/ui/AnnouncementCard';
 import ProfilePictureUpload from '@/components/ui/ProfilePictureUpload';
 import FormField from '@/components/ui/FormField';
 import SectionHeader from '@/components/ui/SectionHeader';
@@ -14,12 +13,15 @@ import Button from '@/components/ui/Button';
 import FileUploadDropzone from '@/components/ui/FileUploadDropzone';
 import AcademicHistoryItem from '@/components/ui/AcademicHistoryItem';
 import ActionCard from '@/components/ui/ActionCard';
+import { AnnouncementFeedSection } from '@/components/features/shared/announcements/AnnouncementSections';
+import { FolderOpen } from 'lucide-react';
 
 interface StudentDashboardProps {
-  user: User;
   student: StudentProfile | null;
   announcements: Announcement[];
   onUpdate: (id: string, profile: Partial<StudentProfile>) => void;
+  section: 'dashboard' | 'settings';
+  onNavigateSection: (section: 'dashboard' | 'settings') => void;
   onLogout: () => void;
 }
 
@@ -35,7 +37,14 @@ const inputClass =
   'w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all';
 const tinyLabelClass = 'text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block';
 
-const StudentDashboard: React.FC<StudentDashboardProps> = ({ user, student, announcements, onUpdate, onLogout }) => {
+const StudentDashboard: React.FC<StudentDashboardProps> = ({
+  student,
+  announcements,
+  onUpdate,
+  section,
+  onNavigateSection,
+  onLogout,
+}) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdatingAcademic, setIsUpdatingAcademic] = useState(false);
@@ -128,13 +137,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user, student, anno
   return (
     <Layout
       role={UserRole.STUDENT}
-      userName={user.email}
-      title="Student Dashboard"
+      title={section === 'dashboard' ? 'Student Dashboard' : 'Settings'}
       onLogout={onLogout}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      activeTab={section === 'dashboard' ? 'home' : 'settings'}
+      setActiveTab={(tab: string) =>
+        onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')
+      }
       profilePicture={student.student.profilePicture}
+      showSettingsMenu
     >
+      {section === 'dashboard' ? (
+        <>
       <Tabs items={tabItems} activeTab={activeTab} onChange={handleTabChange} className="mb-10" />
 
       <div className="grid md:grid-cols-3 gap-8 relative pb-24">
@@ -147,12 +160,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user, student, anno
               </div>
 
               <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-10">
-                <h4 className="text-2xl font-black text-slate-900 mb-8 font-rounded">Latest Announcements</h4>
-                <div className="space-y-6">
-                  {announcements.map((announcement) => (
-                    <AnnouncementCard key={announcement.id} announcement={announcement} />
-                  ))}
-                </div>
+                <AnnouncementFeedSection
+                  announcements={announcements}
+                  title="Latest Announcements"
+                  titleVariant="headline"
+                  listClassName="space-y-6"
+                />
               </div>
             </>
           )}
@@ -483,13 +496,20 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user, student, anno
           </div>
         </aside>
       </div>
+        </>
+      ) : (
+        <div className="min-h-[420px] rounded-3xl border border-dashed border-slate-300 bg-white/80 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500">
+              <FolderOpen className="w-10 h-10" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800">Settings Home</h3>
+            <p className="text-sm text-slate-500">This page is intentionally blank for now.</p>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
 
 export default StudentDashboard;
-
-
-
-
-
