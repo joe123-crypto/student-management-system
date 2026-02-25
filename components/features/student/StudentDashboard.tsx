@@ -64,13 +64,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     return <LoadingSpinner fullScreen label="Loading your profile..." />;
   }
 
-  const handleUpdateField = (section: keyof StudentProfile, field: string, value: any) => {
+  const handleUpdateField = (section: keyof StudentProfile, field: string, value: unknown) => {
     setEditData((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
         [section]: {
-          ...(prev[section] as any),
+          ...((prev[section] as Record<string, unknown> | undefined) ?? {}),
           [field]: value,
         },
       };

@@ -32,7 +32,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
     setFormData((prev) => ({
       ...prev,
       [section]: {
-        ...(prev[section] as any),
+        ...((prev[section] as Record<string, unknown> | undefined) ?? {}),
         [field]: value,
       },
     }));

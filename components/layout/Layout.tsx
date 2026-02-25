@@ -10,7 +10,7 @@ interface LayoutProps {
   role: UserRole;
   onLogout: () => void;
   activeTab?: string;
-  setActiveTab?: (tab: any) => void;
+  setActiveTab?: (tab: string) => void;
   profilePicture?: string;
   showSettingsMenu?: boolean;
 }
