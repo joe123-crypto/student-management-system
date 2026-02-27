@@ -8,7 +8,6 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import StatCard from '@/components/ui/StatCard';
 import ProfilePictureUpload from '@/components/ui/ProfilePictureUpload';
 import FormField from '@/components/ui/FormField';
-import SectionHeader from '@/components/ui/SectionHeader';
 import Button from '@/components/ui/Button';
 import FileUploadDropzone from '@/components/ui/FileUploadDropzone';
 import AcademicHistoryItem from '@/components/ui/AcademicHistoryItem';
@@ -36,6 +35,7 @@ type ActiveTab = (typeof tabItems)[number]['id'];
 const inputClass =
   'w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all';
 const tinyLabelClass = 'text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block';
+const infoValueClass = 'text-lg font-semibold text-slate-900';
 
 const StudentDashboard: React.FC<StudentDashboardProps> = ({
   student,
@@ -78,7 +78,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   };
 
   const saveProfile = () => {
-    onUpdate(student.id, editData);
+    onUpdate(student.id, {
+      student: { ...student.student, profilePicture: editData.student.profilePicture },
+      bank: editData.bank,
+      bankAccount: editData.bankAccount,
+    });
     setIsEditing(false);
   };
 
@@ -171,196 +175,189 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
           )}
 
           {activeTab === 'profile' && (
-            <div className="space-y-8">
-              <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-8">
-                <ProfilePictureUpload
-                  imageSrc={currentPicture}
-                  onChange={(base64) => {
-                    handleUpdateField('student', 'profilePicture', base64);
-                    if (!isEditing) {
-                      onUpdate(student.id, {
-                        student: { ...student.student, profilePicture: base64 },
-                      });
-                    }
-                  }}
-                  onRemove={() => {
-                    handleUpdateField('student', 'profilePicture', undefined);
-                    if (!isEditing) {
-                      onUpdate(student.id, {
-                        student: { ...student.student, profilePicture: undefined },
-                      });
-                    }
-                  }}
-                />
-                <div className="text-center md:text-left space-y-2">
-                  <h4 className="text-3xl font-black text-[#1a1b3a] font-rounded">
-                    {isEditing ? editData.student.fullName : student.student.fullName}
-                  </h4>
-                  <p className="text-slate-500 font-medium">
-                    Inscription Number:{' '}
-                    <span className="font-mono font-bold text-indigo-600">{student.student.inscriptionNumber}</span>
-                  </p>
+            <div className="space-y-7">
+              <div className="flex justify-end">
+                <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-1.5 text-xs font-black uppercase tracking-wide text-emerald-700">
+                  {student.status}
+                </span>
+              </div>
+
+              <div className="rounded-[2rem] border border-slate-200 bg-white px-7 py-8 shadow-sm md:px-10 md:py-10">
+                <div className="flex flex-col items-start gap-7 md:flex-row md:items-center">
+                  <ProfilePictureUpload
+                    imageSrc={currentPicture}
+                    onChange={(base64) => {
+                      handleUpdateField('student', 'profilePicture', base64);
+                      if (!isEditing) {
+                        onUpdate(student.id, {
+                          student: { ...student.student, profilePicture: base64 },
+                        });
+                      }
+                    }}
+                    onRemove={() => {
+                      handleUpdateField('student', 'profilePicture', undefined);
+                      if (!isEditing) {
+                        onUpdate(student.id, {
+                          student: { ...student.student, profilePicture: undefined },
+                        });
+                      }
+                    }}
+                  />
+                  <div className="space-y-2">
+                    <h4 className="text-2xl font-bold tracking-tight text-[#101942]">{student.student.fullName}</h4>
+                    <p className="text-xl font-medium text-slate-600">
+                      Inscription Number:{' '}
+                      <span className="font-mono text-lg font-semibold text-indigo-600">{student.student.inscriptionNumber}</span>
+                    </p>
+                    <p className="text-xl font-medium text-slate-600">{student.contact.email}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden transition-all">
-                <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                  <h4 className="text-2xl font-black text-[#1a1b3a] font-rounded">
-                    {isEditing ? 'Fill Missing Details' : 'Database Record'}
-                  </h4>
+              <div className="grid gap-6 xl:grid-cols-2">
+                <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm md:p-8">
+                  <div className="mb-7 flex items-center gap-3">
+                    <span className="h-8 w-2 rounded-full bg-indigo-600" />
+                    <h5 className="text-base font-black uppercase tracking-[0.16em] text-slate-500">Personal Identity</h5>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-7">
+                    <div>
+                      <p className={tinyLabelClass}>Given Name</p>
+                      <p className={infoValueClass}>{student.student.givenName || '---'}</p>
+                    </div>
+                    <div>
+                      <p className={tinyLabelClass}>Family Name</p>
+                      <p className={infoValueClass}>{student.student.familyName || '---'}</p>
+                    </div>
+                    <div>
+                      <p className={tinyLabelClass}>Date of Birth</p>
+                      <p className={infoValueClass}>{student.student.dateOfBirth || '---'}</p>
+                    </div>
+                    <div>
+                      <p className={tinyLabelClass}>Nationality</p>
+                      <p className={infoValueClass}>{student.student.nationality || '---'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm md:p-8">
+                  <div className="mb-7 flex items-center gap-3">
+                    <span className="h-8 w-2 rounded-full bg-emerald-500" />
+                    <h5 className="text-base font-black uppercase tracking-[0.16em] text-slate-500">University & Program</h5>
+                  </div>
+                  <div className="space-y-6">
+                    <div>
+                      <p className={tinyLabelClass}>University</p>
+                      <p className={infoValueClass}>{student.university.universityName || '---'}</p>
+                    </div>
+                    <div>
+                      <p className={tinyLabelClass}>Program</p>
+                      <p className={infoValueClass}>{student.program.major || '---'}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <p className={tinyLabelClass}>Level</p>
+                        <p className={infoValueClass}>{student.program.degreeLevel || '---'}</p>
+                      </div>
+                      <div>
+                        <p className={tinyLabelClass}>Campus</p>
+                        <p className={infoValueClass}>{student.university.campus || '---'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm md:p-8">
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="h-8 w-2 rounded-full bg-amber-500" />
+                    <h5 className="text-base font-black uppercase tracking-[0.16em] text-slate-500">Contact & Banking</h5>
+                  </div>
                   <Button
                     onClick={() => setIsEditing(!isEditing)}
                     variant={isEditing ? 'secondary' : 'primary'}
                     className={isEditing ? 'bg-slate-200 text-slate-700' : 'rounded-full'}
                   >
-                    {isEditing ? 'Cancel' : 'Edit Info'}
+                    {isEditing ? 'Cancel' : 'Edit Bank Details'}
                   </Button>
                 </div>
 
-                <div className="p-10 space-y-12">
-                  <section className="space-y-8">
-                    <SectionHeader title="Personal Identity" accent="indigo" />
-                    <div className="grid md:grid-cols-2 gap-8">
-                      <FormField label="Given Name" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.student.givenName || ''}
-                            onChange={(e) => handleUpdateField('student', 'givenName', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-bold text-slate-800">{student.student.givenName || student.student.fullName.split(' ')[0]}</p>
-                        )}
-                      </FormField>
-                      <FormField label="Family Name" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.student.familyName || ''}
-                            onChange={(e) => handleUpdateField('student', 'familyName', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-bold text-slate-800">{student.student.familyName || student.student.fullName.split(' ')[1] || '---'}</p>
-                        )}
-                      </FormField>
-                    </div>
-                  </section>
-
-                  <section className="space-y-8">
-                    <SectionHeader title="Bank Details" accent="emerald" />
-                    <div className="grid md:grid-cols-2 gap-8">
-                      <FormField label="Bank Name" labelClassName={tinyLabelClass} className="col-span-2">
-                        {isEditing ? (
-                          <input
-                            value={editData.bank.bankName}
-                            onChange={(e) => handleUpdateField('bank', 'bankName', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-bold text-slate-800">{student.bank.bankName}</p>
-                        )}
-                      </FormField>
-                      <FormField label="Account Number" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.bankAccount.accountNumber}
-                            onChange={(e) => handleUpdateField('bankAccount', 'accountNumber', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-mono font-bold text-slate-800">{student.bankAccount.accountNumber}</p>
-                        )}
-                      </FormField>
-                      <FormField label="RIB Key" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.bankAccount.iban}
-                            onChange={(e) => handleUpdateField('bankAccount', 'iban', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-mono font-bold text-indigo-600">{student.bankAccount.iban}</p>
-                        )}
-                      </FormField>
-                      <FormField label="Branch Code" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.bank.branchCode || ''}
-                            onChange={(e) => handleUpdateField('bank', 'branchCode', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-bold text-slate-800">{student.bank.branchCode || '---'}</p>
-                        )}
-                      </FormField>
-                    </div>
-                  </section>
-
-                  <section className="space-y-8">
-                    <SectionHeader title="Contact Details" accent="amber" />
-                    <div className="grid md:grid-cols-2 gap-8">
-                      <FormField label="Email Address" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.contact.email}
-                            onChange={(e) => handleUpdateField('contact', 'email', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-bold text-slate-800">{student.contact.email}</p>
-                        )}
-                      </FormField>
-                      <FormField label="Phone Number" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.contact.phone}
-                            onChange={(e) => handleUpdateField('contact', 'phone', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-bold text-slate-800">{student.contact.phone || '---'}</p>
-                        )}
-                      </FormField>
-                      <FormField label="Emergency Contact Name" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.contact.emergencyContactName}
-                            onChange={(e) => handleUpdateField('contact', 'emergencyContactName', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-bold text-slate-800">{student.contact.emergencyContactName || '---'}</p>
-                        )}
-                      </FormField>
-                      <FormField label="Emergency Phone" labelClassName={tinyLabelClass}>
-                        {isEditing ? (
-                          <input
-                            value={editData.contact.emergencyContactPhone}
-                            onChange={(e) => handleUpdateField('contact', 'emergencyContactPhone', e.target.value)}
-                            className={inputClass}
-                          />
-                        ) : (
-                          <p className="text-lg font-bold text-slate-800">{student.contact.emergencyContactPhone || '---'}</p>
-                        )}
-                      </FormField>
-                    </div>
-                  </section>
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                  <div>
+                    <p className={tinyLabelClass}>Phone</p>
+                    <p className="text-xl font-black text-slate-900">{student.contact.phone || '---'}</p>
+                  </div>
+                  <div>
+                    <p className={tinyLabelClass}>Emergency Contact</p>
+                    <p className="text-xl font-black text-slate-900">{student.contact.emergencyContactName || '---'}</p>
+                  </div>
+                  <div>
+                    <p className={tinyLabelClass}>Bank</p>
+                    {isEditing ? (
+                      <input
+                        value={editData.bank.bankName}
+                        onChange={(e) => handleUpdateField('bank', 'bankName', e.target.value)}
+                        className={inputClass}
+                      />
+                    ) : (
+                      <p className="text-xl font-black text-slate-900">{student.bank.bankName || '---'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className={tinyLabelClass}>RIB / IBAN</p>
+                    {isEditing ? (
+                      <input
+                        value={editData.bankAccount.iban}
+                        onChange={(e) => handleUpdateField('bankAccount', 'iban', e.target.value)}
+                        className={inputClass}
+                      />
+                    ) : (
+                      <p className="text-xl font-black text-indigo-600">{student.bankAccount.iban || '---'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className={tinyLabelClass}>Account Number</p>
+                    {isEditing ? (
+                      <input
+                        value={editData.bankAccount.accountNumber}
+                        onChange={(e) => handleUpdateField('bankAccount', 'accountNumber', e.target.value)}
+                        className={inputClass}
+                      />
+                    ) : (
+                      <p className="text-xl font-black text-slate-900">{student.bankAccount.accountNumber || '---'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className={tinyLabelClass}>Branch Code</p>
+                    {isEditing ? (
+                      <input
+                        value={editData.bank.branchCode || ''}
+                        onChange={(e) => handleUpdateField('bank', 'branchCode', e.target.value)}
+                        className={inputClass}
+                      />
+                    ) : (
+                      <p className="text-xl font-black text-slate-900">{student.bank.branchCode || '---'}</p>
+                    )}
+                  </div>
                 </div>
 
+                <p className="mt-5 text-sm font-semibold text-slate-500">
+                  Personal and academic details are managed by administration.
+                </p>
+
                 {isEditing && (
-                  <div className="p-10 bg-indigo-50 flex items-center justify-between border-t border-indigo-100 sticky bottom-0 z-10 animate-slide-up">
-                    <p className="text-sm font-bold text-indigo-600">You have unsaved changes in your profile.</p>
-                    <div className="flex gap-4">
-                      <Button variant="ghost" onClick={() => setIsEditing(false)}>
-                        Discard
-                      </Button>
-                      <Button onClick={saveProfile} className="rounded-full px-10">
-                        Save Profile
-                      </Button>
-                    </div>
+                  <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-6">
+                    <Button variant="ghost" onClick={() => setIsEditing(false)}>
+                      Discard
+                    </Button>
+                    <Button onClick={saveProfile} className="rounded-full px-10">
+                      Save Bank Details
+                    </Button>
                   </div>
                 )}
               </div>
+
             </div>
           )}
 

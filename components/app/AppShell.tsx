@@ -1,9 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Announcement, StudentProfile, User, UserRole } from '@/types';
-import { MOCK_ANNOUNCEMENTS, MOCK_STUDENTS } from '@/constants';
+import { MOCK_ANNOUNCEMENTS } from '@/constants';
+import {
+  createPrototypeDatabase,
+  deleteStudentsFromDatabase,
+  getStudentProfilesFromDatabase,
+  importStudentProfilesToDatabase,
+  PROTOTYPE_DATABASE_STORAGE_KEY,
+  PrototypeDatabase,
+  updateStudentProfileInDatabase,
+} from '@/data/prototypeDatabase';
 
 import LandingPage from '@/components/features/landing/LandingPage';
 import LoginPage from '@/components/features/auth/LoginPage';
@@ -37,6 +46,39 @@ function getFromStorage<T>(key: string, fallback: T): T {
   }
 }
 
+function normalizeStoredUser(raw: unknown): User | null {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const entry = raw as Partial<User> & { email?: string };
+  const role = entry.role;
+  if (role !== UserRole.STUDENT && role !== UserRole.ATTACHE) return null;
+
+  const legacyEmail = typeof entry.legacyEmail === 'string' ? entry.legacyEmail : entry.email;
+  const loginId = typeof entry.loginId === 'string' && entry.loginId
+    ? entry.loginId
+    : (typeof entry.email === 'string' ? entry.email : '');
+  const authProvider =
+    entry.authProvider === 'student_inscription' || entry.authProvider === 'attache_email'
+      ? entry.authProvider
+      : role === UserRole.STUDENT
+        ? 'student_inscription'
+        : 'attache_email';
+
+  return {
+    id: typeof entry.id === 'string' && entry.id ? entry.id : Math.random().toString(36).slice(2, 11),
+    subject:
+      typeof entry.subject === 'string' && entry.subject
+        ? entry.subject
+        : role === UserRole.STUDENT
+          ? `student:${loginId || 'unknown'}`
+          : 'attache:default',
+    loginId,
+    authProvider,
+    legacyEmail: legacyEmail || undefined,
+    role,
+  };
+}
+
 function Redirect({ to }: { to: string }) {
   const router = useRouter();
 
@@ -51,12 +93,42 @@ export default function AppShell({ route }: { route: AppRoute }) {
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [students, setStudents] = useState<StudentProfile[]>(MOCK_STUDENTS);
+  const [database, setDatabase] = useState<PrototypeDatabase>(createPrototypeDatabase());
   const [announcements, setAnnouncements] = useState<Announcement[]>(MOCK_ANNOUNCEMENTS);
+  const students = useMemo(() => getStudentProfilesFromDatabase(database), [database]);
+  const registeredStudentInscriptions = useMemo(
+    () => students.map((student) => student.student.inscriptionNumber.toUpperCase()),
+    [students],
+  );
+  const onboardingStudentInscriptions = useMemo(
+    () =>
+      students
+        .filter(
+          (student) =>
+            !student.bank.bankName ||
+            !student.bank.branchCode ||
+            !student.bankAccount.accountNumber ||
+            !student.bankAccount.iban,
+        )
+        .map((student) => student.student.inscriptionNumber.toUpperCase()),
+    [students],
+  );
+  const currentStudent = useMemo(() => {
+    if (user?.role !== UserRole.STUDENT || !user.loginId) {
+      return null;
+    }
+
+    const byInscription = students.find(
+      (student) => student.student.inscriptionNumber.toUpperCase() === user.loginId.toUpperCase(),
+    );
+    if (byInscription) return byInscription;
+
+    return students.find((student) => student.contact.email.toLowerCase() === user.loginId.toLowerCase()) || null;
+  }, [students, user]);
 
   useEffect(() => {
-    setUser(getFromStorage<User | null>('user', null));
-    setStudents(getFromStorage<StudentProfile[]>('students', MOCK_STUDENTS));
+    setUser(normalizeStoredUser(getFromStorage<unknown>('user', null)));
+    setDatabase(getFromStorage<PrototypeDatabase>(PROTOTYPE_DATABASE_STORAGE_KEY, createPrototypeDatabase()));
     setAnnouncements(getFromStorage<Announcement[]>('announcements', MOCK_ANNOUNCEMENTS));
     setIsHydrated(true);
   }, []);
@@ -65,15 +137,21 @@ export default function AppShell({ route }: { route: AppRoute }) {
     if (!isHydrated) {
       return;
     }
+
+    if (user?.role === UserRole.STUDENT && !currentStudent) {
+      setUser(null);
+      return;
+    }
+
     window.localStorage.setItem('user', JSON.stringify(user));
-  }, [user, isHydrated]);
+  }, [user, isHydrated, currentStudent]);
 
   useEffect(() => {
     if (!isHydrated) {
       return;
     }
-    window.localStorage.setItem('students', JSON.stringify(students));
-  }, [students, isHydrated]);
+    window.localStorage.setItem(PROTOTYPE_DATABASE_STORAGE_KEY, JSON.stringify(database));
+  }, [database, isHydrated]);
 
   useEffect(() => {
     if (!isHydrated) {
@@ -83,16 +161,15 @@ export default function AppShell({ route }: { route: AppRoute }) {
   }, [announcements, isHydrated]);
 
   const handleLogout = () => setUser(null);
-  const addStudent = (profile: StudentProfile) => setStudents((prev) => [...prev, profile]);
   const updateStudent = (id: string, profile: Partial<StudentProfile>) => {
-    setStudents((prev) => prev.map((s) => (s.id === id ? { ...s, ...profile } : s)));
+    setDatabase((prev) => updateStudentProfileInDatabase(prev, id, profile));
   };
   const addAnnouncement = (a: Announcement) => setAnnouncements((prev) => [a, ...prev]);
   const deleteStudents = (studentIds: string[]) => {
-    setStudents((prev) => prev.filter((student) => !studentIds.includes(student.id)));
+    setDatabase((prev) => deleteStudentsFromDatabase(prev, studentIds));
   };
   const importStudents = (records: StudentProfile[], mode: 'append' | 'replace') => {
-    setStudents((prev) => (mode === 'replace' ? records : [...prev, ...records]));
+    setDatabase((prev) => importStudentProfilesToDatabase(prev, records, mode));
   };
 
   if (route === '/') {
@@ -100,7 +177,13 @@ export default function AppShell({ route }: { route: AppRoute }) {
   }
 
   if (route === '/login') {
-    return <LoginPage onLogin={setUser} />;
+    return (
+      <LoginPage
+        onLogin={setUser}
+        registeredStudentInscriptions={registeredStudentInscriptions}
+        onboardingStudentInscriptions={onboardingStudentInscriptions}
+      />
+    );
   }
 
   if (!isHydrated) {
@@ -111,19 +194,28 @@ export default function AppShell({ route }: { route: AppRoute }) {
     if (user?.role !== UserRole.STUDENT) {
       return <Redirect to="/login" />;
     }
+    if (!currentStudent) {
+      return <Redirect to="/login" />;
+    }
 
-    return <OnboardingPage user={user} onComplete={addStudent} />;
+    return (
+      <OnboardingPage
+        user={user}
+        student={currentStudent}
+        onComplete={(profilePatch) => updateStudent(currentStudent.id, profilePatch)}
+      />
+    );
   }
 
   if (route === '/student/dashboard' || route === '/student/settings') {
-    if (user?.role !== UserRole.STUDENT) {
+    if (user?.role !== UserRole.STUDENT || !currentStudent) {
       return <Redirect to="/login" />;
     }
     const studentSection = route === '/student/settings' ? 'settings' : 'dashboard';
 
     return (
-      <StudentDashboard
-        student={students.find((s) => s.contact.email === user.email) || null}
+        <StudentDashboard
+        student={currentStudent}
         announcements={announcements}
         onUpdate={updateStudent}
         section={studentSection}

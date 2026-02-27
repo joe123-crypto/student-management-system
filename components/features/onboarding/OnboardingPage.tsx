@@ -7,32 +7,39 @@ import { ArrowLeft, ArrowRight, GraduationCap, Landmark, MapPin, User as UserIco
 
 interface OnboardingPageProps {
   user: User;
-  onComplete: (profile: StudentProfile) => void;
+  student: StudentProfile;
+  onComplete: (profilePatch: Partial<StudentProfile>) => void;
 }
 
 const inputClass =
   'w-full px-5 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all';
+const readOnlyInputClass =
+  'w-full px-5 py-3.5 bg-slate-100/70 border border-slate-200 rounded-2xl text-slate-700';
 
-const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => {
+const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, student, onComplete }) => {
   const [step, setStep] = useState(1);
   const router = useRouter();
 
-  const [formData, setFormData] = useState<Partial<StudentProfile>>({
-    student: { fullName: '', givenName: '', familyName: '', inscriptionNumber: '', dateOfBirth: '', nationality: '', gender: 'M' },
-    passport: { passportNumber: '', issueDate: '', expiryDate: '', issuingCountry: '' },
-    university: { universityName: '', acronym: '', campus: '', city: '' },
-    program: { degreeLevel: '', major: '', startDate: '', expectedEndDate: '' },
-    bankAccount: { accountHolderName: '', accountNumber: '', iban: '', swiftCode: '' },
-    bank: { bankName: '', branchName: '', branchAddress: '', branchCode: '' },
-    contact: { email: user.email, phone: '', emergencyContactName: '', emergencyContactPhone: '' },
-    address: { homeCountryAddress: '', currentHostAddress: '' },
+  const [formData, setFormData] = useState<Pick<StudentProfile, 'bankAccount' | 'bank'>>({
+    bankAccount: {
+      accountHolderName: student.bankAccount.accountHolderName || student.student.fullName,
+      accountNumber: student.bankAccount.accountNumber || '',
+      iban: student.bankAccount.iban || '',
+      swiftCode: student.bankAccount.swiftCode || '',
+    },
+    bank: {
+      bankName: student.bank.bankName || '',
+      branchName: student.bank.branchName || '',
+      branchAddress: student.bank.branchAddress || '',
+      branchCode: student.bank.branchCode || '',
+    },
   });
 
-  const updateField = (section: keyof StudentProfile, field: string, value: string) => {
+  const updateField = (section: 'bankAccount' | 'bank', field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [section]: {
-        ...((prev[section] as Record<string, unknown> | undefined) ?? {}),
+        ...prev[section],
         [field]: value,
       },
     }));
@@ -42,13 +49,11 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const handleSubmit = () => {
-    const finalProfile: StudentProfile = {
-      ...(formData as StudentProfile),
-      id: Math.random().toString(36).substr(2, 9),
+    onComplete({
+      bank: formData.bank,
+      bankAccount: formData.bankAccount,
       status: 'ACTIVE',
-    };
-
-    onComplete(finalProfile);
+    });
     router.push('/student/dashboard');
   };
 
@@ -56,7 +61,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
     { id: 1, title: 'Personal Details' },
     { id: 2, title: 'Academic Info' },
     { id: 3, title: 'Bank Records' },
-    { id: 4, title: 'Contact & Address' },
+    { id: 4, title: 'Review Details' },
   ];
 
   return (
@@ -86,41 +91,41 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                 <FormField label="Full Name">
                   <input
                     type="text"
-                    className={inputClass}
-                    value={formData.student?.fullName}
-                    onChange={(e) => updateField('student', 'fullName', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.student.fullName}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Inscription No.">
                   <input
                     type="text"
-                    className={inputClass}
-                    value={formData.student?.inscriptionNumber}
-                    onChange={(e) => updateField('student', 'inscriptionNumber', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.student.inscriptionNumber}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Passport Number">
                   <input
                     type="text"
-                    className={inputClass}
-                    value={formData.passport?.passportNumber}
-                    onChange={(e) => updateField('passport', 'passportNumber', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.passport.passportNumber}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Passport Expiry">
                   <input
                     type="date"
-                    className={inputClass}
-                    value={formData.passport?.expiryDate}
-                    onChange={(e) => updateField('passport', 'expiryDate', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.passport.expiryDate}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Passport Issue Date">
                   <input
                     type="date"
-                    className={inputClass}
-                    value={formData.passport?.issueDate}
-                    onChange={(e) => updateField('passport', 'issueDate', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.passport.issueDate}
+                    readOnly
                   />
                 </FormField>
                 <div className="flex justify-end">
@@ -143,39 +148,42 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                 <FormField label="University Name">
                   <input
                     type="text"
-                    className={inputClass}
-                    value={formData.university?.universityName}
-                    onChange={(e) => updateField('university', 'universityName', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.university.universityName}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Acronym">
                   <input
                     type="text"
-                    placeholder="e.g. MIT"
-                    className={inputClass}
-                    value={formData.university?.acronym}
-                    onChange={(e) => updateField('university', 'acronym', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.university.acronym}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Program / Major">
                   <input
                     type="text"
-                    className={inputClass}
-                    value={formData.program?.major}
-                    onChange={(e) => updateField('program', 'major', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.program.major}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Degree Level">
-                  <select
-                    className={inputClass}
-                    value={formData.program?.degreeLevel}
-                    onChange={(e) => updateField('program', 'degreeLevel', e.target.value)}
-                  >
-                    <option value="">Select level</option>
-                    <option value="Bachelors">Bachelors</option>
-                    <option value="Masters">Masters</option>
-                    <option value="PhD">PhD</option>
-                  </select>
+                  <input
+                    type="text"
+                    className={readOnlyInputClass}
+                    value={student.program.degreeLevel}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="Department" className="md:col-span-2">
+                  <input
+                    type="text"
+                    className={readOnlyInputClass}
+                    value={student.university.department || 'N/A'}
+                    readOnly
+                  />
                 </FormField>
                 <div className="col-span-2 pt-6 flex items-center justify-between">
                   <Button onClick={prevStep} variant="secondary" className="px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-600">
@@ -202,7 +210,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                   <input
                     type="text"
                     className={inputClass}
-                    value={formData.bank?.bankName}
+                    value={formData.bank.bankName}
                     onChange={(e) => updateField('bank', 'bankName', e.target.value)}
                   />
                 </FormField>
@@ -210,7 +218,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                   <input
                     type="text"
                     className={inputClass}
-                    value={formData.bankAccount?.accountNumber}
+                    value={formData.bankAccount.accountNumber}
                     onChange={(e) => updateField('bankAccount', 'accountNumber', e.target.value)}
                   />
                 </FormField>
@@ -218,7 +226,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                   <input
                     type="text"
                     className={inputClass}
-                    value={formData.bankAccount?.iban}
+                    value={formData.bankAccount.iban}
                     onChange={(e) => updateField('bankAccount', 'iban', e.target.value)}
                   />
                 </FormField>
@@ -226,7 +234,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                   <input
                     type="text"
                     className={inputClass}
-                    value={formData.bank?.branchCode}
+                    value={formData.bank.branchCode}
                     onChange={(e) => updateField('bank', 'branchCode', e.target.value)}
                   />
                 </FormField>
@@ -234,8 +242,24 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                   <input
                     type="text"
                     className={inputClass}
-                    value={formData.bank?.branchAddress}
+                    value={formData.bank.branchAddress}
                     onChange={(e) => updateField('bank', 'branchAddress', e.target.value)}
+                  />
+                </FormField>
+                <FormField label="Branch Name">
+                  <input
+                    type="text"
+                    className={inputClass}
+                    value={formData.bank.branchName}
+                    onChange={(e) => updateField('bank', 'branchName', e.target.value)}
+                  />
+                </FormField>
+                <FormField label="Account Holder Name">
+                  <input
+                    type="text"
+                    className={inputClass}
+                    value={formData.bankAccount.accountHolderName}
+                    onChange={(e) => updateField('bankAccount', 'accountHolderName', e.target.value)}
                   />
                 </FormField>
                 <div className="col-span-2 pt-6 flex items-center justify-between">
@@ -261,31 +285,31 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
             <div className="space-y-8">
               <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
                 <MapPin className="w-6 h-6 text-indigo-600" />
-                Contact & Address
+                Review Record
               </h2>
-              <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
-                <FormField label="Phone Number">
-                  <input
-                    type="tel"
-                    className={inputClass}
-                    value={formData.contact?.phone}
-                    onChange={(e) => updateField('contact', 'phone', e.target.value)}
-                  />
-                </FormField>
-                <FormField label="Emergency Contact">
+              <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
+                <FormField label="Email">
                   <input
                     type="text"
-                    className={inputClass}
-                    value={formData.contact?.emergencyContactName}
-                    onChange={(e) => updateField('contact', 'emergencyContactName', e.target.value)}
+                    className={readOnlyInputClass}
+                    value={student.contact.email || user.legacyEmail || '---'}
+                    readOnly
                   />
                 </FormField>
-                <FormField label="Current Address in Host Country" className="col-span-2">
-                  <textarea
-                    className={inputClass}
-                    rows={3}
-                    value={formData.address?.currentHostAddress}
-                    onChange={(e) => updateField('address', 'currentHostAddress', e.target.value)}
+                <FormField label="Phone Number">
+                  <input
+                    type="text"
+                    className={readOnlyInputClass}
+                    value={student.contact.phone || '---'}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="Host Address" className="col-span-2">
+                  <input
+                    type="text"
+                    className={readOnlyInputClass}
+                    value={student.address.currentHostAddress || '---'}
+                    readOnly
                   />
                 </FormField>
                 <div className="col-span-2 pt-6 flex items-center justify-between">
@@ -294,11 +318,8 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, onComplete }) => 
                     Back
                   </Button>
                   <div className="flex items-center gap-6">
-                    <Button onClick={handleSubmit} variant="ghost" className="text-sm font-bold text-slate-400 hover:text-slate-600">
-                      Skip for now
-                    </Button>
                     <Button onClick={handleSubmit} variant="success" className="px-12 py-4 rounded-2xl">
-                      Complete Onboarding
+                      Complete and Continue
                     </Button>
                   </div>
                 </div>
