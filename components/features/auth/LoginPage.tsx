@@ -11,6 +11,7 @@ interface LoginPageProps {
   onLogin: (user: User) => void;
   registeredStudentInscriptions: string[];
   onboardingStudentInscriptions: string[];
+  studentPasswordsByInscription: Record<string, string>;
 }
 
 const roleOptions = [
@@ -18,7 +19,12 @@ const roleOptions = [
   { value: UserRole.ATTACHE, label: 'Attache' },
 ] as const;
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin, registeredStudentInscriptions, onboardingStudentInscriptions }) => {
+const LoginPage: React.FC<LoginPageProps> = ({
+  onLogin,
+  registeredStudentInscriptions,
+  onboardingStudentInscriptions,
+  studentPasswordsByInscription,
+}) => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
@@ -31,17 +37,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, registeredStudentInscrip
     const normalizedEmail = normalizedLoginId.toLowerCase();
     const normalizedInscription = normalizedLoginId.toUpperCase();
 
-    if (
-      role === UserRole.STUDENT &&
-      (normalizedInscription !== MOCK_AUTH_INSCRIPTION || password !== MOCK_AUTH_PASSWORD)
-    ) {
-      alert('Invalid credentials. Use INS-2023-001 / jean');
-      return;
-    }
-
     if (role === UserRole.STUDENT) {
       if (!registeredStudentInscriptions.includes(normalizedInscription)) {
         alert('No student record found for this inscription number. Please contact administration.');
+        return;
+      }
+
+      const expectedPassword =
+        studentPasswordsByInscription[normalizedInscription] || MOCK_AUTH_PASSWORD;
+      if (password !== expectedPassword) {
+        alert('Invalid credentials. Check your inscription number and password.');
         return;
       }
     }
@@ -147,7 +152,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, registeredStudentInscrip
           </form>
 
           <p className="mt-5 text-center text-sm text-slate-400">
-            Already a member? <span className="font-semibold text-indigo-600">Sign in</span>
+            Need access?{' '}
+            <button
+              type="button"
+              onClick={() => router.push('/request-permission')}
+              className="font-semibold text-indigo-600 hover:text-indigo-700"
+            >
+              Request permission
+            </button>
           </p>
         </div>
       </div>

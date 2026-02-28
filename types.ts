@@ -103,6 +103,13 @@ export interface Announcement {
   author: string;
 }
 
+export interface PermissionRequest {
+  id: string;
+  inscriptionNumber: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  submittedAt: string;
+}
+
 export interface User {
   id: string;
   subject: string;

@@ -8,6 +8,7 @@ import { ArrowRight, BarChart3, Bell, CalendarDays, DollarSign, FolderOpen, Glob
 
 const LandingPage: React.FC = () => {
   const router = useRouter();
+  const howItWorksRef = useRef<HTMLDivElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
   const announcementsRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +52,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
-            <a href="#" className="hover:text-indigo-600 transition-colors">
+            <a href="#how-it-works" onClick={(e) => scrollToSection(howItWorksRef, e)} className="hover:text-indigo-600 transition-colors">
               How it works
             </a>
             <a href="#tools" onClick={(e) => scrollToSection(toolsRef, e)} className="hover:text-indigo-600 transition-colors">
@@ -161,6 +162,39 @@ const LandingPage: React.FC = () => {
                 </div>
                 <div className="w-full h-1 bg-indigo-600 rounded-full mb-2" />
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress to Degree</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="how-it-works" ref={howItWorksRef} className="mb-24 scroll-mt-24">
+            <div className="bg-white/70 backdrop-blur-md border border-white/70 rounded-[2.5rem] p-6 md:p-10 shadow-[0_25px_80px_rgba(15,23,42,0.07)]">
+              <div className="grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] gap-8 items-center">
+                <div className="rounded-[1.75rem] overflow-hidden border border-slate-200 bg-slate-950 shadow-[0_12px_35px_rgba(15,23,42,0.25)]">
+                  <video controls preload="metadata" className="w-full aspect-video bg-slate-950">
+                    <source src="/videos/how-it-works.mp4" type="video/mp4" />
+                    Your browser does not support video playback.
+                  </video>
+                </div>
+
+                <div className="space-y-5">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-black uppercase tracking-[0.2em]">
+                    Product Tour
+                  </span>
+                  <h2 className="text-3xl font-black text-[#1a1b3a] leading-tight font-quicksand">
+                    See how ScholarSphere works in under two minutes
+                  </h2>
+                  <p className="text-slate-500 font-medium leading-relaxed">
+                    Watch a quick walkthrough of login, profile setup, scholarship tracking, and announcements in one place.
+                  </p>
+                  <Button
+                    onClick={() => router.push('/login')}
+                    variant="ghost"
+                    className="px-0 text-indigo-600 font-bold hover:text-indigo-700 hover:bg-transparent"
+                  >
+                    Open the app
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
