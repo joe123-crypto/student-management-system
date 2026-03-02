@@ -1,20 +1,10 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+Student Platform
+================
 
-# Run and deploy your AI Studio app
+**To understand how this application works, including architecture, routing, data model, and feature breakdown, read `docs/README.md`.**
 
-This contains everything you need to run your app locally.
+That document is the **single source of truth** for internal architecture and should be **kept up to date after every meaningful code change**. Whenever you:
 
-View your app in AI Studio: https://ai.studio/apps/drive/1NBRSvlRRF-9Poq4FPtss7XQl_6Nn6fr3
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- Add or change routes
+- Introduce new feature areas or major components
+- Modify data models, storage hooks, or core flows
