@@ -15,7 +15,7 @@ const Footer: React.FC = () => {
               <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
                 <span className="text-white font-bold text-xl">S</span>
               </div>
-              <h1 className="text-2xl font-black text-[#1a1b3a] tracking-tight font-rounded">ScholarSphere</h1>
+              <h1 className="text-2xl font-black text-[#1a1b3a] tracking-tight font-rounded">ScholarsAlger</h1>
             </div>
             {/* Description removed as per requested edit */}
           </div>
@@ -43,7 +43,7 @@ const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-            © {new Date().getFullYear()} ScholarSphere. All rights reserved.
+            © {new Date().getFullYear()} ScholarsAlger. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-slate-400 hover:text-slate-900 transition-colors">

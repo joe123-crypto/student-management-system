@@ -48,7 +48,7 @@ const LandingPage: React.FC = () => {
         <nav className="max-w-5xl mx-auto h-16 px-6 bg-white border border-slate-200 rounded-full flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">S</div>
-            <span className="text-xl font-bold tracking-tight">ScholarSphere</span>
+            <span className="text-xl font-bold tracking-tight">ScholarsAlger</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
@@ -80,11 +80,11 @@ const LandingPage: React.FC = () => {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full">
                 <Globe2 className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Trusted by 1 governments</span>
+                <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">trusted by 400+ students</span>
               </div>
 
               <h1 className="text-4xl md:text-6xl font-bold text-[#1a1b3a] leading-[1.2] tracking-tight font-quicksand">
-                Manage <span className="inline-block px-4 py-1 bg-indigo-600 text-white rounded-2xl shadow-sm">Scholarships</span> and digital details in minutes
+                The <span className="inline-block px-4 py-1 bg-indigo-600 text-white rounded-2xl shadow-sm">Central</span> support platform for students in Algeria
               </h1>
 
               <p className="text-lg text-slate-500 max-w-lg leading-relaxed font-medium">
@@ -181,7 +181,7 @@ const LandingPage: React.FC = () => {
                     Product Tour
                   </span>
                   <h2 className="text-3xl font-black text-[#1a1b3a] leading-tight font-quicksand">
-                    See how ScholarSphere works in under two minutes
+                    See how ScholarsAlger works in under two minutes
                   </h2>
                   <p className="text-slate-500 font-medium leading-relaxed">
                     Watch a quick walkthrough of login, profile setup, scholarship tracking, and announcements in one place.

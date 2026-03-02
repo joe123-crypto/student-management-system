@@ -59,7 +59,7 @@ const Layout: React.FC<LayoutProps> = ({
               <span className={`${isSidebarExpanded ? 'text-xl' : 'text-lg'} text-white font-bold`}>S</span>
             </div>
             {isSidebarExpanded ? (
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight font-rounded">ScholarSphere</h1>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight font-rounded">ScholarsAlger</h1>
             ) : null}
           </div>
           {isSidebarExpanded ? (
@@ -94,11 +94,10 @@ const Layout: React.FC<LayoutProps> = ({
           <button
             onClick={() => setActiveTab?.(dashboardHomeTab)}
             title="Dashboard Home"
-            className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-4 py-3.5' : 'justify-center px-2 py-2.5'} text-sm font-semibold transition-all rounded-xl ${
-              isDashboardHomeActive
+            className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-4 py-3.5' : 'justify-center px-2 py-2.5'} text-sm font-semibold transition-all rounded-xl ${isDashboardHomeActive
                 ? 'text-indigo-600 bg-indigo-50/50 border-r-4 border-indigo-600'
                 : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+              }`}
           >
             <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : ''}`}>
               <Home className="w-5 h-5" />
@@ -110,11 +109,10 @@ const Layout: React.FC<LayoutProps> = ({
             <button
               onClick={() => setActiveTab?.('settings')}
               title="Settings"
-              className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-4 py-3.5' : 'justify-center px-2 py-2.5'} text-sm font-semibold transition-all rounded-xl ${
-                activeTab === 'settings'
+              className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-4 py-3.5' : 'justify-center px-2 py-2.5'} text-sm font-semibold transition-all rounded-xl ${activeTab === 'settings'
                   ? 'text-indigo-600 bg-indigo-50/50 border-r-4 border-indigo-600'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-              }`}
+                }`}
             >
               <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : ''}`}>
                 <Settings className="w-5 h-5" />
@@ -174,7 +172,7 @@ const Layout: React.FC<LayoutProps> = ({
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">S</span>
               </div>
-              <h1 className="text-lg font-bold text-slate-900 tracking-tight font-rounded">ScholarSphere</h1>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight font-rounded">ScholarsAlger</h1>
             </div>
             <Button onClick={onLogout} variant="ghost" className="p-2 text-red-500">
               <LogOut className="w-6 h-6" />
@@ -199,7 +197,7 @@ const Layout: React.FC<LayoutProps> = ({
         </main>
 
         <footer className="py-10 text-center">
-          <p className="text-sm text-slate-400 font-medium">&copy; {new Date().getFullYear()} ScholarSphere. All rights reserved.</p>
+          <p className="text-sm text-slate-400 font-medium">&copy; {new Date().getFullYear()} ScholarsAlger. All rights reserved.</p>
         </footer>
       </div>
     </div>

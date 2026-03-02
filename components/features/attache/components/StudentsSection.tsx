@@ -228,14 +228,6 @@ export default function StudentsSection({ students, onDeleteStudents }: Students
         </div>
 
         <aside className="hidden md:block xl:sticky xl:top-24 space-y-4">
-          <SavedViewsBar
-            views={savedViews}
-            activeViewId={activeSavedViewId}
-            onApply={applySavedView}
-            onDelete={deleteSavedView}
-            onSaveCurrent={saveCurrentView}
-            compact
-          />
           <StudentAdvancedFilters
             query={query}
             universities={uniqueUniversities}

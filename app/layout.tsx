@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ScholarSphere',
+  title: 'ScholarsAlger',
   description: 'Scholarship and student management platform',
 };
 
