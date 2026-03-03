@@ -149,7 +149,7 @@ Data model and persistence
     - Hydrates `authPasswords` (per-student password map) from `localStorage['auth_passwords_v1']`.
   - Derives:
     - `currentStudent` – by matching `user.loginId` against student inscription or email.
-    - `studentPasswordsByInscription` - the password map sourced from `localStorage['auth_passwords_v1']`.
+    - `studentPasswordsByInscription` - password map sourced from `localStorage['auth_passwords_v1']` with optional demo fallback when `NEXT_PUBLIC_DEMO_MODE=true`.
   - Exposes:
     - `user`, `setUser`
     - `currentStudent`
@@ -195,6 +195,7 @@ Feature areas and where to look
     - `onLogin(user)` callback from `AppShell`/`PublicAppRouter`.
     - `registeredStudentInscriptions`, `onboardingStudentInscriptions`, and `studentPasswordsByInscription`.
     - `attachePassword` (from `NEXT_PUBLIC_ATTACHE_PASSWORD`) for attache sign-in validation.
+    - `demoMode` (from `NEXT_PUBLIC_DEMO_MODE`) to allow demo auth fallback before backend integration.
   - Redirects:
     - Students → `'/student/dashboard'` or `'/onboarding'` based on whether bank details are complete.
     - Attaches → `'/attache/dashboard'`.

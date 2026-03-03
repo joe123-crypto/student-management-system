@@ -6,6 +6,7 @@ import { UserRole } from '@/types';
 import { getFromStorage } from '@/components/app/hooks/storage';
 
 const AUTH_PASSWORDS_STORAGE_KEY = 'auth_passwords_v1';
+const DEMO_AUTH_PASSWORD = 'jean';
 
 type AuthPasswordStore = Record<string, string>;
 
@@ -55,7 +56,7 @@ function normalizeStoredAuthPasswords(raw: unknown): AuthPasswordStore {
   }, {});
 }
 
-export function useAuth(students: StudentProfile[]) {
+export function useAuth(students: StudentProfile[], demoMode = false) {
   const [user, setUser] = useState<User | null>(null);
   const [authPasswords, setAuthPasswords] = useState<AuthPasswordStore>({});
   const [isHydrated, setIsHydrated] = useState(false);
@@ -78,10 +79,10 @@ export function useAuth(students: StudentProfile[]) {
       students.reduce<Record<string, string>>((acc, student) => {
         const inscription = student.student.inscriptionNumber.toUpperCase();
         const key = `student:${inscription}`;
-        acc[inscription] = authPasswords[key] || '';
+        acc[inscription] = authPasswords[key] || (demoMode ? DEMO_AUTH_PASSWORD : '');
         return acc;
       }, {}),
-    [students, authPasswords],
+    [students, authPasswords, demoMode],
   );
 
   useEffect(() => {
@@ -118,7 +119,7 @@ export function useAuth(students: StudentProfile[]) {
 
     const inscription = currentStudent.student.inscriptionNumber.toUpperCase();
     const subjectKey = `student:${inscription}`;
-    const expectedPassword = authPasswords[subjectKey];
+    const expectedPassword = authPasswords[subjectKey] || (demoMode ? DEMO_AUTH_PASSWORD : '');
     if (!expectedPassword) {
       return { ok: false, message: 'Password is not configured for this account. Contact administration.' };
     }

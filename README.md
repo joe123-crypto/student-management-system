@@ -1,7 +1,9 @@
 Student Platform
 ================
 
-Production note: set `NEXT_PUBLIC_ATTACHE_PASSWORD` in your environment before running the app, or attache sign-in will be disabled.
+Auth mode:
+- Production: set `NEXT_PUBLIC_DEMO_MODE=false` and provide `NEXT_PUBLIC_ATTACHE_PASSWORD`.
+- Demo: set `NEXT_PUBLIC_DEMO_MODE=true` to enable demo credential fallbacks (for pre-backend demonstrations).
 
 **To understand how this application works, including architecture, routing, data model, and feature breakdown, read `docs/README.md`.**
 

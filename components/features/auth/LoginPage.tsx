@@ -12,12 +12,15 @@ interface LoginPageProps {
   onboardingStudentInscriptions: string[];
   studentPasswordsByInscription: Record<string, string>;
   attachePassword: string;
+  demoMode: boolean;
 }
 
 const roleOptions = [
   { value: UserRole.STUDENT, label: 'Student' },
   { value: UserRole.ATTACHE, label: 'Attache' },
 ] as const;
+const DEMO_AUTH_PASSWORD = 'jean';
+const DEMO_ATTACHE_EMAIL = 'attache@example.com';
 
 const LoginPage: React.FC<LoginPageProps> = ({
   onLogin,
@@ -25,6 +28,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
   onboardingStudentInscriptions,
   studentPasswordsByInscription,
   attachePassword,
+  demoMode,
 }) => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
   const [loginId, setLoginId] = useState('');
@@ -44,7 +48,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
         return;
       }
 
-      const expectedPassword = studentPasswordsByInscription[normalizedInscription];
+      const expectedPassword = studentPasswordsByInscription[normalizedInscription] || (demoMode ? DEMO_AUTH_PASSWORD : '');
       if (!expectedPassword) {
         alert('Student password is not configured. Please contact administration.');
         return;
@@ -54,15 +58,16 @@ const LoginPage: React.FC<LoginPageProps> = ({
         return;
       }
     } else {
-      if (!normalizedEmail || !normalizedEmail.includes('@')) {
+      if (!demoMode && (!normalizedEmail || !normalizedEmail.includes('@'))) {
         alert('Enter a valid attache email.');
         return;
       }
-      if (!attachePassword) {
+      const expectedAttachePassword = attachePassword || (demoMode ? DEMO_AUTH_PASSWORD : '');
+      if (!expectedAttachePassword) {
         alert('Attache sign-in is not configured.');
         return;
       }
-      if (password !== attachePassword) {
+      if (password !== expectedAttachePassword) {
         alert('Invalid credentials.');
         return;
       }
@@ -71,9 +76,9 @@ const LoginPage: React.FC<LoginPageProps> = ({
     const user: User = {
       id: Math.random().toString(36).slice(2, 11),
       subject: role === UserRole.STUDENT ? `student:${normalizedInscription}` : 'attache:default',
-      loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail,
+      loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail || DEMO_ATTACHE_EMAIL,
       authProvider: role === UserRole.STUDENT ? 'student_inscription' : 'attache_email',
-      legacyEmail: role === UserRole.STUDENT ? undefined : normalizedEmail,
+      legacyEmail: role === UserRole.STUDENT ? undefined : normalizedEmail || DEMO_ATTACHE_EMAIL,
       role,
     };
 
