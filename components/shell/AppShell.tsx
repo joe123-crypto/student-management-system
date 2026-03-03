@@ -2,15 +2,15 @@
 
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Redirect from '@/components/app/Redirect';
-import type { AppRoute } from '@/components/app/routes';
-import { useAnnouncements } from '@/components/app/hooks/useAnnouncements';
-import { useAuth } from '@/components/app/hooks/useAuth';
-import { usePermissionRequests } from '@/components/app/hooks/usePermissionRequests';
-import { usePrototypeDatabase } from '@/components/app/hooks/usePrototypeDatabase';
-import AttacheAppRouter from '@/components/app/routers/AttacheAppRouter';
-import PublicAppRouter from '@/components/app/routers/PublicAppRouter';
-import StudentAppRouter from '@/components/app/routers/StudentAppRouter';
+import Redirect from '@/components/shell/Redirect';
+import type { AppRoute } from '@/components/shell/routes';
+import { useAnnouncements } from '@/components/shell/domains/announcements/useAnnouncements';
+import { useAuth } from '@/components/shell/domains/auth/useAuth';
+import { usePermissionRequests } from '@/components/shell/domains/permissions/usePermissionRequests';
+import { usePrototypeDatabase } from '@/components/shell/domains/students/usePrototypeDatabase';
+import AttacheAppRouter from '@/components/shell/routers/AttacheAppRouter';
+import PublicAppRouter from '@/components/shell/routers/PublicAppRouter';
+import StudentAppRouter from '@/components/shell/routers/StudentAppRouter';
 
 export default function AppShell({ route }: { route: AppRoute }) {
   const router = useRouter();
@@ -113,3 +113,4 @@ export default function AppShell({ route }: { route: AppRoute }) {
 
   return <Redirect to="/" />;
 }
+

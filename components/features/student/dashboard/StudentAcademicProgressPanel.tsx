@@ -15,22 +15,22 @@ const StudentAcademicProgressPanel: React.FC<StudentAcademicProgressPanelProps> 
   onStartUpdate,
 }) => {
   return (
-    <div className="relative min-h-[500px] overflow-hidden rounded-[2.5rem] border border-slate-100 bg-white p-10 shadow-sm transition-all">
-      <div className="mb-10 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+    <div className="relative min-h-[500px] overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm transition-all sm:rounded-[2.5rem] sm:p-10">
+      <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4 sm:gap-6">
           <h4 className="font-rounded text-2xl font-black text-[#1a1b3a]">Progress</h4>
           <Button size="sm" className="text-[10px] uppercase tracking-widest" onClick={onStartUpdate}>
             Update
           </Button>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-600">
+        <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-600">
           <div className="h-2 w-2 animate-pulse rounded-full bg-indigo-600" />
           Real-time Data
         </div>
       </div>
 
-      <div className="space-y-12">
-        <div className="h-80 w-full">
+      <div className="space-y-8 sm:space-y-12">
+        <div className="h-64 w-full sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={PROGRESS_DATA}>
               <defs>

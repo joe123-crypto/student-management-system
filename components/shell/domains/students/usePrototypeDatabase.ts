@@ -10,8 +10,8 @@ import {
   PROTOTYPE_DATABASE_STORAGE_KEY,
   type PrototypeDatabase,
   updateStudentProfileInDatabase,
-} from '@/data/prototypeDatabase';
-import { getFromStorage } from '@/components/app/hooks/storage';
+} from '@/mock/prototypeDatabase';
+import { getFromStorage } from '@/components/shell/shared/storage';
 
 export function usePrototypeDatabase() {
   const [database, setDatabase] = useState<PrototypeDatabase>(createPrototypeDatabase());
@@ -53,3 +53,4 @@ export function usePrototypeDatabase() {
     isHydrated,
   };
 }
+

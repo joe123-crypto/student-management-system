@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
-import { getFromStorage } from '@/components/app/hooks/storage';
+import { getFromStorage } from '@/components/shell/shared/storage';
 
 const AUTH_PASSWORDS_STORAGE_KEY = 'auth_passwords_v1';
 const DEMO_AUTH_PASSWORD = 'jean';
@@ -140,3 +140,4 @@ export function useAuth(students: StudentProfile[], demoMode = false) {
     isHydrated,
   };
 }
+

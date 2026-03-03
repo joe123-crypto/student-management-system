@@ -1,5 +1,6 @@
-import AppShell from '@/components/app/AppShell';
+import AppShell from '@/components/shell/AppShell';
 
 export default function LoginRoutePage() {
   return <AppShell route="/login" />;
 }
+

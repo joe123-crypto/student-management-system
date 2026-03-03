@@ -2,7 +2,7 @@
 
 import type { Announcement, PermissionRequest, StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
-import Redirect from '@/components/app/Redirect';
+import Redirect from '@/components/shell/Redirect';
 import AttacheDashboard from '@/components/features/attache/AttacheeDashboard';
 
 interface AttacheAppRouterProps {
@@ -49,3 +49,4 @@ export default function AttacheAppRouter({
     />
   );
 }
+

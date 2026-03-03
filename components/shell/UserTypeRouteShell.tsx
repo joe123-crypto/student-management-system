@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import AppShell from '@/components/app/AppShell';
+import AppShell from '@/components/shell/AppShell';
 
 interface UserTypeRouteShellProps {
   userType: 'student' | 'attache';
@@ -17,3 +17,4 @@ export default function UserTypeRouteShell({ userType }: UserTypeRouteShellProps
 
   return <AppShell route={section === 'settings' ? '/attache/settings' : '/attache/dashboard'} />;
 }
+

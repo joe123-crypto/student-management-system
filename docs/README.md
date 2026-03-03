@@ -16,12 +16,12 @@ High-level overview
 You can think of the app as:
 
 - **`app/`**: Thin Next.js pages that mount the internal router shell.
-- **`components/app/`**: Core app shell, routing, guards, and state hooks.
+- **`components/shell/`**: Core app shell, routing, guards, and state hooks.
 - **`components/features/*`**: Feature-specific UIs (student, attache, onboarding, auth, landing).
 - **`components/layout/` & `components/ui/`**: Layout chrome and shared UI primitives.
-- **`data/`**: In-browser “database” and mappings.
+- **`mock/`**: In-browser “database” and mappings.
 
-If you want to understand how the user moves through the app, start at **`app/page.tsx` → `components/app/AppShell.tsx`**.
+If you want to understand how the user moves through the app, start at **`app/page.tsx` → `components/shell/AppShell.tsx`**.
 
 ---
 
@@ -30,11 +30,11 @@ Routing and navigation
 
 **Where routing is defined**
 
-- `components/app/routes.ts`
+- `components/shell/routes.ts`
   - Declares the allowed route strings via `AppRoute` (e.g. `'/'`, `'/login'`, `'/student/dashboard'`, `'/attache/settings'`, etc.).
   - This is the **single source of truth** for logical routes used by the internal router.
 
-- `components/app/AppShell.tsx`
+- `components/shell/AppShell.tsx`
   - The central **client-side router shell**. It:
     - Hydrates all local state (database, announcements, permission requests, auth).
     - Decides **which router** to render based on `route: AppRoute`:
@@ -43,14 +43,14 @@ Routing and navigation
       - Attache routes → `AttacheAppRouter`
     - Redirects to `'/'` if it receives an unknown route.
 
-- `components/app/routers/PublicAppRouter.tsx`
+- `components/shell/routers/PublicAppRouter.tsx`
   - Handles:
     - `'/'` → `components/features/landing/LandingPage.tsx`
     - `'/login'` → `components/features/auth/LoginPage.tsx`
     - `'/request-permission'` → `components/features/auth/PermissionRequestPage.tsx`
   - Wires callbacks for login and permission requests.
 
-- `components/app/routers/StudentAppRouter.tsx`
+- `components/shell/routers/StudentAppRouter.tsx`
   - Handles:
     - `'/onboarding'`
     - `'/student/dashboard'`
@@ -58,14 +58,14 @@ Routing and navigation
   - Enforces **student auth guard** using `user` and `currentStudent` from `useAuth`.
   - Routes into `components/features/student/StudentDashboard.tsx` and `components/features/onboarding/OnboardingPage.tsx`.
 
-- `components/app/routers/AttacheAppRouter.tsx`
+- `components/shell/routers/AttacheAppRouter.tsx`
   - Handles:
     - `'/attache/dashboard'`
     - `'/attache/settings'`
   - Enforces **attache auth guard** based on `user.role`.
   - Routes into `components/features/attache/AttacheeDashboard.tsx`.
 
-- `components/app/Redirect.tsx`
+- `components/shell/Redirect.tsx`
   - Simple helper component that immediately calls `router.replace(to)`.
   - Used by routers to perform guarded redirects (e.g. unauthenticated users → `/login`).
 
@@ -94,7 +94,7 @@ Routing and navigation
 
 If you add a new high-level route, you usually:
 
-1. Extend `AppRoute` in `components/app/routes.ts`.
+1. Extend `AppRoute` in `components/shell/routes.ts`.
 2. Extend `AppShell` and the appropriate router (public/student/attache).
 3. Optionally add a new `app/.../page.tsx` wrapper that passes the new route string into `AppShell`.
 
@@ -112,7 +112,7 @@ Data model and persistence
 
 **Prototype “database” (client-side)**
 
-- `data/prototypeDatabase.ts`
+- `mock/prototypeDatabase.ts`
   - Defines a normalized “database” schema (`PrototypeDatabase`) with many tables:
     - Examples: `PERSON`, `STUDENT`, `PASSPORT`, `UNIVERSITY`, `PROGRAM`, `PROGRESS`, `BANK`, `ACCOUNT`, etc.
   - Contains `INITIAL_DATABASE` – the seeded dataset.
@@ -126,11 +126,11 @@ Data model and persistence
 
 **Storage utilities and hooks**
 
-- `components/app/hooks/storage.ts`
+- `components/shell/shared/storage.ts`
   - `getFromStorage<T>(key, fallback)` – safe `localStorage` JSON read with fallback and SSR-safety.
   - Shared by all storage-backed hooks.
 
-- `components/app/hooks/usePrototypeDatabase.ts`
+- `components/shell/domains/students/usePrototypeDatabase.ts`
   - Owns the **student data store**:
     - Hydrates a `database` from `localStorage['prototype_database_v1']` or builds a new one.
     - Derives `students: StudentProfile[]` via `getStudentProfilesFromDatabase`.
@@ -143,7 +143,7 @@ Data model and persistence
     - `isHydrated`
   - This is the main place to look for **CRUD operations on student records**.
 
-- `components/app/hooks/useAuth.ts`
+- `components/shell/domains/auth/useAuth.ts`
   - Owns **authentication/session state**:
     - Hydrates `user` from `localStorage['user']`.
     - Hydrates `authPasswords` (per-student password map) from `localStorage['auth_passwords_v1']`.
@@ -157,12 +157,12 @@ Data model and persistence
     - `changeStudentPassword(currentPassword, newPassword)`
   - This hook plus the routers implement the **auth guards**.
 
-- `components/app/hooks/useAnnouncements.ts`
+- `components/shell/domains/announcements/useAnnouncements.ts`
   - Manages `announcements: Announcement[]` and `isHydrated`.
   - Hydrates from `localStorage['announcements']` or a mock constant.
   - Exposes `addAnnouncement`.
 
-- `components/app/hooks/usePermissionRequests.ts`
+- `components/shell/domains/permissions/usePermissionRequests.ts`
   - Manages `permissionRequests: PermissionRequest[]` and `isHydrated`.
   - Hydrates from `localStorage['permission_requests_v1']`.
   - Exposes:
@@ -209,11 +209,11 @@ Feature areas and where to look
 
 **Auth guards (where access control happens)**
 
-- `components/app/routers/StudentAppRouter.tsx`
+- `components/shell/routers/StudentAppRouter.tsx`
   - Checks `user.role === STUDENT` and `currentStudent` before rendering any student views.
   - Redirects unauthenticated users to `'/login'`.
 
-- `components/app/routers/AttacheAppRouter.tsx`
+- `components/shell/routers/AttacheAppRouter.tsx`
   - Checks `user.role === ATTACHE`.
   - Redirects unauthenticated users to `'/login'`.
 
@@ -355,18 +355,18 @@ Quick lookup – “where is X?”
 - **Student dashboard UI & logic**
   - Container: `components/features/student/StudentDashboard.tsx`
   - Panels: `components/features/student/dashboard/*`
-  - Data updates: `components/app/hooks/usePrototypeDatabase.ts` + `data/prototypeDatabase.ts`
+  - Data updates: `components/shell/domains/students/usePrototypeDatabase.ts` + `mock/prototypeDatabase.ts`
 
 - **Student onboarding flow**
   - Flow: `components/features/onboarding/OnboardingPage.tsx`
   - Steps: `components/features/onboarding/components/*`
-  - Route wiring: `components/app/routers/StudentAppRouter.tsx` (for `'/onboarding'`)
+  - Route wiring: `components/shell/routers/StudentAppRouter.tsx` (for `'/onboarding'`)
 
 - **Authentication + guards**
-  - Auth state: `components/app/hooks/useAuth.ts`
-  - Student guards: `components/app/routers/StudentAppRouter.tsx`
-  - Attache guards: `components/app/routers/AttacheAppRouter.tsx`
-  - Redirect helper: `components/app/Redirect.tsx`
+  - Auth state: `components/shell/domains/auth/useAuth.ts`
+  - Student guards: `components/shell/routers/StudentAppRouter.tsx`
+  - Attache guards: `components/shell/routers/AttacheAppRouter.tsx`
+  - Redirect helper: `components/shell/Redirect.tsx`
 
 - **Attache dashboards & student management**
   - Container: `components/features/attache/AttacheeDashboard.tsx`
@@ -376,24 +376,26 @@ Quick lookup – “where is X?”
 
 - **Announcements**
   - Types: `types.ts`
-  - State: `components/app/hooks/useAnnouncements.ts`
+  - State: `components/shell/domains/announcements/useAnnouncements.ts`
   - Shared UI: `components/features/shared/announcements/AnnouncementSections.tsx`
   - Landing usage: `components/features/landing/LandingPage.tsx`
 
 - **Permission requests**
-  - State: `components/app/hooks/usePermissionRequests.ts`
+  - State: `components/shell/domains/permissions/usePermissionRequests.ts`
   - Student UI: `components/features/auth/PermissionRequestPage.tsx`
   - Attache list UI: `components/features/attache/components/PermissionRequestsSection.tsx`
 
 - **Data model & “API-like” layer**
   - Types/interfaces: `types.ts`
-  - DB schema & mapping: `data/prototypeDatabase.ts`
-  - Access hook: `components/app/hooks/usePrototypeDatabase.ts`
+  - DB schema & mapping: `mock/prototypeDatabase.ts`
+  - Access hook: `components/shell/domains/students/usePrototypeDatabase.ts`
 
 - **Layout wrappers**
   - Authenticated shell: `components/layout/Layout.tsx`
   - Public footer: `components/layout/Footer.tsx`
 
 This should give you enough orientation to quickly locate any piece of logic or UI and extend the Student Platform safely.
+
+
 
 

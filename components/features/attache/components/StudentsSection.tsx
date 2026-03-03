@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import type { StudentProfile } from '@/types';
-import SavedViewsBar from '@/components/features/attache/components/SavedViewsBar';
 import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
 import StudentAdvancedFilters from '@/components/features/attache/components/StudentAdvancedFilters';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
@@ -11,7 +10,7 @@ import CommunicationCenter from '@/components/features/attache/components/Commun
 import StudentDetailView from '@/components/features/attache/components/StudentDetailView';
 import ExportRecordsModal from '@/components/features/attache/components/ExportRecordsModal';
 import type { CommunicationLogEntry } from '@/components/features/attache/types';
-import useSavedViews from '@/components/features/attache/hooks/useSavedViews';
+import useStudentFilters from '@/components/features/attache/hooks/useStudentFilters';
 import useStudentSelection from '@/components/features/attache/hooks/useStudentSelection';
 import useStudentTable from '@/components/features/attache/hooks/useStudentTable';
 import useStudentExports from '@/components/features/attache/hooks/useStudentExports';
@@ -28,7 +27,6 @@ interface StudentsSectionProps {
   onDeleteStudents: (studentIds: string[]) => void;
 }
 
-const SAVED_VIEWS_KEY = 'attache_saved_views';
 const DEFAULT_REPORT_COLUMNS = ['fullName', 'email', 'inscriptionNumber', 'status', 'university', 'program'];
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 const DEFAULT_PAGE_SIZE = 50;
@@ -41,14 +39,9 @@ export default function StudentsSection({ students, onDeleteStudents }: Students
 
   const {
     query,
-    savedViews,
-    activeSavedViewId,
     updateQuery,
     resetAdvancedFilters,
-    saveCurrentView,
-    applySavedView,
-    deleteSavedView,
-  } = useSavedViews(SAVED_VIEWS_KEY, DEFAULT_STUDENT_QUERY);
+  } = useStudentFilters(DEFAULT_STUDENT_QUERY);
 
   const duplicateGroups = useMemo(() => getDuplicateGroups(students), [students]);
   const duplicateStudentIds = useMemo(

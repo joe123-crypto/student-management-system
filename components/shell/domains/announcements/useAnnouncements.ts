@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Announcement } from '@/types';
 import { MOCK_ANNOUNCEMENTS } from '@/constants';
-import { getFromStorage } from '@/components/app/hooks/storage';
+import { getFromStorage } from '@/components/shell/shared/storage';
 
 const ANNOUNCEMENTS_STORAGE_KEY = 'announcements';
 
@@ -34,3 +34,4 @@ export function useAnnouncements() {
     isHydrated,
   };
 }
+

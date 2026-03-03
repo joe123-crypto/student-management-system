@@ -206,6 +206,3 @@ export function downloadFile(filename: string, mimeType: string, content: string
   document.body.removeChild(link);
 }
 
-export function downloadCsv(filename: string, csv: string): void {
-  downloadFile(filename, 'text/csv', csv);
-}

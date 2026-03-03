@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { PermissionRequest } from '@/types';
-import { getFromStorage } from '@/components/app/hooks/storage';
+import { getFromStorage } from '@/components/shell/shared/storage';
 
 const PERMISSION_REQUESTS_STORAGE_KEY = 'permission_requests_v1';
 
@@ -77,3 +77,4 @@ export function usePermissionRequests() {
     isHydrated,
   };
 }
+

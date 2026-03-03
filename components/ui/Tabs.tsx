@@ -15,7 +15,7 @@ interface TabsProps<T extends string> {
 
 export default function Tabs<T extends string>({ items, activeTab, onChange, className }: TabsProps<T>) {
   return (
-    <div className={cn('flex gap-6 overflow-x-auto', className)}>
+    <div className={cn('flex gap-3 overflow-x-auto pb-1 sm:gap-6', className)}>
       {items.map((item) => {
         const active = item.id === activeTab;
 
@@ -24,7 +24,7 @@ export default function Tabs<T extends string>({ items, activeTab, onChange, cla
             key={item.id}
             onClick={() => onChange(item.id)}
             className={cn(
-              'pb-5 px-2 text-sm font-bold transition-all relative whitespace-nowrap',
+              'relative whitespace-nowrap px-1.5 pb-3 text-sm font-bold transition-all sm:px-2 sm:pb-5',
               active ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600',
             )}
           >

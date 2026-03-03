@@ -24,7 +24,7 @@ export default function StudentRecordsTable({
   const allSelected = students.length > 0 && students.every((student) => selectedStudentIds.has(student.id));
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {isLoading ? (
         <div className="max-h-[400px] overflow-auto animate-pulse">
           <div className="sticky top-0 z-10 bg-slate-50 border-b border-slate-100">
@@ -54,9 +54,49 @@ export default function StudentRecordsTable({
         </div>
       ) : (
         <div className="max-h-[400px] overflow-auto">
-          <table className="w-full text-left">
+          <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 md:hidden">
+            <label className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+              <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
+              Select all
+            </label>
+          </div>
+
+          <div className="divide-y divide-slate-100 md:hidden">
+            {students.map((student) => {
+              const isSelected = selectedStudentIds.has(student.id);
+              const isReviewed = reviewedStudentIds.has(student.id);
+
+              return (
+                <article
+                  key={student.id}
+                  className="cursor-pointer space-y-3 p-4 transition-colors hover:bg-slate-50"
+                  onClick={() => onManage(student.id)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-bold text-slate-900">{student.student.fullName}</p>
+                      <p className="truncate text-xs text-slate-500">{student.contact.email}</p>
+                    </div>
+                    <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={isSelected} onChange={(e) => onToggleSelectOne(student.id, e.target.checked)} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-sm">
+                    <p className="font-mono text-slate-600">{student.student.inscriptionNumber}</p>
+                    <p className="font-medium text-slate-900">{student.university.universityName}</p>
+                    <p className="text-xs text-slate-500">{student.program.major}</p>
+                  </div>
+
+                  {isReviewed ? <span className="text-[10px] font-black uppercase text-emerald-600">Reviewed</span> : null}
+                </article>
+              );
+            })}
+          </div>
+
+          <table className="hidden min-w-[760px] w-full text-left md:table">
             <thead className="sticky top-0 z-10">
-              <tr className="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+              <tr className="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
                 <th className="px-4 py-4">
                   <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
                 </th>
@@ -71,14 +111,14 @@ export default function StudentRecordsTable({
                 const isReviewed = reviewedStudentIds.has(student.id);
 
                 return (
-                  <tr key={student.id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => onManage(student.id)}>
+                  <tr key={student.id} className="cursor-pointer transition-colors hover:bg-slate-50" onClick={() => onManage(student.id)}>
                     <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                       <Checkbox checked={isSelected} onChange={(e) => onToggleSelectOne(student.id, e.target.checked)} />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-slate-900 flex items-center gap-2">
+                      <div className="flex items-center gap-2 font-bold text-slate-900">
                         {student.student.fullName}
-                        {isReviewed ? <span className="text-[10px] font-black text-emerald-600 uppercase">Reviewed</span> : null}
+                        {isReviewed ? <span className="text-[10px] font-black uppercase text-emerald-600">Reviewed</span> : null}
                       </div>
                       <div className="text-xs text-slate-500">{student.contact.email}</div>
                     </td>

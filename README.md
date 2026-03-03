@@ -16,6 +16,6 @@ That document is the **single source of truth** for internal architecture and sh
 **Most Recent Updates**
 -----------------------
 
-For the most recent code changes and active work context, **always check `memory/RECENT.md`**.
+For the most recent code changes and active work context, **always check `docs/memory/RECENT.md`**.
 
-Agents and maintainers **must** update `memory/RECENT.md` after every meaningful code change with a concise summary (max 10 lines) of what was done.
+Agents and maintainers **must** update `docs/memory/RECENT.md` after every meaningful code change with a concise summary (max 10 lines) of what was done.

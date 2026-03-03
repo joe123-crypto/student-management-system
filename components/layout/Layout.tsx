@@ -180,16 +180,18 @@ const Layout: React.FC<LayoutProps> = ({
           </div>
         </header>
 
-        <main className="flex-1">
-          <div className="max-w-6xl mx-auto px-6 lg:px-12 py-12">
-            <div className="mb-10">
+        <main className="flex-1 min-w-0">
+          <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-12">
+            <div className="mb-8 sm:mb-10">
               <div>
-                <nav className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                <nav className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   <span>{breadcrumbLeft}</span>
                   <ChevronRight className="w-3 h-3" />
                   <span className="text-indigo-600">{breadcrumbRight}</span>
                 </nav>
-                <h2 className="text-5xl font-black text-[#1a1b3a] tracking-tight font-rounded">{title}</h2>
+                <h2 className="break-words text-4xl font-black tracking-tight text-[#1a1b3a] font-rounded sm:text-5xl">
+                  {title}
+                </h2>
               </div>
             </div>
             {children}

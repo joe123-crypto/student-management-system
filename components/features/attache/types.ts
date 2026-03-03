@@ -19,13 +19,6 @@ export interface StudentQueryState {
   duplicatesOnly: boolean;
 }
 
-export interface SavedView {
-  id: string;
-  name: string;
-  query: StudentQueryState;
-  createdAt: string;
-}
-
 export interface QualityFlagResult {
   studentId: string;
   items: string[];

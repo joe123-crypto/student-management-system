@@ -2,7 +2,7 @@
 
 import type { StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
-import Redirect from '@/components/app/Redirect';
+import Redirect from '@/components/shell/Redirect';
 import OnboardingPage from '@/components/features/onboarding/OnboardingPage';
 import StudentDashboard from '@/components/features/student/StudentDashboard';
 import type { Announcement } from '@/types';
@@ -69,3 +69,4 @@ export default function StudentAppRouter({
 
   return null;
 }
+

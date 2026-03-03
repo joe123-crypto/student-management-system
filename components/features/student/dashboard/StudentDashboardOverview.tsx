@@ -15,7 +15,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ ann
         <StatCard label="Grade" value="17.2" suffix="/ 20" valueClassName="text-indigo-600" />
       </div>
 
-      <div className="rounded-[2.5rem] border border-slate-100 bg-white p-10 shadow-sm">
+      <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:rounded-[2.5rem] sm:p-10">
         <AnnouncementFeedSection
           announcements={announcements}
           title="Latest Announcements"

@@ -1,7 +1,7 @@
 'use client';
 
 import type { User } from '@/types';
-import type { AppRoute } from '@/components/app/routes';
+import type { AppRoute } from '@/components/shell/routes';
 import LandingPage from '@/components/features/landing/LandingPage';
 import LoginPage from '@/components/features/auth/LoginPage';
 import PermissionRequestPage from '@/components/features/auth/PermissionRequestPage';
@@ -58,3 +58,4 @@ export default function PublicAppRouter({
 
   return null;
 }
+

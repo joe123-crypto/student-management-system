@@ -21,14 +21,20 @@ export default function AnnouncementCard({
     <div
       className={cn(
         compact
-          ? 'bg-white p-6 rounded-2xl border border-slate-200 shadow-sm'
-          : 'p-8 bg-slate-50/50 rounded-3xl border border-slate-100 hover:bg-white transition-all group',
+          ? 'rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6'
+          : 'rounded-3xl border border-slate-100 bg-slate-50/50 p-5 transition-all group hover:bg-white sm:p-8',
         className,
       )}
     >
-      <div className="flex justify-between items-start mb-4 gap-3">
-        <div>
-          <h5 className={cn('text-xl font-extrabold text-[#1a1b3a]', !compact && 'group-hover:text-indigo-600 transition-colors', titleClassName)}>
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+        <div className="min-w-0">
+          <h5
+            className={cn(
+              'text-lg font-extrabold text-[#1a1b3a] sm:text-xl',
+              !compact && 'group-hover:text-indigo-600 transition-colors',
+              titleClassName,
+            )}
+          >
             {announcement.title}
           </h5>
           {compact && (
@@ -43,7 +49,7 @@ export default function AnnouncementCard({
           </span>
         )}
       </div>
-      <p className="text-slate-500 leading-relaxed font-medium">{announcement.content}</p>
+      <p className="text-sm font-medium leading-relaxed text-slate-500 sm:text-base">{announcement.content}</p>
     </div>
   );
 }
