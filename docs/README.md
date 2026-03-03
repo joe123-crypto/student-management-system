@@ -280,7 +280,6 @@ Feature areas and where to look
     - `StudentDetailView.tsx` – detailed view of a single student.
     - `StudentAdvancedFilters.tsx`, `StudentQueryToolbar.tsx`, `StudentTablePagination.tsx` – query/filter/pagination UI.
     - `BulkActionsBar.tsx` – bulk actions on selected students.
-    - `SavedViewsBar.tsx` – saved queries/views.
     - `DataInsightsPanel.tsx` – summary/analytics view.
     - `AnnouncementsSection.tsx` – attache’s announcements management UI.
     - `PermissionRequestsSection.tsx` – lists permission requests.
@@ -292,7 +291,7 @@ Feature areas and where to look
   - Behavior/state hooks for attache UIs:
     - `useStudentTable.ts` – table sorting/filtering/pagination logic.
     - `useStudentSelection.ts` – selection state & bulk operations.
-    - `useSavedViews.ts` – saved filter/view management.
+    - `useStudentFilters.ts` - student query/filter state management.
     - `useStudentExports.ts` – export data preparation logic.
 
 - `components/features/attache/utils/*`
@@ -394,3 +393,4 @@ Quick lookup – “where is X?”
   - Public footer: `components/layout/Footer.tsx`
 
 This should give you enough orientation to quickly locate any piece of logic or UI and extend the Student Platform safely.
+
