@@ -134,9 +134,6 @@ export interface PrototypeDatabase {
 }
 
 export const PROTOTYPE_DATABASE_STORAGE_KEY = 'prototype_database_v1';
-export const MOCK_AUTH_EMAIL = 'jean.dupont@example.com';
-export const MOCK_AUTH_INSCRIPTION = 'INS-2023-001';
-export const MOCK_AUTH_PASSWORD = 'jean';
 
 const now = '2026-02-26T10:00:00Z';
 

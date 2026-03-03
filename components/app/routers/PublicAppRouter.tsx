@@ -12,6 +12,7 @@ interface PublicAppRouterProps {
   registeredStudentInscriptions: string[];
   onboardingStudentInscriptions: string[];
   studentPasswordsByInscription: Record<string, string>;
+  attachePassword: string;
   existingPendingRequests: string[];
   onSubmitPermissionRequest: (inscriptionNumber: string) => void;
 }
@@ -22,6 +23,7 @@ export default function PublicAppRouter({
   registeredStudentInscriptions,
   onboardingStudentInscriptions,
   studentPasswordsByInscription,
+  attachePassword,
   existingPendingRequests,
   onSubmitPermissionRequest,
 }: PublicAppRouterProps) {
@@ -36,6 +38,7 @@ export default function PublicAppRouter({
         registeredStudentInscriptions={registeredStudentInscriptions}
         onboardingStudentInscriptions={onboardingStudentInscriptions}
         studentPasswordsByInscription={studentPasswordsByInscription}
+        attachePassword={attachePassword}
       />
     );
   }

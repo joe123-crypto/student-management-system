@@ -149,7 +149,7 @@ Data model and persistence
     - Hydrates `authPasswords` (per-student password map) from `localStorage['auth_passwords_v1']`.
   - Derives:
     - `currentStudent` – by matching `user.loginId` against student inscription or email.
-    - `studentPasswordsByInscription` – the password map, defaulting to the mock password.
+    - `studentPasswordsByInscription` - the password map sourced from `localStorage['auth_passwords_v1']`.
   - Exposes:
     - `user`, `setUser`
     - `currentStudent`
@@ -194,6 +194,7 @@ Feature areas and where to look
   - Receives:
     - `onLogin(user)` callback from `AppShell`/`PublicAppRouter`.
     - `registeredStudentInscriptions`, `onboardingStudentInscriptions`, and `studentPasswordsByInscription`.
+    - `attachePassword` (from `NEXT_PUBLIC_ATTACHE_PASSWORD`) for attache sign-in validation.
   - Redirects:
     - Students → `'/student/dashboard'` or `'/onboarding'` based on whether bank details are complete.
     - Attaches → `'/attache/dashboard'`.
@@ -393,4 +394,5 @@ Quick lookup – “where is X?”
   - Public footer: `components/layout/Footer.tsx`
 
 This should give you enough orientation to quickly locate any piece of logic or UI and extend the Student Platform safely.
+
 

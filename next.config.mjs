@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  allowedDevOrigins: ['nonmelodiously-acidimetrical-chaim.ngrok-free.dev'],
-};
+const nextConfig = {};
 
 export default nextConfig;

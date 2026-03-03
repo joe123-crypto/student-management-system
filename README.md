@@ -1,6 +1,8 @@
 Student Platform
 ================
 
+Production note: set `NEXT_PUBLIC_ATTACHE_PASSWORD` in your environment before running the app, or attache sign-in will be disabled.
+
 **To understand how this application works, including architecture, routing, data model, and feature breakdown, read `docs/README.md`.**
 
 That document is the **single source of truth** for internal architecture and should be **kept up to date after every meaningful code change**. Whenever you:

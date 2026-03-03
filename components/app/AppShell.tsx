@@ -14,6 +14,7 @@ import StudentAppRouter from '@/components/app/routers/StudentAppRouter';
 
 export default function AppShell({ route }: { route: AppRoute }) {
   const router = useRouter();
+  const attachePassword = process.env.NEXT_PUBLIC_ATTACHE_PASSWORD?.trim() ?? '';
   const { students, updateStudent, deleteStudents, importStudents, isHydrated: isDatabaseHydrated } = usePrototypeDatabase();
   const { announcements, addAnnouncement, isHydrated: isAnnouncementsHydrated } = useAnnouncements();
   const {
@@ -61,6 +62,7 @@ export default function AppShell({ route }: { route: AppRoute }) {
         registeredStudentInscriptions={registeredStudentInscriptions}
         onboardingStudentInscriptions={onboardingStudentInscriptions}
         studentPasswordsByInscription={studentPasswordsByInscription}
+        attachePassword={attachePassword}
         existingPendingRequests={existingPendingRequests}
         onSubmitPermissionRequest={submitPermissionRequest}
       />

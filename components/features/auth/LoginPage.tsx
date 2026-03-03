@@ -4,7 +4,6 @@ import { User, UserRole } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import SegmentedControl from '@/components/ui/SegmentedControl';
-import { MOCK_AUTH_EMAIL, MOCK_AUTH_INSCRIPTION, MOCK_AUTH_PASSWORD } from '@/data/prototypeDatabase';
 import { Hash, HelpCircle, Lock, LogIn, Mail } from 'lucide-react';
 
 interface LoginPageProps {
@@ -12,6 +11,7 @@ interface LoginPageProps {
   registeredStudentInscriptions: string[];
   onboardingStudentInscriptions: string[];
   studentPasswordsByInscription: Record<string, string>;
+  attachePassword: string;
 }
 
 const roleOptions = [
@@ -24,6 +24,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
   registeredStudentInscriptions,
   onboardingStudentInscriptions,
   studentPasswordsByInscription,
+  attachePassword,
 }) => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
   const [loginId, setLoginId] = useState('');
@@ -43,27 +44,40 @@ const LoginPage: React.FC<LoginPageProps> = ({
         return;
       }
 
-      const expectedPassword =
-        studentPasswordsByInscription[normalizedInscription] || MOCK_AUTH_PASSWORD;
+      const expectedPassword = studentPasswordsByInscription[normalizedInscription];
+      if (!expectedPassword) {
+        alert('Student password is not configured. Please contact administration.');
+        return;
+      }
       if (password !== expectedPassword) {
         alert('Invalid credentials. Check your inscription number and password.');
         return;
       }
+    } else {
+      if (!normalizedEmail || !normalizedEmail.includes('@')) {
+        alert('Enter a valid attache email.');
+        return;
+      }
+      if (!attachePassword) {
+        alert('Attache sign-in is not configured.');
+        return;
+      }
+      if (password !== attachePassword) {
+        alert('Invalid credentials.');
+        return;
+      }
     }
 
-    const mockUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      subject: role === UserRole.STUDENT ? `student:${normalizedInscription || MOCK_AUTH_INSCRIPTION}` : 'attache:default',
-      loginId:
-        role === UserRole.STUDENT
-          ? normalizedInscription || MOCK_AUTH_INSCRIPTION
-          : normalizedEmail || 'attache@example.com',
+    const user: User = {
+      id: Math.random().toString(36).slice(2, 11),
+      subject: role === UserRole.STUDENT ? `student:${normalizedInscription}` : 'attache:default',
+      loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail,
       authProvider: role === UserRole.STUDENT ? 'student_inscription' : 'attache_email',
-      legacyEmail: role === UserRole.STUDENT ? MOCK_AUTH_EMAIL : normalizedEmail || 'attache@example.com',
+      legacyEmail: role === UserRole.STUDENT ? undefined : normalizedEmail,
       role,
     };
 
-    onLogin(mockUser);
+    onLogin(user);
 
     if (role === UserRole.STUDENT) {
       if (

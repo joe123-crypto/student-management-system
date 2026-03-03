@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
-import { MOCK_AUTH_PASSWORD } from '@/data/prototypeDatabase';
 import { getFromStorage } from '@/components/app/hooks/storage';
 
 const AUTH_PASSWORDS_STORAGE_KEY = 'auth_passwords_v1';
@@ -79,7 +78,7 @@ export function useAuth(students: StudentProfile[]) {
       students.reduce<Record<string, string>>((acc, student) => {
         const inscription = student.student.inscriptionNumber.toUpperCase();
         const key = `student:${inscription}`;
-        acc[inscription] = authPasswords[key] || MOCK_AUTH_PASSWORD;
+        acc[inscription] = authPasswords[key] || '';
         return acc;
       }, {}),
     [students, authPasswords],
@@ -119,7 +118,10 @@ export function useAuth(students: StudentProfile[]) {
 
     const inscription = currentStudent.student.inscriptionNumber.toUpperCase();
     const subjectKey = `student:${inscription}`;
-    const expectedPassword = authPasswords[subjectKey] || MOCK_AUTH_PASSWORD;
+    const expectedPassword = authPasswords[subjectKey];
+    if (!expectedPassword) {
+      return { ok: false, message: 'Password is not configured for this account. Contact administration.' };
+    }
     if (currentPassword !== expectedPassword) {
       return { ok: false, message: 'Current password is incorrect.' };
     }
