@@ -103,9 +103,19 @@ export interface Announcement {
   author: string;
 }
 
+export interface PermissionRequest {
+  id: string;
+  inscriptionNumber: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  submittedAt: string;
+}
+
 export interface User {
   id: string;
-  email: string;
+  subject: string;
+  loginId: string;
+  authProvider: 'student_inscription' | 'attache_email';
+  legacyEmail?: string;
   role: UserRole;
 }
 

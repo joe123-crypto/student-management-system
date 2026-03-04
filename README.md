@@ -1,20 +1,21 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+Student Platform
+================
 
-# Run and deploy your AI Studio app
+Auth mode:
+- Production: set `NEXT_PUBLIC_DEMO_MODE=false` and provide `NEXT_PUBLIC_ATTACHE_PASSWORD`.
+- Demo: set `NEXT_PUBLIC_DEMO_MODE=true` to enable demo credential fallbacks (for pre-backend demonstrations).
 
-This contains everything you need to run your app locally.
+**To understand how this application works, including architecture, routing, data model, and feature breakdown, read `docs/README.md`.**
 
-View your app in AI Studio: https://ai.studio/apps/drive/1NBRSvlRRF-9Poq4FPtss7XQl_6Nn6fr3
+That document is the **single source of truth** for internal architecture and should be **kept up to date after every meaningful code change**. Whenever you:
 
-## Run Locally
+- Add or change routes
+- Introduce new feature areas or major components
+- Modify data models, storage hooks, or core flows
 
-**Prerequisites:**  Node.js
+**Most Recent Updates**
+-----------------------
 
+For the most recent code changes and active work context, **always check `docs/memory/RECENT.md`**.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Agents and maintainers **must** update `docs/memory/RECENT.md` after every meaningful code change with a concise summary (max 10 lines) of what was done.
