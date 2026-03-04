@@ -1,8 +1,10 @@
-# App Data Schema (from `prototypeDatabase.ts`)
+# App Data Schema (DB Layer Only)
 
 ## Overview
 This schema is derived from the current mock database in `mock/prototypeDatabase.ts`.  
 Primary entities are student-centric and grouped into identity, academics, contact, and banking.
+
+For full frontend data contracts (including announcements, permission requests, auth user/session, service contracts, and UI-only fields), see `docs/architecture/frontend-data-model.md`.
 
 ## Entity Definitions
 
@@ -132,6 +134,7 @@ Primary entities are student-centric and grouped into identity, academics, conta
 | `id` | number | PK |
 | `account_no` | string |  |
 | `rib` | number | account/RIB number |
+| `currency` | string | account currency code |
 | `date_created` | string (date) |  |
 | `branch_id` | number | FK -> `BRANCH.id` |
 | `person_id` | number | FK -> `PERSON.id` |
