@@ -1,263 +1,31 @@
 import type { StudentProfile } from '@/types';
-
-interface PERSON {
-  id: number;
-  given_name: string;
-  family_name: string;
-  dob: string;
-  gender: string;
-  home_address_id: number;
-}
-
-interface STUDENT {
-  id: number;
-  person_id: number;
-  inscription_no: string;
-  address_id: number;
-}
-
-interface PASSPORT {
-  id: number;
-  passport_no: string;
-  issue_date: string;
-  expiry: string;
-  person_id: number;
-}
-
-interface CONTACT {
-  id: number;
-  owner_id: number;
-  type: string;
-  value: string;
-  label: string;
-  is_primary: boolean;
-  created_at: string;
-}
-
-interface ADDRESS {
-  id: number;
-  name: string;
-  wilaya_id: number;
-}
-
-interface PROVINCE {
-  id: number;
-  name: string;
-}
-
-interface UNIVERSITY {
-  id: number;
-  name: string;
-  acronym: string;
-  address_id: number;
-}
-
-interface DEPARTMENT {
-  id: number;
-  name: string;
-  description: string;
-}
-
-interface PROGRAMTYPE {
-  id: number;
-  name: string;
-  default_duration: number;
-}
-
-interface PROGRAM {
-  id: number;
-  name: string;
-  description: string;
-  department_id: number;
-  programtype_id: number;
-}
-
-interface ENROLLMENT {
-  id: number;
-  registration_no: string;
-  date_enrolled: string;
-  status: string;
-  student_id: number;
-  program_id: number;
-}
-
-interface PROGRESS {
-  id: number;
-  date: string;
-  semester: string;
-  level: string;
-  grade: string;
-  status: string;
-  enrollment_id: number;
-}
-
-interface BANK {
-  id: number;
-  name: string;
-  code: number;
-  address_id: number;
-}
-
-interface BRANCH {
-  id: number;
-  code: number;
-  name: string;
-  address_id: number;
-  bank_id: number;
-}
-
-interface ACCOUNT {
-  id: number;
-  account_no: string;
-  rib: number;
-  date_created: string;
-  branch_id: number;
-  person_id: number;
-}
-
-export interface PrototypeDatabase {
-  PERSON: PERSON[];
-  STUDENT: STUDENT[];
-  PASSPORT: PASSPORT[];
-  CONTACT: CONTACT[];
-  ADDRESS: ADDRESS[];
-  PROVINCE: PROVINCE[];
-  UNIVERSITY: UNIVERSITY[];
-  DEPARTMENT: DEPARTMENT[];
-  PROGRAMTYPE: PROGRAMTYPE[];
-  PROGRAM: PROGRAM[];
-  ENROLLMENT: ENROLLMENT[];
-  PROGRESS: PROGRESS[];
-  BANK: BANK[];
-  BRANCH: BRANCH[];
-  ACCOUNT: ACCOUNT[];
-}
-
+import { INITIAL_PROTOTYPE_DATABASE } from '@/mock/prototypeSeedData';
+import type { BRANCH, PERSON, PrototypeDatabase } from '@/mock/prototypeSchema';
+export type { PrototypeDatabase } from '@/mock/prototypeSchema';
 export const PROTOTYPE_DATABASE_STORAGE_KEY = 'prototype_database_v1';
+const REQUIRED_TABLES: (keyof PrototypeDatabase)[] = [
+  'PERSON',
+  'STUDENT',
+  'PASSPORT',
+  'CONTACT',
+  'ADDRESS',
+  'PROVINCE',
+  'UNIVERSITY',
+  'DEPARTMENT',
+  'PROGRAMTYPE',
+  'PROGRAM',
+  'ENROLLMENT',
+  'PROGRESS',
+  'BANK',
+  'BRANCH',
+  'ACCOUNT',
+];
 
-const now = '2026-02-26T10:00:00Z';
-
-const INITIAL_DATABASE: PrototypeDatabase = {
-  PERSON: [
-    { id: 1, given_name: 'Jean', family_name: 'Dupont', dob: '1998-05-12', gender: 'M', home_address_id: 1 },
-    { id: 2, given_name: 'Amina', family_name: 'Al-Farsi', dob: '2000-02-28', gender: 'F', home_address_id: 2 },
-    { id: 3, given_name: 'Karim', family_name: 'Bensaid', dob: '1999-11-10', gender: 'M', home_address_id: 3 },
-    { id: 4, given_name: 'Leila', family_name: 'Mansouri', dob: '2001-03-19', gender: 'F', home_address_id: 4 },
-    { id: 5, given_name: 'Samir', family_name: 'Haddad', dob: '1997-07-07', gender: 'M', home_address_id: 5 },
-  ],
-  STUDENT: [
-    { id: 1, person_id: 1, inscription_no: 'INS-2023-001', address_id: 6 },
-    { id: 2, person_id: 2, inscription_no: 'INS-2023-042', address_id: 7 },
-    { id: 3, person_id: 3, inscription_no: 'INS-2024-011', address_id: 8 },
-    { id: 4, person_id: 4, inscription_no: 'INS-2024-037', address_id: 9 },
-    { id: 5, person_id: 5, inscription_no: 'INS-2022-099', address_id: 10 },
-  ],
-  PASSPORT: [
-    { id: 1, passport_no: 'FR123456', issue_date: '2018-10-10', expiry: '2028-10-10', person_id: 1 },
-    { id: 2, passport_no: 'OM987654', issue_date: '2020-01-01', expiry: '2030-01-01', person_id: 2 },
-    { id: 3, passport_no: 'DZ661122', issue_date: '2019-03-15', expiry: '2029-03-15', person_id: 3 },
-    { id: 4, passport_no: 'DZ993344', issue_date: '2021-06-02', expiry: '2031-06-02', person_id: 4 },
-    { id: 5, passport_no: 'DZ776655', issue_date: '2017-09-20', expiry: '2027-09-20', person_id: 5 },
-  ],
-  CONTACT: [
-    { id: 1, owner_id: 1, type: 'EMAIL', value: 'jean.dupont@example.com', label: 'primary', is_primary: true, created_at: now },
-    { id: 2, owner_id: 1, type: 'PHONE', value: '+49 123 456789', label: 'mobile', is_primary: true, created_at: now },
-    { id: 3, owner_id: 1, type: 'EMERGENCY', value: 'Marie Dupont', label: 'name', is_primary: false, created_at: now },
-    { id: 4, owner_id: 1, type: 'EMERGENCY', value: '+33 612 345678', label: 'phone', is_primary: false, created_at: now },
-    { id: 5, owner_id: 2, type: 'EMAIL', value: 'amina.f@example.com', label: 'primary', is_primary: true, created_at: now },
-    { id: 6, owner_id: 2, type: 'PHONE', value: '+49 987 654321', label: 'mobile', is_primary: true, created_at: now },
-    { id: 7, owner_id: 2, type: 'EMERGENCY', value: 'Ahmed Al-Farsi', label: 'name', is_primary: false, created_at: now },
-    { id: 8, owner_id: 2, type: 'EMERGENCY', value: '+968 12345678', label: 'phone', is_primary: false, created_at: now },
-    { id: 9, owner_id: 3, type: 'EMAIL', value: 'karim.b@example.com', label: 'primary', is_primary: true, created_at: now },
-    { id: 10, owner_id: 3, type: 'PHONE', value: '+213 550 001122', label: 'mobile', is_primary: true, created_at: now },
-    { id: 11, owner_id: 3, type: 'EMERGENCY', value: 'Nora Bensaid', label: 'name', is_primary: false, created_at: now },
-    { id: 12, owner_id: 3, type: 'EMERGENCY', value: '+213 555 101010', label: 'phone', is_primary: false, created_at: now },
-    { id: 13, owner_id: 4, type: 'EMAIL', value: 'leila.m@example.com', label: 'primary', is_primary: true, created_at: now },
-    { id: 14, owner_id: 4, type: 'PHONE', value: '+213 661 998877', label: 'mobile', is_primary: true, created_at: now },
-    { id: 15, owner_id: 4, type: 'EMERGENCY', value: 'Hichem Mansouri', label: 'name', is_primary: false, created_at: now },
-    { id: 16, owner_id: 4, type: 'EMERGENCY', value: '+213 770 888777', label: 'phone', is_primary: false, created_at: now },
-    { id: 17, owner_id: 5, type: 'EMAIL', value: 'samir.h@example.com', label: 'primary', is_primary: true, created_at: now },
-    { id: 18, owner_id: 5, type: 'PHONE', value: '+213 699 223344', label: 'mobile', is_primary: true, created_at: now },
-    { id: 19, owner_id: 5, type: 'EMERGENCY', value: 'Dalia Haddad', label: 'name', is_primary: false, created_at: now },
-    { id: 20, owner_id: 5, type: 'EMERGENCY', value: '+213 777 121212', label: 'phone', is_primary: false, created_at: now },
-  ],
-  ADDRESS: [
-    { id: 1, name: '12 Rue de Paris, Lyon', wilaya_id: 1 },
-    { id: 2, name: 'Muscat, Street 40', wilaya_id: 2 },
-    { id: 3, name: 'Cite 500, Algiers', wilaya_id: 3 },
-    { id: 4, name: 'Hai El Yasmine, Oran', wilaya_id: 4 },
-    { id: 5, name: 'Sidi Mabrouk, Constantine', wilaya_id: 5 },
-    { id: 6, name: 'USTHB Main Campus Housing', wilaya_id: 3 },
-    { id: 7, name: 'Hamburg Shared Apt 12', wilaya_id: 4 },
-    { id: 8, name: 'ESI Algiers Student Block B', wilaya_id: 3 },
-    { id: 9, name: 'Oran Student Hall 3', wilaya_id: 4 },
-    { id: 10, name: 'Constantine Graduate Residence', wilaya_id: 5 },
-    { id: 11, name: 'USTHB Admin Block', wilaya_id: 3 },
-    { id: 12, name: 'GMS Downtown', wilaya_id: 4 },
-    { id: 13, name: 'National Bank HQ', wilaya_id: 3 },
-    { id: 14, name: 'Bab Ezzouar Branch', wilaya_id: 3 },
-    { id: 15, name: 'Oran Center Branch', wilaya_id: 4 },
-    { id: 16, name: 'Constantine Center Branch', wilaya_id: 5 },
-  ],
-  PROVINCE: [
-    { id: 1, name: 'Lyon' },
-    { id: 2, name: 'Muscat' },
-    { id: 3, name: 'Algiers' },
-    { id: 4, name: 'Oran' },
-    { id: 5, name: 'Constantine' },
-  ],
-  UNIVERSITY: [
-    { id: 1, name: 'University of Science and Technology Houari Boumediene', acronym: 'USTHB', address_id: 11 },
-    { id: 2, name: 'Global Management School', acronym: 'GMS', address_id: 12 },
-  ],
-  DEPARTMENT: [
-    { id: 1, name: 'Computer Science', description: 'Core computing and software studies' },
-    { id: 2, name: 'Business Administration', description: 'Business and management studies' },
-    { id: 3, name: 'Civil Engineering', description: 'Infrastructure and construction studies' },
-  ],
-  PROGRAMTYPE: [
-    { id: 1, name: 'Bachelors', default_duration: 3 },
-    { id: 2, name: 'Masters', default_duration: 2 },
-    { id: 3, name: 'PhD', default_duration: 3 },
-  ],
-  PROGRAM: [
-    { id: 1, name: 'Computer Science', description: 'Advanced software systems', department_id: 1, programtype_id: 2 },
-    { id: 2, name: 'International Business', description: 'Global business operations', department_id: 2, programtype_id: 1 },
-    { id: 3, name: 'Data Science', description: 'Data analysis and AI methods', department_id: 1, programtype_id: 2 },
-    { id: 4, name: 'Civil Engineering', description: 'Design and build public infrastructure', department_id: 3, programtype_id: 1 },
-    { id: 5, name: 'Finance', description: 'Corporate finance and markets', department_id: 2, programtype_id: 2 },
-  ],
-  ENROLLMENT: [
-    { id: 1, registration_no: 'REG-2023-1001', date_enrolled: '2023-09-01', status: 'ACTIVE', student_id: 1, program_id: 1 },
-    { id: 2, registration_no: 'REG-2023-1042', date_enrolled: '2023-09-01', status: 'ACTIVE', student_id: 2, program_id: 2 },
-    { id: 3, registration_no: 'REG-2024-1111', date_enrolled: '2024-09-15', status: 'PENDING', student_id: 3, program_id: 3 },
-    { id: 4, registration_no: 'REG-2024-1337', date_enrolled: '2024-09-10', status: 'ACTIVE', student_id: 4, program_id: 4 },
-    { id: 5, registration_no: 'REG-2022-0999', date_enrolled: '2022-09-01', status: 'COMPLETED', student_id: 5, program_id: 5 },
-  ],
-  PROGRESS: [
-    { id: 1, date: '2024-06-15', semester: 'Year 1', level: 'L1', grade: '16.5', status: 'COMPLETED', enrollment_id: 1 },
-    { id: 2, date: '2025-06-20', semester: 'Year 2', level: 'L2', grade: '17.1', status: 'COMPLETED', enrollment_id: 1 },
-    { id: 3, date: '2024-06-20', semester: 'Year 1', level: 'L1', grade: '18.0', status: 'COMPLETED', enrollment_id: 2 },
-    { id: 4, date: '2025-01-20', semester: 'Semester 1', level: 'M1', grade: '15.8', status: 'PENDING', enrollment_id: 3 },
-    { id: 5, date: '2025-06-22', semester: 'Year 1', level: 'L1', grade: '14.9', status: 'COMPLETED', enrollment_id: 4 },
-    { id: 6, date: '2025-07-01', semester: 'Year 2', level: 'M2', grade: '16.2', status: 'COMPLETED', enrollment_id: 5 },
-  ],
-  BANK: [
-    { id: 1, name: 'National Bank', code: 12345, address_id: 13 },
-  ],
-  BRANCH: [
-    { id: 1, code: 1101, name: 'Bab Ezzouar', address_id: 14, bank_id: 1 },
-    { id: 2, code: 2201, name: 'Oran Center', address_id: 15, bank_id: 1 },
-    { id: 3, code: 3301, name: 'Constantine Center', address_id: 16, bank_id: 1 },
-  ],
-  ACCOUNT: [
-    { id: 1, account_no: '88776655', rib: 123456789, date_created: '2023-10-01', branch_id: 1, person_id: 1 },
-    { id: 2, account_no: '11223344', rib: 987654321, date_created: '2023-10-03', branch_id: 2, person_id: 2 },
-    { id: 3, account_no: '55443322', rib: 556677889, date_created: '2024-10-01', branch_id: 1, person_id: 3 },
-    { id: 4, account_no: '77665544', rib: 668899110, date_created: '2024-10-05', branch_id: 2, person_id: 4 },
-    { id: 5, account_no: '99990011', rib: 221133445, date_created: '2022-10-01', branch_id: 3, person_id: 5 },
-  ],
-};
+export function isPrototypeDatabase(value: unknown): value is PrototypeDatabase {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<Record<keyof PrototypeDatabase, unknown>>;
+  return REQUIRED_TABLES.every((table) => Array.isArray(candidate[table]));
+}
 
 const cloneDatabase = (db: PrototypeDatabase): PrototypeDatabase => JSON.parse(JSON.stringify(db)) as PrototypeDatabase;
 
@@ -405,7 +173,7 @@ function mergeStudentProfile(current: StudentProfile, patch: Partial<StudentProf
 }
 
 export function createPrototypeDatabase(): PrototypeDatabase {
-  return cloneDatabase(INITIAL_DATABASE);
+  return cloneDatabase(INITIAL_PROTOTYPE_DATABASE);
 }
 
 export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentProfile[] {
@@ -764,3 +532,4 @@ export function importStudentProfilesToDatabase(
 
   return records.reduce((nextDb, profile) => addStudentProfileToDatabase(nextDb, profile), base);
 }
+

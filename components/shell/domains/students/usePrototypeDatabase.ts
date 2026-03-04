@@ -2,25 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { StudentProfile } from '@/types';
-import {
-  createPrototypeDatabase,
-  deleteStudentsFromDatabase,
-  getStudentProfilesFromDatabase,
-  importStudentProfilesToDatabase,
-  PROTOTYPE_DATABASE_STORAGE_KEY,
-  type PrototypeDatabase,
-  updateStudentProfileInDatabase,
-} from '@/mock/prototypeDatabase';
-import { getFromStorage } from '@/components/shell/shared/storage';
+import { createPrototypeDatabase, type PrototypeDatabase } from '@/mock/prototypeDatabase';
+import { services } from '@/services';
 
 export function usePrototypeDatabase() {
   const [database, setDatabase] = useState<PrototypeDatabase>(createPrototypeDatabase());
   const [isHydrated, setIsHydrated] = useState(false);
 
-  const students = useMemo(() => getStudentProfilesFromDatabase(database), [database]);
+  const students = useMemo(() => services.students.getProfiles(database), [database]);
 
   useEffect(() => {
-    setDatabase(getFromStorage<PrototypeDatabase>(PROTOTYPE_DATABASE_STORAGE_KEY, createPrototypeDatabase()));
+    setDatabase(services.students.loadDatabase());
     setIsHydrated(true);
   }, []);
 
@@ -29,19 +21,19 @@ export function usePrototypeDatabase() {
       return;
     }
 
-    window.localStorage.setItem(PROTOTYPE_DATABASE_STORAGE_KEY, JSON.stringify(database));
+    services.students.saveDatabase(database);
   }, [database, isHydrated]);
 
   const updateStudent = (id: string, profile: Partial<StudentProfile>) => {
-    setDatabase((prev) => updateStudentProfileInDatabase(prev, id, profile));
+    setDatabase((prev) => services.students.updateStudent(prev, id, profile));
   };
 
   const deleteStudents = (studentIds: string[]) => {
-    setDatabase((prev) => deleteStudentsFromDatabase(prev, studentIds));
+    setDatabase((prev) => services.students.deleteStudents(prev, studentIds));
   };
 
   const importStudents = (records: StudentProfile[], mode: 'append' | 'replace') => {
-    setDatabase((prev) => importStudentProfilesToDatabase(prev, records, mode));
+    setDatabase((prev) => services.students.importStudents(prev, records, mode));
   };
 
   return {

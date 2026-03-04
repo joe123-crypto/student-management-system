@@ -19,7 +19,8 @@ You can think of the app as:
 - **`components/shell/`**: Core app shell, routing, guards, and state hooks.
 - **`components/features/*`**: Feature-specific UIs (student, attache, onboarding, auth, landing).
 - **`components/layout/` & `components/ui/`**: Layout chrome and shared UI primitives.
-- **`mock/`**: In-browser “database” and mappings.
+- **`mock/`**: In-browser mock data and mappings.
+- **`services/`**: Service contracts + mock adapters (backend swap point).
 
 If you want to understand how the user moves through the app, start at **`app/page.tsx` → `components/shell/AppShell.tsx`**.
 
@@ -123,6 +124,17 @@ Data model and persistence
     - `deleteStudentsFromDatabase(db, studentProfileIds)` – cascades deletions.
     - `importStudentProfilesToDatabase(db, records, mode)` – bulk import helper, used by the attache CSV import flow.
   - **Use this file whenever you need to adjust how student data is stored or derived.**
+
+
+**Service abstraction (backend migration seam)**
+
+- `services/contracts.ts`
+  - Defines domain service contracts (`AuthService`, `StudentsService`, `AnnouncementsService`, `PermissionsService`).
+- `services/index.ts`
+  - Registers the active service container used by shell hooks.
+- `services/mock/*`
+  - Current implementation backed by `localStorage` + `mock/prototypeDatabase.ts`.
+  - Replace these with API-backed implementations during backend rollout without changing feature components.
 
 **Storage utilities and hooks**
 
@@ -395,6 +407,8 @@ Quick lookup – “where is X?”
   - Public footer: `components/layout/Footer.tsx`
 
 This should give you enough orientation to quickly locate any piece of logic or UI and extend the Student Platform safely.
+
+
 
 
 

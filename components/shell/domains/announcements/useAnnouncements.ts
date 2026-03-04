@@ -3,16 +3,14 @@
 import { useEffect, useState } from 'react';
 import type { Announcement } from '@/types';
 import { MOCK_ANNOUNCEMENTS } from '@/constants';
-import { getFromStorage } from '@/components/shell/shared/storage';
-
-const ANNOUNCEMENTS_STORAGE_KEY = 'announcements';
+import { services } from '@/services';
 
 export function useAnnouncements() {
   const [announcements, setAnnouncements] = useState<Announcement[]>(MOCK_ANNOUNCEMENTS);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    setAnnouncements(getFromStorage<Announcement[]>(ANNOUNCEMENTS_STORAGE_KEY, MOCK_ANNOUNCEMENTS));
+    setAnnouncements(services.announcements.loadAnnouncements());
     setIsHydrated(true);
   }, []);
 
@@ -21,7 +19,7 @@ export function useAnnouncements() {
       return;
     }
 
-    window.localStorage.setItem(ANNOUNCEMENTS_STORAGE_KEY, JSON.stringify(announcements));
+    services.announcements.saveAnnouncements(announcements);
   }, [announcements, isHydrated]);
 
   const addAnnouncement = (announcement: Announcement) => {
