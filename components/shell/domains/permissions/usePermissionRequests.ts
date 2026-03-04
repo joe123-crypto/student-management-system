@@ -21,8 +21,11 @@ export function usePermissionRequests() {
     services.permissions.savePermissionRequests(permissionRequests);
   }, [permissionRequests, isHydrated]);
 
-  const submitPermissionRequest = (inscriptionNumber: string) => {
-    setPermissionRequests((prev) => [services.permissions.createPendingRequest(inscriptionNumber), ...prev]);
+  const submitPermissionRequest = (inscriptionNumber: string, fullName: string, passportNumber: string) => {
+    setPermissionRequests((prev) => [
+      services.permissions.createPendingRequest(inscriptionNumber, fullName, passportNumber),
+      ...prev,
+    ]);
   };
 
   const existingPendingRequests = useMemo(

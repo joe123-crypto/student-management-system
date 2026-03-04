@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Redirect from '@/components/shell/Redirect';
 import type { AppRoute } from '@/components/shell/routes';
@@ -55,6 +55,11 @@ export default function AppShell({ route }: { route: AppRoute }) {
   const isHydrated =
     isDatabaseHydrated && isAnnouncementsHydrated && isPermissionRequestsHydrated && isAuthHydrated;
 
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    router.replace('/login');
+  }, [router, setUser]);
+
   if (route === '/' || route === '/login' || route === '/request-permission') {
     return (
       <PublicAppRouter
@@ -87,7 +92,7 @@ export default function AppShell({ route }: { route: AppRoute }) {
           router.push(section === 'settings' ? '/student/settings' : '/student/dashboard')
         }
         onChangePassword={changeStudentPassword}
-        onLogout={() => setUser(null)}
+        onLogout={handleLogout}
       />
     );
   }
@@ -106,7 +111,7 @@ export default function AppShell({ route }: { route: AppRoute }) {
         onNavigateAttacheSection={(section) =>
           router.push(section === 'settings' ? '/attache/settings' : '/attache/dashboard')
         }
-        onLogout={() => setUser(null)}
+        onLogout={handleLogout}
       />
     );
   }

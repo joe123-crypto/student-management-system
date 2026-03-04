@@ -22,6 +22,8 @@ function normalizeStoredPermissionRequests(raw: unknown): PermissionRequest[] {
     acc.push({
       id: request.id,
       inscriptionNumber: request.inscriptionNumber.toUpperCase(),
+      fullName: typeof request.fullName === 'string' ? request.fullName.trim() : '',
+      passportNumber: typeof request.passportNumber === 'string' ? request.passportNumber.trim().toUpperCase() : '',
       status: request.status,
       submittedAt: request.submittedAt,
     });
@@ -36,10 +38,12 @@ export const mockPermissionsService: PermissionsService = {
   savePermissionRequests(permissionRequests) {
     window.localStorage.setItem(PERMISSION_REQUESTS_STORAGE_KEY, JSON.stringify(permissionRequests));
   },
-  createPendingRequest(inscriptionNumber) {
+  createPendingRequest(inscriptionNumber, fullName, passportNumber) {
     return {
       id: Math.random().toString(36).slice(2, 11),
       inscriptionNumber: inscriptionNumber.toUpperCase(),
+      fullName: fullName.trim(),
+      passportNumber: passportNumber.trim().toUpperCase(),
       status: 'PENDING',
       submittedAt: new Date().toISOString(),
     };
