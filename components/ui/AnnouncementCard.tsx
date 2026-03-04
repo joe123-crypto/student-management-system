@@ -5,7 +5,6 @@ import { cn } from './cn';
 interface AnnouncementCardProps {
   announcement: Announcement;
   className?: string;
-  titleClassName?: string;
   compact?: boolean;
   actions?: React.ReactNode;
 }
@@ -13,7 +12,6 @@ interface AnnouncementCardProps {
 export default function AnnouncementCard({
   announcement,
   className,
-  titleClassName,
   compact = false,
   actions,
 }: AnnouncementCardProps) {
@@ -32,7 +30,6 @@ export default function AnnouncementCard({
             className={cn(
               'text-lg font-extrabold text-[#1a1b3a] sm:text-xl',
               !compact && 'group-hover:text-indigo-600 transition-colors',
-              titleClassName,
             )}
           >
             {announcement.title}

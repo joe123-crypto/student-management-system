@@ -1,13 +1,14 @@
 'use client';
 
 import type { User } from '@/types';
-import type { AppRoute } from '@/components/shell/routes';
 import LandingPage from '@/components/features/landing/LandingPage';
 import LoginPage from '@/components/features/auth/LoginPage';
 import PermissionRequestPage from '@/components/features/auth/PermissionRequestPage';
 
+type PublicRoute = '/' | '/login' | '/request-permission';
+
 interface PublicAppRouterProps {
-  route: AppRoute;
+  route: PublicRoute;
   onLogin: (user: User) => void;
   registeredStudentInscriptions: string[];
   onboardingStudentInscriptions: string[];
@@ -29,33 +30,32 @@ export default function PublicAppRouter({
   existingPendingRequests,
   onSubmitPermissionRequest,
 }: PublicAppRouterProps) {
-  if (route === '/') {
-    return <LandingPage />;
+  switch (route) {
+    case '/':
+      return <LandingPage />;
+    case '/login':
+      return (
+        <LoginPage
+          onLogin={onLogin}
+          registeredStudentInscriptions={registeredStudentInscriptions}
+          onboardingStudentInscriptions={onboardingStudentInscriptions}
+          studentPasswordsByInscription={studentPasswordsByInscription}
+          attachePassword={attachePassword}
+          demoMode={demoMode}
+        />
+      );
+    case '/request-permission':
+      return (
+        <PermissionRequestPage
+          existingInscriptions={registeredStudentInscriptions}
+          existingRequests={existingPendingRequests}
+          onSubmitRequest={onSubmitPermissionRequest}
+        />
+      );
+    default: {
+      const unreachable: never = route;
+      return unreachable;
+    }
   }
-
-  if (route === '/login') {
-    return (
-      <LoginPage
-        onLogin={onLogin}
-        registeredStudentInscriptions={registeredStudentInscriptions}
-        onboardingStudentInscriptions={onboardingStudentInscriptions}
-        studentPasswordsByInscription={studentPasswordsByInscription}
-        attachePassword={attachePassword}
-        demoMode={demoMode}
-      />
-    );
-  }
-
-  if (route === '/request-permission') {
-    return (
-      <PermissionRequestPage
-        existingInscriptions={registeredStudentInscriptions}
-        existingRequests={existingPendingRequests}
-        onSubmitRequest={onSubmitPermissionRequest}
-      />
-    );
-  }
-
-  return null;
 }
 

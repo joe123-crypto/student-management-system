@@ -9,17 +9,14 @@ const AUTH_PASSWORDS_STORAGE_KEY = 'auth_passwords_v1';
 function normalizeStoredUser(raw: unknown): User | null {
   if (!raw || typeof raw !== 'object') return null;
 
-  const entry = raw as Partial<User> & { email?: string };
+  const entry = raw as Partial<User>;
   const role = entry.role;
   if (role !== UserRole.STUDENT && role !== UserRole.ATTACHE) return null;
 
-  const legacyEmail = typeof entry.legacyEmail === 'string' ? entry.legacyEmail : entry.email;
   const loginId =
     typeof entry.loginId === 'string' && entry.loginId
       ? entry.loginId
-      : typeof entry.email === 'string'
-        ? entry.email
-        : '';
+      : '';
   const authProvider =
     entry.authProvider === 'student_inscription' || entry.authProvider === 'attache_email'
       ? entry.authProvider
@@ -37,7 +34,6 @@ function normalizeStoredUser(raw: unknown): User | null {
           : 'attache:default',
     loginId,
     authProvider,
-    legacyEmail: legacyEmail || undefined,
     role,
   };
 }

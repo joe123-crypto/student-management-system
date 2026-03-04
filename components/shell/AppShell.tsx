@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Redirect from '@/components/shell/Redirect';
 import type { AppRoute } from '@/components/shell/routes';
 import { useAnnouncements } from '@/components/shell/domains/announcements/useAnnouncements';
 import { useAuth } from '@/components/shell/domains/auth/useAuth';
@@ -60,62 +59,70 @@ export default function AppShell({ route }: { route: AppRoute }) {
     router.replace('/login');
   }, [router, setUser]);
 
-  if (route === '/' || route === '/login' || route === '/request-permission') {
-    return (
-      <PublicAppRouter
-        route={route}
-        onLogin={setUser}
-        registeredStudentInscriptions={registeredStudentInscriptions}
-        onboardingStudentInscriptions={onboardingStudentInscriptions}
-        studentPasswordsByInscription={studentPasswordsByInscription}
-        attachePassword={attachePassword}
-        demoMode={demoMode}
-        existingPendingRequests={existingPendingRequests}
-        onSubmitPermissionRequest={submitPermissionRequest}
-      />
-    );
+  switch (route) {
+    case '/':
+    case '/login':
+    case '/request-permission':
+      return (
+        <PublicAppRouter
+          route={route}
+          onLogin={setUser}
+          registeredStudentInscriptions={registeredStudentInscriptions}
+          onboardingStudentInscriptions={onboardingStudentInscriptions}
+          studentPasswordsByInscription={studentPasswordsByInscription}
+          attachePassword={attachePassword}
+          demoMode={demoMode}
+          existingPendingRequests={existingPendingRequests}
+          onSubmitPermissionRequest={submitPermissionRequest}
+        />
+      );
+    case '/onboarding':
+    case '/student/dashboard':
+    case '/student/settings':
+      if (!isHydrated) {
+        return null;
+      }
+      return (
+        <StudentAppRouter
+          route={route}
+          user={user}
+          currentStudent={currentStudent}
+          announcements={announcements}
+          onUpdateStudent={updateStudent}
+          onNavigateStudentSection={(section) =>
+            router.push(section === 'settings' ? '/student/settings' : '/student/dashboard')
+          }
+          onChangePassword={changeStudentPassword}
+          onLogout={handleLogout}
+        />
+      );
+    case '/attache/dashboard':
+    case '/attache/settings':
+      if (!isHydrated) {
+        return null;
+      }
+      return (
+        <AttacheAppRouter
+          route={route}
+          user={user}
+          students={students}
+          announcements={announcements}
+          permissionRequests={permissionRequests}
+          onAddAnnouncement={addAnnouncement}
+          onDeleteStudents={deleteStudents}
+          onImportStudents={importStudents}
+          onNavigateAttacheSection={(section) =>
+            router.push(section === 'settings' ? '/attache/settings' : '/attache/dashboard')
+          }
+          onLogout={handleLogout}
+        />
+      );
+    default: {
+      const unreachable: never = route;
+      return unreachable;
+    }
   }
-
-  if (!isHydrated) {
-    return null;
-  }
-
-  if (route === '/onboarding' || route === '/student/dashboard' || route === '/student/settings') {
-    return (
-      <StudentAppRouter
-        route={route}
-        user={user}
-        currentStudent={currentStudent}
-        announcements={announcements}
-        onUpdateStudent={updateStudent}
-        onNavigateStudentSection={(section) =>
-          router.push(section === 'settings' ? '/student/settings' : '/student/dashboard')
-        }
-        onChangePassword={changeStudentPassword}
-        onLogout={handleLogout}
-      />
-    );
-  }
-
-  if (route === '/attache/dashboard' || route === '/attache/settings') {
-    return (
-      <AttacheAppRouter
-        route={route}
-        user={user}
-        students={students}
-        announcements={announcements}
-        permissionRequests={permissionRequests}
-        onAddAnnouncement={addAnnouncement}
-        onDeleteStudents={deleteStudents}
-        onImportStudents={importStudents}
-        onNavigateAttacheSection={(section) =>
-          router.push(section === 'settings' ? '/attache/settings' : '/attache/dashboard')
-        }
-        onLogout={handleLogout}
-      />
-    );
-  }
-
-  return <Redirect to="/" />;
 }
+
+
 

@@ -9,7 +9,7 @@ import { mockAuthService } from '@/services/mock/authService';
 import { mockPermissionsService } from '@/services/mock/permissionsService';
 import { mockStudentsService } from '@/services/mock/studentsService';
 
-export interface ServiceContainer {
+interface ServiceContainer {
   auth: AuthService;
   students: StudentsService;
   announcements: AnnouncementsService;

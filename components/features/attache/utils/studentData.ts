@@ -163,10 +163,6 @@ function getValueByColumnKey(student: StudentProfile, key: string): string {
   return map[key] ?? '';
 }
 
-export function buildStudentCsv(students: StudentProfile[], columnKeys: string[], columnLookup: ReportColumnOption[]): string {
-  return buildStudentDelimited(students, columnKeys, columnLookup, ',');
-}
-
 export function buildStudentDelimited(
   students: StudentProfile[],
   columnKeys: string[],

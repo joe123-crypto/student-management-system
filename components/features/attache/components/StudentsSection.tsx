@@ -175,7 +175,6 @@ export default function StudentsSection({ students, onDeleteStudents }: Students
             query={query}
             onQueryChange={updateQuery}
             onOpenExportOptions={() => setExportPopupOpen(true)}
-            showAdvancedToggle={false}
           />
 
           <BulkActionsBar

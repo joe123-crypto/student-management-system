@@ -9,7 +9,11 @@ interface UserTypeRouteShellProps {
 
 export default function UserTypeRouteShell({ userType }: UserTypeRouteShellProps) {
   const pathname = usePathname();
-  const section = pathname?.split('/')[2] === 'settings' ? 'settings' : 'dashboard';
+  const section = pathname?.split('/')[2];
+
+  if (section !== 'dashboard' && section !== 'settings') {
+    return null;
+  }
 
   if (userType === 'student') {
     return <AppShell route={section === 'settings' ? '/student/settings' : '/student/dashboard'} />;
@@ -17,4 +21,6 @@ export default function UserTypeRouteShell({ userType }: UserTypeRouteShellProps
 
   return <AppShell route={section === 'settings' ? '/attache/settings' : '/attache/dashboard'} />;
 }
+
+
 

@@ -6,18 +6,12 @@ interface StudentQueryToolbarProps {
   query: StudentQueryState;
   onQueryChange: (patch: Partial<StudentQueryState>) => void;
   onOpenExportOptions: () => void;
-  showAdvancedToggle?: boolean;
-  onToggleAdvanced?: () => void;
-  advancedOpen?: boolean;
 }
 
 export default function StudentQueryToolbar({
   query,
   onQueryChange,
   onOpenExportOptions,
-  showAdvancedToggle = true,
-  onToggleAdvanced,
-  advancedOpen = false,
 }: StudentQueryToolbarProps) {
   return (
     <div className="space-y-4">
@@ -35,11 +29,6 @@ export default function StudentQueryToolbar({
           </svg>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-          {showAdvancedToggle ? (
-            <Button onClick={onToggleAdvanced} variant="secondary" className="w-full md:w-auto">
-              {advancedOpen ? 'Hide Filters' : 'Advanced Filters'}
-            </Button>
-          ) : null}
           <Button onClick={onOpenExportOptions} variant="success" className="w-full md:w-auto">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

@@ -29,7 +29,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
         <input
           type="text"
           className={readOnlyInputClass}
-          value={student.contact.email || user.legacyEmail || '---'}
+          value={student.contact.email || '---'}
           readOnly
         />
       </FormField>
