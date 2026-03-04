@@ -66,7 +66,7 @@ This document is the complete reference for frontend data contracts used by the 
 - `id`, `inscriptionNumber`, `fullName`, `passportNumber`, `status`, `submittedAt`
 
 ### `User`
-- `id`, `subject`, `loginId`, `authProvider`, `legacyEmail`, `role`
+- `id`, `subject`, `loginId`, `authProvider`, `role`
 
 ## Service Contracts (`services/contracts.ts`)
 ### `AuthPasswordStore`

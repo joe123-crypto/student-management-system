@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useMemo, useState } from 'react';
 import type { StudentProfile } from '@/types';
 import type { ReportColumnOption } from '@/components/features/attache/types';
-import { buildStudentCsv, buildStudentDelimited, buildStudentJson, downloadFile } from '@/components/features/attache/utils/studentData';
+import { buildStudentDelimited, buildStudentJson, downloadFile } from '@/components/features/attache/utils/studentData';
 
 interface UseStudentExportsOptions {
   defaultColumnKeys: string[];
@@ -48,10 +48,7 @@ export default function useStudentExports(
       }
 
       const delimiter = format === 'TSV' ? '\t' : ',';
-      const content =
-        format === 'CSV'
-          ? buildStudentCsv(dataset, columns, reportColumns)
-          : buildStudentDelimited(dataset, columns, reportColumns, delimiter);
+      const content = buildStudentDelimited(dataset, columns, reportColumns, delimiter);
       const mimeType = format === 'TSV' ? 'text/tab-separated-values' : 'text/csv';
       downloadFile(filename, mimeType, content);
     },

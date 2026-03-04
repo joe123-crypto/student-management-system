@@ -117,7 +117,6 @@ export interface User {
   subject: string;
   loginId: string;
   authProvider: 'student_inscription' | 'attache_email';
-  legacyEmail?: string;
   role: UserRole;
 }
 

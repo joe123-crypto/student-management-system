@@ -1,9 +1,8 @@
-import { Dispatch, SetStateAction, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { StudentQueryState } from '@/components/features/attache/types';
 
 interface UseStudentFiltersResult {
     query: StudentQueryState;
-    setQuery: Dispatch<SetStateAction<StudentQueryState>>;
     updateQuery: (patch: Partial<StudentQueryState>) => void;
     resetAdvancedFilters: () => void;
 }
@@ -40,7 +39,6 @@ export default function useStudentFilters(defaultQuery: StudentQueryState): UseS
 
     return {
         query,
-        setQuery,
         updateQuery,
         resetAdvancedFilters,
     };

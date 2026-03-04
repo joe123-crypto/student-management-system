@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from './cn';
 
-export interface TabItem<T extends string> {
+interface TabItem<T extends string> {
   id: T;
   label: string;
 }

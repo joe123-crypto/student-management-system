@@ -6,13 +6,12 @@ interface UserTypeSectionPageProps {
   }>;
 }
 
-const ALLOWED_USER_TYPES = new Set(['student', 'attache']);
 const ALLOWED_SECTIONS = new Set(['dashboard', 'settings']);
 
 export default async function UserTypeSectionPage({ params }: UserTypeSectionPageProps) {
-  const { 'user-type': userType, section } = await params;
+  const { section } = await params;
 
-  if (!ALLOWED_USER_TYPES.has(userType) || !ALLOWED_SECTIONS.has(section)) {
+  if (!ALLOWED_SECTIONS.has(section)) {
     notFound();
   }
 

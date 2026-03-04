@@ -78,7 +78,6 @@ const LoginPage: React.FC<LoginPageProps> = ({
       subject: role === UserRole.STUDENT ? `student:${normalizedInscription}` : 'attache:default',
       loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail || DEMO_ATTACHE_EMAIL,
       authProvider: role === UserRole.STUDENT ? 'student_inscription' : 'attache_email',
-      legacyEmail: role === UserRole.STUDENT ? undefined : normalizedEmail || DEMO_ATTACHE_EMAIL,
       role,
     };
 

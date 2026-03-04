@@ -31,42 +31,45 @@ export default function StudentAppRouter({
   onChangePassword,
   onLogout,
 }: StudentAppRouterProps) {
-  if (route === '/onboarding') {
-    if (user?.role !== UserRole.STUDENT) {
-      return <Redirect to="/login" />;
-    }
-    if (!currentStudent) {
-      return <Redirect to="/login" />;
-    }
+  switch (route) {
+    case '/onboarding':
+      if (user?.role !== UserRole.STUDENT) {
+        return <Redirect to="/login" />;
+      }
+      if (!currentStudent) {
+        return <Redirect to="/login" />;
+      }
 
-    return (
-      <OnboardingPage
-        user={user}
-        student={currentStudent}
-        onComplete={(profilePatch) => onUpdateStudent(currentStudent.id, profilePatch)}
-      />
-    );
+      return (
+        <OnboardingPage
+          user={user}
+          student={currentStudent}
+          onComplete={(profilePatch) => onUpdateStudent(currentStudent.id, profilePatch)}
+        />
+      );
+    case '/student/dashboard':
+    case '/student/settings':
+      if (user?.role !== UserRole.STUDENT || !currentStudent) {
+        return <Redirect to="/login" />;
+      }
+
+      return (
+        <StudentDashboard
+          student={currentStudent}
+          announcements={announcements}
+          onUpdate={onUpdateStudent}
+          section={route === '/student/settings' ? 'settings' : 'dashboard'}
+          onNavigateSection={onNavigateStudentSection}
+          onChangePassword={onChangePassword}
+          onLogout={onLogout}
+        />
+      );
+    default: {
+      const unreachable: never = route;
+      return unreachable;
+    }
   }
-
-  if (route === '/student/dashboard' || route === '/student/settings') {
-    if (user?.role !== UserRole.STUDENT || !currentStudent) {
-      return <Redirect to="/login" />;
-    }
-
-    const section = route === '/student/settings' ? 'settings' : 'dashboard';
-    return (
-      <StudentDashboard
-        student={currentStudent}
-        announcements={announcements}
-        onUpdate={onUpdateStudent}
-        section={section}
-        onNavigateSection={onNavigateStudentSection}
-        onChangePassword={onChangePassword}
-        onLogout={onLogout}
-      />
-    );
-  }
-
-  return null;
 }
+
+
 

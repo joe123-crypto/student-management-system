@@ -18,12 +18,10 @@ export function useAuth(students: StudentProfile[], demoMode = false) {
       return null;
     }
 
-    const byInscription = students.find(
-      (student) => student.student.inscriptionNumber.toUpperCase() === user.loginId.toUpperCase(),
+    return (
+      students.find((student) => student.student.inscriptionNumber.toUpperCase() === user.loginId.toUpperCase()) ||
+      null
     );
-    if (byInscription) return byInscription;
-
-    return students.find((student) => student.contact.email.toLowerCase() === user.loginId.toLowerCase()) || null;
   }, [students, user]);
 
   const studentPasswordsByInscription = useMemo(

@@ -70,20 +70,16 @@ export function parseCsvRows(source: string, delimiterOption: CsvDelimiterOption
   });
 }
 
-function getCsvValue(row: Record<string, string>, aliases: string[]) {
-  for (const alias of aliases) {
-    const value = row[normalizeHeader(alias)];
-    if (value) return value;
-  }
-  return '';
+function getCsvValue(row: Record<string, string>, key: string) {
+  return row[normalizeHeader(key)] || '';
 }
 
 export function toStudentProfile(row: Record<string, string>, index: number): StudentProfile | null {
-  const email = getCsvValue(row, ['email', 'studentemail', 'contactemail']).toLowerCase();
-  const givenName = getCsvValue(row, ['givenname', 'firstname', 'namefirst']);
-  const familyName = getCsvValue(row, ['familyname', 'lastname', 'namelast']);
-  const fullName = getCsvValue(row, ['fullname', 'studentname']) || `${givenName} ${familyName}`.trim();
-  const inscriptionNumber = getCsvValue(row, ['inscriptionnumber', 'registrationnumber', 'studentid']);
+  const email = getCsvValue(row, 'email').toLowerCase();
+  const givenName = getCsvValue(row, 'givenName');
+  const familyName = getCsvValue(row, 'familyName');
+  const fullName = getCsvValue(row, 'fullName');
+  const inscriptionNumber = getCsvValue(row, 'inscriptionNumber');
 
   if (!email || !fullName) {
     return null;
@@ -91,62 +87,62 @@ export function toStudentProfile(row: Record<string, string>, index: number): St
 
   const inferredGivenName = givenName || fullName.split(' ')[0] || '';
   const inferredFamilyName = familyName || fullName.split(' ').slice(1).join(' ') || '';
-  const rawGender = getCsvValue(row, ['gender']).toUpperCase();
+  const rawGender = getCsvValue(row, 'gender').toUpperCase();
   const gender = rawGender === 'F' ? 'F' : rawGender === 'OTHER' ? 'Other' : 'M';
-  const rawStatus = getCsvValue(row, ['status']).toUpperCase();
+  const rawStatus = getCsvValue(row, 'status').toUpperCase();
   const status: StudentProfile['status'] =
     rawStatus === 'ACTIVE' || rawStatus === 'COMPLETED' ? rawStatus : 'PENDING';
 
   return {
-    id: Math.random().toString(36).substr(2, 9) || `csv-${index}`,
+    id: Math.random().toString(36).slice(2, 11) || `csv-${index}`,
     student: {
       fullName,
       givenName: inferredGivenName,
       familyName: inferredFamilyName,
       inscriptionNumber: inscriptionNumber || `CSV-${Date.now()}-${index + 1}`,
-      dateOfBirth: getCsvValue(row, ['dateofbirth', 'dob']),
-      nationality: getCsvValue(row, ['nationality']) || 'Unknown',
+      dateOfBirth: getCsvValue(row, 'dateOfBirth'),
+      nationality: getCsvValue(row, 'nationality') || 'Unknown',
       gender,
     },
     passport: {
-      passportNumber: getCsvValue(row, ['passportnumber']),
-      issueDate: getCsvValue(row, ['passportissuedate', 'issueDate']),
-      expiryDate: getCsvValue(row, ['passportexpirydate', 'expiryDate']),
-      issuingCountry: getCsvValue(row, ['passportissuingcountry', 'issuingCountry']),
+      passportNumber: getCsvValue(row, 'passportNumber'),
+      issueDate: getCsvValue(row, 'issueDate'),
+      expiryDate: getCsvValue(row, 'expiryDate'),
+      issuingCountry: getCsvValue(row, 'issuingCountry'),
     },
     university: {
-      universityName: getCsvValue(row, ['universityname', 'university']) || 'Unknown University',
-      acronym: getCsvValue(row, ['universityacronym', 'acronym']),
-      campus: getCsvValue(row, ['campus']),
-      city: getCsvValue(row, ['city']),
+      universityName: getCsvValue(row, 'universityName') || 'Unknown University',
+      acronym: getCsvValue(row, 'acronym'),
+      campus: getCsvValue(row, 'campus'),
+      city: getCsvValue(row, 'city'),
     },
     program: {
-      degreeLevel: getCsvValue(row, ['degreelevel', 'level']),
-      major: getCsvValue(row, ['major', 'program']) || 'Undeclared',
-      startDate: getCsvValue(row, ['startdate']),
-      expectedEndDate: getCsvValue(row, ['expectedenddate', 'enddate']),
+      degreeLevel: getCsvValue(row, 'degreeLevel'),
+      major: getCsvValue(row, 'major') || 'Undeclared',
+      startDate: getCsvValue(row, 'startDate'),
+      expectedEndDate: getCsvValue(row, 'expectedEndDate'),
     },
     bankAccount: {
-      accountHolderName: getCsvValue(row, ['accountholdername']) || fullName,
-      accountNumber: getCsvValue(row, ['accountnumber']),
-      iban: getCsvValue(row, ['iban']),
-      swiftCode: getCsvValue(row, ['swiftcode']),
+      accountHolderName: getCsvValue(row, 'accountHolderName') || fullName,
+      accountNumber: getCsvValue(row, 'accountNumber'),
+      iban: getCsvValue(row, 'iban'),
+      swiftCode: getCsvValue(row, 'swiftCode'),
     },
     bank: {
-      bankName: getCsvValue(row, ['bankname']),
-      branchName: getCsvValue(row, ['branchname']),
-      branchAddress: getCsvValue(row, ['branchaddress']),
-      branchCode: getCsvValue(row, ['branchcode']),
+      bankName: getCsvValue(row, 'bankName'),
+      branchName: getCsvValue(row, 'branchName'),
+      branchAddress: getCsvValue(row, 'branchAddress'),
+      branchCode: getCsvValue(row, 'branchCode'),
     },
     contact: {
       email,
-      phone: getCsvValue(row, ['phone', 'phonenumber']),
-      emergencyContactName: getCsvValue(row, ['emergencycontactname']),
-      emergencyContactPhone: getCsvValue(row, ['emergencycontactphone']),
+      phone: getCsvValue(row, 'phone'),
+      emergencyContactName: getCsvValue(row, 'emergencyContactName'),
+      emergencyContactPhone: getCsvValue(row, 'emergencyContactPhone'),
     },
     address: {
-      homeCountryAddress: getCsvValue(row, ['homecountryaddress']),
-      currentHostAddress: getCsvValue(row, ['currenthostaddress']),
+      homeCountryAddress: getCsvValue(row, 'homeCountryAddress'),
+      currentHostAddress: getCsvValue(row, 'currentHostAddress'),
     },
     status,
   };
