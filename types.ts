@@ -106,6 +106,8 @@ export interface Announcement {
 export interface PermissionRequest {
   id: string;
   inscriptionNumber: string;
+  fullName: string;
+  passportNumber: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   submittedAt: string;
 }

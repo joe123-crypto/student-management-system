@@ -20,6 +20,8 @@ export default function PermissionRequestsSection({ requests }: PermissionReques
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                <th className="py-3 pr-4">Full Name</th>
+                <th className="py-3 pr-4">Passport</th>
                 <th className="py-3 pr-4">Inscription</th>
                 <th className="py-3 pr-4">Submitted</th>
                 <th className="py-3 pr-4">Status</th>
@@ -28,6 +30,8 @@ export default function PermissionRequestsSection({ requests }: PermissionReques
             <tbody>
               {requests.map((request) => (
                 <tr key={request.id} className="border-b border-slate-100 text-slate-700">
+                  <td className="py-3 pr-4 font-semibold">{request.fullName || '-'}</td>
+                  <td className="py-3 pr-4 font-mono">{request.passportNumber || '-'}</td>
                   <td className="py-3 pr-4 font-mono font-semibold text-indigo-600">{request.inscriptionNumber}</td>
                   <td className="py-3 pr-4">{new Date(request.submittedAt).toLocaleString()}</td>
                   <td className="py-3 pr-4">

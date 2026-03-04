@@ -27,6 +27,6 @@ export interface AnnouncementsService {
 export interface PermissionsService {
   loadPermissionRequests(): PermissionRequest[];
   savePermissionRequests(permissionRequests: PermissionRequest[]): void;
-  createPendingRequest(inscriptionNumber: string): PermissionRequest;
+  createPendingRequest(inscriptionNumber: string, fullName: string, passportNumber: string): PermissionRequest;
 }
 

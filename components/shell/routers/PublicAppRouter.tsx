@@ -15,7 +15,7 @@ interface PublicAppRouterProps {
   attachePassword: string;
   demoMode: boolean;
   existingPendingRequests: string[];
-  onSubmitPermissionRequest: (inscriptionNumber: string) => void;
+  onSubmitPermissionRequest: (inscriptionNumber: string, fullName: string, passportNumber: string) => void;
 }
 
 export default function PublicAppRouter({

@@ -7,7 +7,7 @@ import { Hash, ShieldCheck } from 'lucide-react';
 interface PermissionRequestPageProps {
   existingInscriptions: string[];
   existingRequests: string[];
-  onSubmitRequest: (inscriptionNumber: string) => void;
+  onSubmitRequest: (inscriptionNumber: string, fullName: string, passportNumber: string) => void;
 }
 
 export default function PermissionRequestPage({
@@ -15,11 +15,18 @@ export default function PermissionRequestPage({
   existingRequests,
   onSubmitRequest,
 }: PermissionRequestPageProps) {
+  const [fullName, setFullName] = useState('');
+  const [passportNumber, setPassportNumber] = useState('');
   const [inscriptionNumber, setInscriptionNumber] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  const normalizedFullName = useMemo(() => fullName.trim(), [fullName]);
+  const normalizedPassportNumber = useMemo(
+    () => passportNumber.trim().toUpperCase(),
+    [passportNumber],
+  );
   const normalizedInscription = useMemo(
     () => inscriptionNumber.trim().toUpperCase(),
     [inscriptionNumber],
@@ -29,6 +36,16 @@ export default function PermissionRequestPage({
     e.preventDefault();
     setMessage(null);
     setError(null);
+
+    if (!normalizedFullName) {
+      setError('Please enter your full name.');
+      return;
+    }
+
+    if (!normalizedPassportNumber) {
+      setError('Please enter your passport number.');
+      return;
+    }
 
     if (!normalizedInscription) {
       setError('Please enter your inscription number.');
@@ -45,8 +62,10 @@ export default function PermissionRequestPage({
       return;
     }
 
-    onSubmitRequest(normalizedInscription);
+    onSubmitRequest(normalizedInscription, normalizedFullName, normalizedPassportNumber);
     setMessage('Request sent to the student attache.');
+    setFullName('');
+    setPassportNumber('');
     setInscriptionNumber('');
   };
 
@@ -58,6 +77,30 @@ export default function PermissionRequestPage({
           <p className="mt-2 text-center text-sm text-slate-400">Send an access request to the student attache.</p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <FormField label="Full Name" labelClassName="mb-1 text-xs font-medium text-slate-400">
+              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
+                />
+              </div>
+            </FormField>
+
+            <FormField label="Passport Number" labelClassName="mb-1 text-xs font-medium text-slate-400">
+              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
+                <input
+                  type="text"
+                  value={passportNumber}
+                  onChange={(e) => setPassportNumber(e.target.value)}
+                  placeholder="AA1234567"
+                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
+                />
+              </div>
+            </FormField>
+
             <FormField label="Inscription Number" labelClassName="mb-1 text-xs font-medium text-slate-400">
               <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
                 <Hash className="w-4 h-4 text-slate-400" />
