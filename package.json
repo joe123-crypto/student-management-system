@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "docs:check": "node scripts/check-frontend-data-model-docs.mjs",
     "typecheck": "tsc --noEmit",
     "audit:high": "npm audit --audit-level=high"
   },

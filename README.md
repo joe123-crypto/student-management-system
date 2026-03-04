@@ -5,9 +5,9 @@ Auth mode:
 - Production: set `NEXT_PUBLIC_DEMO_MODE=false` and provide `NEXT_PUBLIC_ATTACHE_PASSWORD`.
 - Demo: set `NEXT_PUBLIC_DEMO_MODE=true` to enable demo credential fallbacks (for pre-backend demonstrations).
 
-**To understand how this application works, including architecture, routing, data model, and feature breakdown, read `docs/README.md`.**
+**To understand how this application, read the docs index at `docs/README.md`.**
 
-That document is the **single source of truth** for internal architecture and should be **kept up to date after every meaningful code change**. Whenever you:
+The `docs/` directory is the source of truth for internal architecture, frontend behavior, setup, and troubleshooting, and should be kept up to date after every meaningful code change. Whenever you:
 
 - Add or change routes
 - Introduce new feature areas or major components
