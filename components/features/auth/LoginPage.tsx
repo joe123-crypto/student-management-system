@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, UserRole } from '@/types';
+import { signIn } from 'next-auth/react';
+import { UserRole } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import { Hash, HelpCircle, Lock, LogIn, Mail } from 'lucide-react';
 
 interface LoginPageProps {
-  onLogin: (user: User) => void;
   registeredStudentInscriptions: string[];
   onboardingStudentInscriptions: string[];
-  studentPasswordsByInscription: Record<string, string>;
-  attachePassword: string;
   demoMode: boolean;
 }
 
@@ -19,24 +17,21 @@ const roleOptions = [
   { value: UserRole.STUDENT, label: 'Student' },
   { value: UserRole.ATTACHE, label: 'Attache' },
 ] as const;
-const DEMO_AUTH_PASSWORD = 'jean';
-const DEMO_ATTACHE_EMAIL = 'attache@example.com';
 
 const LoginPage: React.FC<LoginPageProps> = ({
-  onLogin,
   registeredStudentInscriptions,
   onboardingStudentInscriptions,
-  studentPasswordsByInscription,
-  attachePassword,
   demoMode,
 }) => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     const normalizedLoginId = loginId.trim();
     const normalizedEmail = normalizedLoginId.toLowerCase();
@@ -45,43 +40,29 @@ const LoginPage: React.FC<LoginPageProps> = ({
     if (role === UserRole.STUDENT) {
       if (!registeredStudentInscriptions.includes(normalizedInscription)) {
         alert('No student record found for this inscription number. Please contact administration.');
-        return;
-      }
-
-      const expectedPassword = studentPasswordsByInscription[normalizedInscription] || (demoMode ? DEMO_AUTH_PASSWORD : '');
-      if (!expectedPassword) {
-        alert('Student password is not configured. Please contact administration.');
-        return;
-      }
-      if (password !== expectedPassword) {
-        alert('Invalid credentials. Check your inscription number and password.');
+        setIsSubmitting(false);
         return;
       }
     } else {
       if (!demoMode && (!normalizedEmail || !normalizedEmail.includes('@'))) {
         alert('Enter a valid attache email.');
-        return;
-      }
-      const expectedAttachePassword = attachePassword || (demoMode ? DEMO_AUTH_PASSWORD : '');
-      if (!expectedAttachePassword) {
-        alert('Attache sign-in is not configured.');
-        return;
-      }
-      if (password !== expectedAttachePassword) {
-        alert('Invalid credentials.');
+        setIsSubmitting(false);
         return;
       }
     }
 
-    const user: User = {
-      id: Math.random().toString(36).slice(2, 11),
-      subject: role === UserRole.STUDENT ? `student:${normalizedInscription}` : 'attache:default',
-      loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail || DEMO_ATTACHE_EMAIL,
-      authProvider: role === UserRole.STUDENT ? 'student_inscription' : 'attache_email',
+    const result = await signIn('credentials', {
       role,
-    };
+      loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail,
+      password,
+      redirect: false,
+    });
 
-    onLogin(user);
+    if (result?.error) {
+      alert('Invalid credentials.');
+      setIsSubmitting(false);
+      return;
+    }
 
     if (role === UserRole.STUDENT) {
       if (
@@ -96,6 +77,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
     }
 
     router.push('/attache/dashboard');
+    setIsSubmitting(false);
   };
 
   return (
@@ -161,11 +143,12 @@ const LoginPage: React.FC<LoginPageProps> = ({
 
             <Button
               type="submit"
+              disabled={isSubmitting}
               fullWidth
               className="mt-5 rounded-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700"
             >
               <LogIn className="w-4 h-4" />
-              Sign in
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
 
