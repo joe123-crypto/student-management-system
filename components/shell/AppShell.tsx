@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import type { AppRoute } from '@/components/shell/routes';
 import { useAnnouncements } from '@/components/shell/domains/announcements/useAnnouncements';
 import { useAuth } from '@/components/shell/domains/auth/useAuth';
@@ -14,7 +15,6 @@ import StudentAppRouter from '@/components/shell/routers/StudentAppRouter';
 export default function AppShell({ route }: { route: AppRoute }) {
   const router = useRouter();
   const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
-  const attachePassword = process.env.NEXT_PUBLIC_ATTACHE_PASSWORD?.trim() ?? '';
   const { students, updateStudent, deleteStudents, importStudents, isHydrated: isDatabaseHydrated } = usePrototypeDatabase();
   const { announcements, addAnnouncement, isHydrated: isAnnouncementsHydrated } = useAnnouncements();
   const {
@@ -25,12 +25,10 @@ export default function AppShell({ route }: { route: AppRoute }) {
   } = usePermissionRequests();
   const {
     user,
-    setUser,
     currentStudent,
-    studentPasswordsByInscription,
     changeStudentPassword,
     isHydrated: isAuthHydrated,
-  } = useAuth(students, demoMode);
+  } = useAuth(students);
 
   const registeredStudentInscriptions = useMemo(
     () => students.map((student) => student.student.inscriptionNumber.toUpperCase()),
@@ -55,9 +53,8 @@ export default function AppShell({ route }: { route: AppRoute }) {
     isDatabaseHydrated && isAnnouncementsHydrated && isPermissionRequestsHydrated && isAuthHydrated;
 
   const handleLogout = useCallback(() => {
-    setUser(null);
-    router.replace('/login');
-  }, [router, setUser]);
+    void signOut({ callbackUrl: '/login' });
+  }, []);
 
   switch (route) {
     case '/':
@@ -66,11 +63,8 @@ export default function AppShell({ route }: { route: AppRoute }) {
       return (
         <PublicAppRouter
           route={route}
-          onLogin={setUser}
           registeredStudentInscriptions={registeredStudentInscriptions}
           onboardingStudentInscriptions={onboardingStudentInscriptions}
-          studentPasswordsByInscription={studentPasswordsByInscription}
-          attachePassword={attachePassword}
           demoMode={demoMode}
           existingPendingRequests={existingPendingRequests}
           onSubmitPermissionRequest={submitPermissionRequest}
