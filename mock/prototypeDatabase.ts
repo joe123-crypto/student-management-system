@@ -2,7 +2,7 @@ import type { StudentProfile } from '@/types';
 import { INITIAL_PROTOTYPE_DATABASE } from '@/mock/prototypeSeedData';
 import type { BRANCH, PERSON, PrototypeDatabase } from '@/mock/prototypeSchema';
 export type { PrototypeDatabase } from '@/mock/prototypeSchema';
-export const PROTOTYPE_DATABASE_STORAGE_KEY = 'prototype_database_v1';
+export const PROTOTYPE_DATABASE_STORAGE_KEY = 'prototype_database_v2';
 const REQUIRED_TABLES: (keyof PrototypeDatabase)[] = [
   'PERSON',
   'STUDENT',
@@ -61,10 +61,10 @@ function getOrCreateAddress(db: PrototypeDatabase, name: string, provinceName: s
   const provinceId = existingProvince
     ? existingProvince.id
     : (() => {
-        const id = nextId(db, 'PROVINCE');
-        db.PROVINCE.push({ id, name: provinceName || 'Unknown Province' });
-        return id;
-      })();
+      const id = nextId(db, 'PROVINCE');
+      db.PROVINCE.push({ id, name: provinceName || 'Unknown Province' });
+      return id;
+    })();
 
   const id = nextId(db, 'ADDRESS');
   db.ADDRESS.push({ id, name: normalizedName, wilaya_id: provinceId });
@@ -519,15 +519,15 @@ export function importStudentProfilesToDatabase(
   const base =
     mode === 'replace'
       ? {
-          ...cloneDatabase(db),
-          PERSON: [],
-          STUDENT: [],
-          PASSPORT: [],
-          CONTACT: [],
-          ENROLLMENT: [],
-          PROGRESS: [],
-          ACCOUNT: [],
-        }
+        ...cloneDatabase(db),
+        PERSON: [],
+        STUDENT: [],
+        PASSPORT: [],
+        CONTACT: [],
+        ENROLLMENT: [],
+        PROGRESS: [],
+        ACCOUNT: [],
+      }
       : cloneDatabase(db);
 
   return records.reduce((nextDb, profile) => addStudentProfileToDatabase(nextDb, profile), base);

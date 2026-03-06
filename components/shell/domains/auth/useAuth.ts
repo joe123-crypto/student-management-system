@@ -32,10 +32,31 @@ export function useAuth(students: StudentProfile[]) {
       return null;
     }
 
-    return (
-      students.find((student) => student.student.inscriptionNumber.toUpperCase() === user.loginId.toUpperCase()) ||
-      null
-    );
+    const found = students.find((student) => student.student.inscriptionNumber.toUpperCase() === user.loginId.toUpperCase());
+    if (found) return found;
+
+    return {
+      id: `student-db-${user.id}`,
+      student: {
+        fullName: user.loginId,
+        givenName: 'New',
+        familyName: 'Student',
+        inscriptionNumber: user.loginId.toUpperCase(),
+        registrationNumber: '',
+        dateOfBirth: '',
+        nationality: '',
+        gender: 'M',
+      },
+      passport: { passportNumber: '', issueDate: '', expiryDate: '', issuingCountry: '' },
+      university: { universityName: '', acronym: '', campus: '', city: '', department: '' },
+      program: { degreeLevel: '', major: '', startDate: '', expectedEndDate: '' },
+      bankAccount: { accountHolderName: '', accountNumber: '', iban: '', swiftCode: '', dateCreated: '' },
+      bank: { bankName: '', branchName: '', branchAddress: '', branchCode: '' },
+      contact: { email: '', phone: '', emergencyContactName: '', emergencyContactPhone: '' },
+      address: { homeCountryAddress: '', currentHostAddress: '' },
+      status: 'PENDING',
+      academicHistory: [],
+    } as StudentProfile;
   }, [students, user]);
 
   const changeStudentPassword = (currentPassword: string, newPassword: string) => {

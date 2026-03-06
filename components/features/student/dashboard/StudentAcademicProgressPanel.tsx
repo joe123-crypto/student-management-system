@@ -31,7 +31,7 @@ const StudentAcademicProgressPanel: React.FC<StudentAcademicProgressPanelProps> 
 
       <div className="space-y-8 sm:space-y-12">
         <div className="h-64 w-full sm:h-80">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1}>
             <AreaChart data={PROGRESS_DATA}>
               <defs>
                 <linearGradient id="colorGpa" x1="0" y1="0" x2="0" y2="1">

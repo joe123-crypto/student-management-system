@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  ATTACHE
+}
+
+enum AuthProvider {
+  student_inscription
+  attache_email
+}
+
+model AuthUser {
+  id                String       @id @default(cuid())
+  role              UserRole
+  loginId           String
+  subject           String
+  authProvider      AuthProvider
+  passwordHash      String
+  isActive          Boolean      @default(true)
+  failedSignInCount Int          @default(0)
+  lockedUntil       DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  auditLogs         AuditLog[]
+
+  @@unique([role, loginId])
+}
+
+model AuditLog {
+  id        String    @id @default(cuid())
+  userId    String?
+  event     String
+  metadata  Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+  user      AuthUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}

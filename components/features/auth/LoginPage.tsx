@@ -37,13 +37,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
     const normalizedEmail = normalizedLoginId.toLowerCase();
     const normalizedInscription = normalizedLoginId.toUpperCase();
 
-    if (role === UserRole.STUDENT) {
-      if (!registeredStudentInscriptions.includes(normalizedInscription)) {
-        alert('No student record found for this inscription number. Please contact administration.');
-        setIsSubmitting(false);
-        return;
-      }
-    } else {
+    if (role === UserRole.ATTACHE) {
       if (!demoMode && (!normalizedEmail || !normalizedEmail.includes('@'))) {
         alert('Enter a valid attache email.');
         setIsSubmitting(false);

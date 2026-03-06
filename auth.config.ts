@@ -1,9 +1,9 @@
 import type { NextAuthOptions } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import { UserRole as PrismaUserRole } from '@prisma/client';
 import { UserRole } from '@/types';
-
-const DEMO_AUTH_PASSWORD = 'jean';
-const DEMO_ATTACHE_EMAIL = 'attache@example.com';
+import { findAuthUser, onFailedSignIn, onSuccessfulSignIn, recordAuditLog } from '@/lib/auth/store';
+import { verifyPassword } from '@/lib/auth/passwords';
 
 type RawCredentials = {
   role?: string;
@@ -11,21 +11,17 @@ type RawCredentials = {
   password?: string;
 };
 
-function parseStudentCredentialMap(): Record<string, string> {
-  const raw = process.env.AUTH_STUDENT_CREDENTIALS_JSON?.trim();
-  if (!raw) return {};
+function getSigninLimits() {
+  const maxAttempts = Number(process.env.AUTH_MAX_FAILED_ATTEMPTS ?? '5');
+  const lockMinutes = Number(process.env.AUTH_LOCK_MINUTES ?? '15');
+  return {
+    maxAttempts: Number.isFinite(maxAttempts) && maxAttempts > 0 ? maxAttempts : 5,
+    lockMinutes: Number.isFinite(lockMinutes) && lockMinutes > 0 ? lockMinutes : 15,
+  };
+}
 
-  try {
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    return Object.entries(parsed).reduce<Record<string, string>>((acc, [key, value]) => {
-      if (typeof value === 'string' && value.trim()) {
-        acc[key.toUpperCase()] = value;
-      }
-      return acc;
-    }, {});
-  } catch {
-    return {};
-  }
+function toPrismaRole(role: UserRole): PrismaUserRole {
+  return role === UserRole.ATTACHE ? PrismaUserRole.ATTACHE : PrismaUserRole.STUDENT;
 }
 
 const authConfig: NextAuthOptions = {
@@ -43,41 +39,100 @@ const authConfig: NextAuthOptions = {
         loginId: { label: 'Login ID', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      authorize(rawCredentials) {
+      async authorize(rawCredentials, req) {
         const credentials = (rawCredentials ?? {}) as RawCredentials;
         const role = credentials.role === UserRole.ATTACHE ? UserRole.ATTACHE : UserRole.STUDENT;
         const password = credentials.password?.trim() ?? '';
-        const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+        const rawLoginId = credentials.loginId?.trim() ?? '';
+        const loginId = role === UserRole.STUDENT ? rawLoginId.toUpperCase() : rawLoginId.toLowerCase();
+        const ip = (req.headers?.['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim();
+        const userAgent = req.headers?.['user-agent'] as string | undefined;
+        const { maxAttempts, lockMinutes } = getSigninLimits();
 
-        if (!password) return null;
-
-        if (role === UserRole.ATTACHE) {
-          const loginId = (credentials.loginId?.trim().toLowerCase() || process.env.AUTH_ATTACHE_EMAIL?.toLowerCase() || DEMO_ATTACHE_EMAIL);
-          const expectedPassword = process.env.AUTH_ATTACHE_PASSWORD?.trim() || (demoMode ? DEMO_AUTH_PASSWORD : '');
-          if (!expectedPassword || password !== expectedPassword) return null;
-
-          return {
-            id: `attache:${loginId}`,
-            role: UserRole.ATTACHE,
-            loginId,
-            subject: 'attache:default',
-            authProvider: 'attache_email',
-          };
+        if (!password || !loginId) {
+          return null;
         }
 
-        const normalizedInscription = credentials.loginId?.trim().toUpperCase() ?? '';
-        if (!normalizedInscription) return null;
+        const useMockDb = process.env.NEXT_PUBLIC_USE_MOCK_DB === 'true';
 
-        const configuredMap = parseStudentCredentialMap();
-        const expectedPassword = configuredMap[normalizedInscription] || (demoMode ? DEMO_AUTH_PASSWORD : '');
-        if (!expectedPassword || password !== expectedPassword) return null;
+        if (useMockDb) {
+          // If we are in mock mode, bypass Prisma and authorize using the mock seed data
+          if (role === UserRole.STUDENT) {
+            const { INITIAL_PROTOTYPE_DATABASE } = await import('@/mock/prototypeSeedData');
+            const mockStudent = INITIAL_PROTOTYPE_DATABASE.STUDENT.find(
+              (s) => s.inscription_no.toUpperCase() === loginId.toUpperCase()
+            );
+            if (!mockStudent) return null;
+            return {
+              id: `mock-student-${mockStudent.id}`,
+              role: UserRole.STUDENT,
+              loginId: mockStudent.inscription_no,
+              subject: 'Mock Studies',
+              authProvider: 'student_inscription',
+            };
+          } else {
+            return {
+              id: `mock-attache-${loginId}`,
+              role: UserRole.ATTACHE,
+              loginId: loginId,
+              subject: 'Administration',
+              authProvider: 'attache_email',
+            };
+          }
+        }
+
+        const dbRole = toPrismaRole(role);
+        const authUser = await findAuthUser(dbRole, loginId);
+
+        if (!authUser || !authUser.isActive) {
+          await recordAuditLog({
+            event: 'login_failed',
+            ip,
+            userAgent,
+            metadata: { reason: 'user_not_found_or_inactive', role, loginId },
+          });
+          return null;
+        }
+
+        if (authUser.lockedUntil && authUser.lockedUntil.getTime() > Date.now()) {
+          await recordAuditLog({
+            userId: authUser.id,
+            event: 'login_blocked_locked',
+            ip,
+            userAgent,
+            metadata: { lockedUntil: authUser.lockedUntil.toISOString() },
+          });
+          return null;
+        }
+
+        const isPasswordValid = await verifyPassword(password, authUser.passwordHash);
+        if (!isPasswordValid) {
+          await onFailedSignIn(authUser.id, maxAttempts, lockMinutes);
+          await recordAuditLog({
+            userId: authUser.id,
+            event: 'login_failed',
+            ip,
+            userAgent,
+            metadata: { reason: 'bad_password', role, loginId },
+          });
+          return null;
+        }
+
+        await onSuccessfulSignIn(authUser.id);
+        await recordAuditLog({
+          userId: authUser.id,
+          event: 'login_success',
+          ip,
+          userAgent,
+          metadata: { role, loginId },
+        });
 
         return {
-          id: `student:${normalizedInscription}`,
-          role: UserRole.STUDENT,
-          loginId: normalizedInscription,
-          subject: `student:${normalizedInscription}`,
-          authProvider: 'student_inscription',
+          id: authUser.id,
+          role: authUser.role === PrismaUserRole.ATTACHE ? UserRole.ATTACHE : UserRole.STUDENT,
+          loginId: authUser.loginId,
+          subject: authUser.subject,
+          authProvider: authUser.authProvider,
         };
       },
     }),
