@@ -17,6 +17,12 @@ enum AuthProvider {
   attache_email
 }
 
+enum StudentProfileStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+}
+
 model AuthUser {
   id                String       @id @default(cuid())
   role              UserRole
@@ -30,6 +36,7 @@ model AuthUser {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   auditLogs         AuditLog[]
+  studentProfile    StudentProfileRecord?
 
   @@unique([role, loginId])
 }
@@ -43,4 +50,19 @@ model AuditLog {
   userAgent String?
   createdAt DateTime  @default(now())
   user      AuthUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model StudentProfileRecord {
+  id                String               @id
+  authUserId        String?              @unique
+  inscriptionNumber String               @unique
+  fullName          String
+  status            StudentProfileStatus @default(PENDING)
+  profile           Json
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  authUser          AuthUser?            @relation(fields: [authUserId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([fullName])
 }

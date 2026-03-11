@@ -1,62 +1,138 @@
-import { PrismaClient, UserRole, AuthProvider } from '@prisma/client';
+import { PrismaClient, UserRole, AuthProvider, StudentProfileStatus } from '@prisma/client';
 import { hash } from '@node-rs/argon2';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('Seeding database...');
+  console.log('Seeding database...');
 
-    // Hash the password for our test users
-    const testPasswordHash = await hash('password123');
+  const testPasswordHash = await hash('password123');
 
-    // 1. Insert a Test Student
-    const student = await prisma.authUser.upsert({
-        where: {
-            role_loginId: {
-                role: UserRole.STUDENT,
-                loginId: 'STUDENT123',
-            },
+  const student = await prisma.authUser.upsert({
+    where: {
+      role_loginId: {
+        role: UserRole.STUDENT,
+        loginId: 'STUDENT123',
+      },
+    },
+    update: {},
+    create: {
+      role: UserRole.STUDENT,
+      loginId: 'STUDENT123',
+      subject: 'Computer Science',
+      authProvider: AuthProvider.student_inscription,
+      passwordHash: testPasswordHash,
+      isActive: true,
+    },
+  });
+
+  console.log('Created Student:', student.loginId);
+
+  await prisma.studentProfileRecord.upsert({
+    where: {
+      inscriptionNumber: student.loginId,
+    },
+    update: {
+      authUserId: student.id,
+    },
+    create: {
+      id: 'student-profile-student123',
+      authUserId: student.id,
+      inscriptionNumber: student.loginId,
+      fullName: 'Seed Student',
+      status: StudentProfileStatus.PENDING,
+      profile: {
+        id: 'student-profile-student123',
+        student: {
+          fullName: 'Seed Student',
+          givenName: 'Seed',
+          familyName: 'Student',
+          inscriptionNumber: student.loginId,
+          registrationNumber: '',
+          dateOfBirth: '',
+          nationality: '',
+          gender: 'M',
         },
-        update: {},
-        create: {
-            role: UserRole.STUDENT,
-            loginId: 'STUDENT123',
-            subject: 'Computer Science',
-            authProvider: AuthProvider.student_inscription,
-            passwordHash: testPasswordHash,
-            isActive: true,
+        passport: {
+          passportNumber: '',
+          issueDate: '',
+          expiryDate: '',
+          issuingCountry: '',
         },
-    });
-
-    console.log('Created Student:', student.loginId);
-
-    // 2. Insert a Test Attaché
-    const attache = await prisma.authUser.upsert({
-        where: {
-            role_loginId: {
-                role: UserRole.ATTACHE,
-                loginId: 'admin@scholarsalger.dz',
-            },
+        university: {
+          universityName: '',
+          acronym: '',
+          campus: '',
+          city: '',
+          department: '',
         },
-        update: {},
-        create: {
-            role: UserRole.ATTACHE,
-            loginId: 'admin@scholarsalger.dz',
-            subject: 'Administration',
-            authProvider: AuthProvider.attache_email,
-            passwordHash: testPasswordHash,
-            isActive: true,
+        program: {
+          degreeLevel: '',
+          major: '',
+          startDate: '',
+          expectedEndDate: '',
+          programType: '',
         },
-    });
+        bankAccount: {
+          accountHolderName: 'Seed Student',
+          accountNumber: '',
+          iban: '',
+          swiftCode: '',
+          dateCreated: '',
+        },
+        bank: {
+          bankName: '',
+          branchName: '',
+          branchAddress: '',
+          branchCode: '',
+        },
+        contact: {
+          email: '',
+          phone: '',
+          emergencyContactName: '',
+          emergencyContactPhone: '',
+        },
+        address: {
+          homeCountryAddress: '',
+          currentHostAddress: '',
+          street: '',
+          city: '',
+          state: '',
+          countryCode: '',
+          wilaya: '',
+        },
+        status: 'PENDING',
+        academicHistory: [],
+      },
+    },
+  });
 
-    console.log('Created Attaché:', attache.loginId);
+  const attache = await prisma.authUser.upsert({
+    where: {
+      role_loginId: {
+        role: UserRole.ATTACHE,
+        loginId: 'admin@scholarsalger.dz',
+      },
+    },
+    update: {},
+    create: {
+      role: UserRole.ATTACHE,
+      loginId: 'admin@scholarsalger.dz',
+      subject: 'Administration',
+      authProvider: AuthProvider.attache_email,
+      passwordHash: testPasswordHash,
+      isActive: true,
+    },
+  });
+
+  console.log('Created Attache:', attache.loginId);
 }
 
 main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
