@@ -11,18 +11,15 @@ const typeSources = [
 ];
 
 const keySources = [
-  path.join(root, 'mock/prototypeDatabase.ts'),
-  path.join(root, 'services/mock/announcementsService.ts'),
-  path.join(root, 'services/mock/permissionsService.ts'),
-  path.join(root, 'services/mock/authService.ts'),
+  path.join(root, 'test/mock/prototypeDatabase.ts'),
+  path.join(root, 'test/mock/services/announcementsService.ts'),
+  path.join(root, 'test/mock/services/permissionsService.ts'),
 ];
 
 const REQUIRED_STORAGE_CONSTANTS = [
   'PROTOTYPE_DATABASE_STORAGE_KEY',
   'ANNOUNCEMENTS_STORAGE_KEY',
   'PERMISSION_REQUESTS_STORAGE_KEY',
-  'USER_STORAGE_KEY',
-  'AUTH_PASSWORDS_STORAGE_KEY',
 ];
 
 function read(filePath) {

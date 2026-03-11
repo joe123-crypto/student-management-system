@@ -1,10 +1,28 @@
 # App Data Schema (DB Layer Only)
 
 ## Overview
-This schema is derived from the current mock database in `mock/prototypeDatabase.ts`.  
+This schema is derived from the current mock database in `test/mock/prototypeDatabase.ts`.  
 Primary entities are student-centric and grouped into identity, academics, contact, and banking.
 
 For full frontend data contracts (including announcements, permission requests, auth user/session, service contracts, and UI-only fields), see `docs/architecture/frontend-data-model.md`.
+
+## Current Prisma Runtime Models
+
+### `AuthUser`
+- Stores credential-bearing auth identities used by Auth.js.
+- Key fields: `id`, `role`, `loginId`, `subject`, `authProvider`, `passwordHash`, `isActive`.
+
+### `AuditLog`
+- Stores auth audit events keyed optionally to `AuthUser.id`.
+- Key fields: `event`, `metadata`, `ip`, `userAgent`, `createdAt`.
+
+### `StudentProfileRecord`
+- Stores production student records.
+- Query columns: `id`, `authUserId`, `inscriptionNumber`, `fullName`, `status`.
+- Document column: `profile` (`JSONB`) containing the normalized `StudentProfile` payload.
+
+## Legacy Prototype Schema
+The remaining entity definitions below describe the mock normalized database retained for legacy tooling and reference. They are not the current production persistence model for student records.
 
 ## Entity Definitions
 
@@ -166,4 +184,3 @@ erDiagram
 - The schema is stored as in-memory arrays, so FK constraints are enforced in application logic rather than database-level constraints.
 - `CONTACT.owner_id` behaves as a polymorphic owner field in name, but current usage links it to `PERSON.id`.
 - `STUDENT` references two addresses: `PERSON.home_address_id` (home) and `STUDENT.address_id` (current/host).
-
