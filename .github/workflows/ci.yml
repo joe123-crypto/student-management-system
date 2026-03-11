@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   quality-gates:
-    name: Lint, Typecheck, Build, Audit
+    name: Lint, Typecheck, Auth Typecheck, Auth Tests, Build, Audit
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -36,6 +36,12 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Auth typecheck
+        run: npm run typecheck:auth
+
+      - name: Auth regression tests
+        run: npm run test:auth
 
       - name: Build
         run: npm run build

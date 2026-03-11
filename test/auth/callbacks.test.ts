@@ -1,0 +1,81 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import type { Session } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
+import { authCallbacks } from '@/lib/auth/callbacks';
+import { UserRole } from '@/types';
+
+test('jwt callback copies auth claims from the authenticated user', async () => {
+  assert.ok(authCallbacks?.jwt);
+
+  const token = await authCallbacks.jwt({
+    token: { sub: 'existing-user' } as JWT,
+    user: {
+      id: 'user-1',
+      role: UserRole.ATTACHE,
+      loginId: 'admin@example.com',
+      subject: 'Administration',
+      authProvider: 'attache_email',
+    },
+    account: null,
+    profile: undefined,
+    trigger: 'signIn',
+    isNewUser: false,
+    session: undefined,
+  } as Parameters<NonNullable<typeof authCallbacks.jwt>>[0]);
+
+  assert.deepEqual(token, {
+    sub: 'existing-user',
+    role: UserRole.ATTACHE,
+    loginId: 'admin@example.com',
+    subject: 'Administration',
+    authProvider: 'attache_email',
+  });
+});
+
+test('session callback exposes auth claims on session.user', async () => {
+  assert.ok(authCallbacks?.session);
+
+  const session = await authCallbacks.session({
+    session: { user: { name: 'Jean' }, expires: '2099-01-01T00:00:00.000Z' } as Session,
+    token: {
+      sub: 'user-2',
+      role: UserRole.STUDENT,
+      loginId: 'STUDENT123',
+      subject: 'Computer Science',
+      authProvider: 'student_inscription',
+    } as JWT,
+    user: undefined,
+    newSession: undefined,
+    trigger: 'update',
+  } as unknown as Parameters<NonNullable<typeof authCallbacks.session>>[0]);
+
+  assert.deepEqual(session.user, {
+    name: 'Jean',
+    id: 'user-2',
+    role: UserRole.STUDENT,
+    loginId: 'STUDENT123',
+    subject: 'Computer Science',
+    authProvider: 'student_inscription',
+  });
+});
+
+test('session callback falls back to safe defaults when claims are missing', async () => {
+  assert.ok(authCallbacks?.session);
+
+  const session = await authCallbacks.session({
+    session: { expires: '2099-01-01T00:00:00.000Z' } as Session,
+    token: {} as JWT,
+    user: undefined,
+    newSession: undefined,
+    trigger: 'update',
+  } as unknown as Parameters<NonNullable<typeof authCallbacks.session>>[0]);
+
+  assert.deepEqual(session.user, {
+    id: '',
+    role: UserRole.STUDENT,
+    loginId: '',
+    subject: '',
+    authProvider: 'student_inscription',
+  });
+});

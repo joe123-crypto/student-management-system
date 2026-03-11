@@ -38,6 +38,12 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Auth typecheck
+        run: npm run typecheck:auth
+
+      - name: Auth regression tests
+        run: npm run test:auth
+
       - name: Build
         run: npm run build
 
