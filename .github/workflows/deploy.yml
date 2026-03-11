@@ -46,6 +46,8 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.fork == false && secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != ''
     needs: preflight
     runs-on: ubuntu-latest
+    environment:
+      name: preview
     permissions:
       contents: read
 
@@ -61,6 +63,17 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Apply preview Prisma migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is not configured for the GitHub preview environment."
+            exit 1
+          fi
+
+          npm run prisma:migrate:deploy
 
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
@@ -114,6 +127,17 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Apply production Prisma migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is not configured for the GitHub production environment."
+            exit 1
+          fi
+
+          npm run prisma:migrate:deploy
 
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
