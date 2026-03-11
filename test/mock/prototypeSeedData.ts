@@ -1,4 +1,4 @@
-import type { PrototypeDatabase } from '@/mock/prototypeSchema';
+import type { PrototypeDatabase } from '@/test/mock/prototypeSchema';
 
 // Seed data used to initialize the prototype database.
 

@@ -6,6 +6,7 @@ import Redirect from '@/components/shell/Redirect';
 import OnboardingPage from '@/components/features/onboarding/OnboardingPage';
 import StudentDashboard from '@/components/features/student/StudentDashboard';
 import type { Announcement } from '@/types';
+import { requiresStudentOnboarding } from '@/lib/students/profile';
 
 interface StudentAppRouterProps {
   route: '/onboarding' | '/student/dashboard' | '/student/settings';
@@ -39,6 +40,9 @@ export default function StudentAppRouter({
       if (!currentStudent) {
         return <Redirect to="/login" />;
       }
+      if (!requiresStudentOnboarding(currentStudent)) {
+        return <Redirect to="/student/dashboard" />;
+      }
 
       return (
         <OnboardingPage
@@ -48,6 +52,24 @@ export default function StudentAppRouter({
         />
       );
     case '/student/dashboard':
+      if (user?.role !== UserRole.STUDENT || !currentStudent) {
+        return <Redirect to="/login" />;
+      }
+      if (requiresStudentOnboarding(currentStudent)) {
+        return <Redirect to="/onboarding" />;
+      }
+
+      return (
+        <StudentDashboard
+          student={currentStudent}
+          announcements={announcements}
+          onUpdate={onUpdateStudent}
+          section="dashboard"
+          onNavigateSection={onNavigateStudentSection}
+          onChangePassword={onChangePassword}
+          onLogout={onLogout}
+        />
+      );
     case '/student/settings':
       if (user?.role !== UserRole.STUDENT || !currentStudent) {
         return <Redirect to="/login" />;
@@ -58,7 +80,7 @@ export default function StudentAppRouter({
           student={currentStudent}
           announcements={announcements}
           onUpdate={onUpdateStudent}
-          section={route === '/student/settings' ? 'settings' : 'dashboard'}
+          section="settings"
           onNavigateSection={onNavigateStudentSection}
           onChangePassword={onChangePassword}
           onLogout={onLogout}

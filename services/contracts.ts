@@ -1,14 +1,5 @@
-import type { Announcement, PermissionRequest, StudentProfile, User } from '@/types';
-import type { PrototypeDatabase } from '@/mock/prototypeDatabase';
-
-export type AuthPasswordStore = Record<string, string>;
-
-export interface AuthService {
-  loadUser(): User | null;
-  saveUser(user: User | null): void;
-  loadPasswordStore(): AuthPasswordStore;
-  savePasswordStore(passwords: AuthPasswordStore): void;
-}
+import type { Announcement, PermissionRequest, StudentProfile } from '@/types';
+import type { PrototypeDatabase } from '@/test/mock/prototypeDatabase';
 
 export interface StudentsService {
   loadDatabase(): PrototypeDatabase;
@@ -29,4 +20,3 @@ export interface PermissionsService {
   savePermissionRequests(permissionRequests: PermissionRequest[]): void;
   createPendingRequest(inscriptionNumber: string, fullName: string, passportNumber: string): PermissionRequest;
 }
-

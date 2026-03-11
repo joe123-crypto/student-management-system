@@ -183,10 +183,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       }
                     }}
                     onProfilePictureRemove={() => {
-                      handleUpdateField('student', 'profilePicture', undefined);
+                      handleUpdateField('student', 'profilePicture', '');
                       if (!isEditing) {
                         onUpdate(student.id, {
-                          student: { ...student.student, profilePicture: undefined },
+                          student: { ...student.student, profilePicture: '' },
                         });
                       }
                     }}
