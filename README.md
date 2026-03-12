@@ -2,8 +2,8 @@ Student Platform
 ================
 
 Auth mode:
-- Production: set `NEXT_PUBLIC_DEMO_MODE=false` and provide `NEXT_PUBLIC_ATTACHE_PASSWORD`.
-- Demo: set `NEXT_PUBLIC_DEMO_MODE=true` to enable demo credential fallbacks (for pre-backend demonstrations).
+- Server-side credentials auth via Auth.js and Prisma.
+- Required env for local auth flows: `DATABASE_URL`, `AUTH_SECRET`, and `AUTH_ENABLE_MIDDLEWARE`.
 
 **To understand how this application, read the docs index at `docs/README.md`.**
 

@@ -9,19 +9,21 @@ Use this page to debug common local issues quickly.
 
 ## Login keeps failing for valid test users
 - Check `.env` values:
-  - `NEXT_PUBLIC_DEMO_MODE`
-  - `NEXT_PUBLIC_ATTACHE_PASSWORD`
-- Inspect auth storage values in browser devtools (`user`, `auth_passwords_v1`).
-- Clear local storage and retry to remove stale session/password data.
+  - `DATABASE_URL`
+  - `AUTH_SECRET`
+  - `AUTH_ENABLE_MIDDLEWARE`
+- Confirm seeded auth users exist in `prisma/seed.ts`.
+- Verify `/api/auth/session` responds and inspect server logs for Prisma connection errors.
 
 ## Student/attache pages redirect unexpectedly
 - Confirm route exists in `components/shell/routes.ts`.
-- Confirm guard conditions in `StudentAppRouter` / `AttacheAppRouter` still match auth shape.
-- Check that `useAuth` resolves `currentStudent` for the login id.
+- Confirm middleware is enabled only when `AUTH_SECRET` is configured.
+- Check that `/api/students/me` returns the logged-in student record.
+- Check onboarding redirect conditions in `StudentAppRouter`.
 
 ## Data looks stale after edits/import
-- Inspect `prototype_database_v1` in browser storage.
-- Verify mapping logic in `mock/prototypeDatabase.ts`.
+- Verify `/api/students`, `/api/students/me`, or `/api/students/[id]` completed successfully.
+- Verify Prisma `StudentProfileRecord` rows were updated as expected.
 - For CSV import, inspect parser behavior in `components/features/attache/utils/csvImport.ts`.
 
 ## `docs:check` fails
@@ -41,3 +43,4 @@ Use this page to debug common local issues quickly.
 1. `npm run dev`
 2. `npm run lint`
 3. `npm run docs:check`
+4. `npm run typecheck`

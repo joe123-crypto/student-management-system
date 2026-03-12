@@ -6,7 +6,7 @@ This document is the complete reference for frontend data contracts used by the 
 - Canonical source for shared domain shapes: `types.ts`
 - Canonical source for service contracts: `services/contracts.ts`
 - Canonical source for attache dashboard query/log types: `components/features/attache/types.ts`
-- Canonical source for normalized student storage schema: `mock/prototypeSchema.ts`
+- Canonical source for legacy prototype student schema: `test/mock/prototypeSchema.ts`
 
 `docs/architecture/app-schema.md` remains the DB-only schema reference.
 
@@ -14,16 +14,22 @@ This document is the complete reference for frontend data contracts used by the 
 ### Local Storage Keys
 | Constant | Key | Domain |
 |---|---|---|
-| `PROTOTYPE_DATABASE_STORAGE_KEY` | `prototype_database_v1` | Normalized student database |
+| `PROTOTYPE_DATABASE_STORAGE_KEY` | `prototype_database_v2` | Legacy normalized student prototype database |
 | `ANNOUNCEMENTS_STORAGE_KEY` | `announcements` | Announcements feed |
 | `PERMISSION_REQUESTS_STORAGE_KEY` | `permission_requests_v1` | Permission requests |
-| `USER_STORAGE_KEY` | `user` | Auth session |
-| `AUTH_PASSWORDS_STORAGE_KEY` | `auth_passwords_v1` | Student password store |
+
+### Server Persistence
+| Runtime model | Store | Notes |
+|---|---|---|
+| `Auth.js` session | Signed JWT cookie | Auth session and role claims |
+| `StudentProfileRecord` | PostgreSQL via Prisma | Stores query columns plus `profile` JSONB payload |
 
 ### Storage Ownership
-- Student records are persisted in normalized table arrays (`PrototypeDatabase`), then mapped into `StudentProfile`.
-- Announcements, permission requests, auth user, and password store are independent stores.
-- Some fields are frontend-only or derived and are not first-class normalized columns.
+- Student records are persisted server-side in Prisma `StudentProfileRecord`.
+- Announcements and permission requests are stored independently in `localStorage`.
+- Auth session state is handled by Auth.js cookies rather than frontend storage keys.
+- The legacy normalized prototype database remains only for mock/reference tooling.
+- Some fields are frontend-only or derived and are not first-class query columns.
 
 ## Shared Types (`types.ts`)
 ### `UserRole`
@@ -69,13 +75,8 @@ This document is the complete reference for frontend data contracts used by the 
 - `id`, `subject`, `loginId`, `authProvider`, `role`
 
 ## Service Contracts (`services/contracts.ts`)
-### `AuthPasswordStore`
-- Record map: `loginId -> password`
-
-### `AuthService`
-- `loadUser`, `saveUser`, `loadPasswordStore`, `savePasswordStore`
-
 ### `StudentsService`
+- Legacy mock-only seam. The runtime student domain now uses `/api/students*` and `lib/students/store.ts`.
 - `loadDatabase`, `saveDatabase`, `getProfiles`, `updateStudent`, `deleteStudents`, `importStudents`
 
 ### `AnnouncementsService`
@@ -112,7 +113,17 @@ This document is the complete reference for frontend data contracts used by the 
 ### `ReportColumnOption`
 - `key`, `label`
 
-## StudentProfile to Normalized DB Mapping
+## Current Runtime Student Persistence
+| Field | Store | Notes |
+|---|---|---|
+| `id` | `StudentProfileRecord.id` | Primary UI identifier |
+| `student.inscriptionNumber` | `StudentProfileRecord.inscriptionNumber` | Unique student lookup key |
+| `student.fullName` | `StudentProfileRecord.fullName` | Query/display column |
+| `status` | `StudentProfileRecord.status` | Query/display column |
+| full `StudentProfile` payload | `StudentProfileRecord.profile` | JSONB document normalized through `lib/students/profile.ts` |
+| `authUserId` linkage | `StudentProfileRecord.authUserId` | Optional relation to `AuthUser.id` |
+
+## Legacy Prototype Mapping
 | Frontend path | Source table/field(s) | Notes |
 |---|---|---|
 | `id` | `STUDENT.id` | Serialized as `student-{id}` |
