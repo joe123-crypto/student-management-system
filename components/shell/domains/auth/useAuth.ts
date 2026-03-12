@@ -2,10 +2,10 @@
 
 import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import type { StudentProfile, User } from '@/types';
+import type { User } from '@/types';
 import { UserRole } from '@/types';
 
-export function useAuth(students: StudentProfile[]) {
+export function useAuth() {
   const { data: session, status } = useSession();
 
   const user = useMemo<User | null>(() => {
@@ -27,42 +27,10 @@ export function useAuth(students: StudentProfile[]) {
     };
   }, [session?.user]);
 
-  const currentStudent = useMemo(() => {
-    if (user?.role !== UserRole.STUDENT || !user.loginId) {
-      return null;
-    }
-
-    const found = students.find((student) => student.student.inscriptionNumber.toUpperCase() === user.loginId.toUpperCase());
-    if (found) return found;
-
-    return {
-      id: `student-db-${user.id}`,
-      student: {
-        fullName: user.loginId,
-        givenName: 'New',
-        familyName: 'Student',
-        inscriptionNumber: user.loginId.toUpperCase(),
-        registrationNumber: '',
-        dateOfBirth: '',
-        nationality: '',
-        gender: 'M',
-      },
-      passport: { passportNumber: '', issueDate: '', expiryDate: '', issuingCountry: '' },
-      university: { universityName: '', acronym: '', campus: '', city: '', department: '' },
-      program: { degreeLevel: '', major: '', startDate: '', expectedEndDate: '' },
-      bankAccount: { accountHolderName: '', accountNumber: '', iban: '', swiftCode: '', dateCreated: '' },
-      bank: { bankName: '', branchName: '', branchAddress: '', branchCode: '' },
-      contact: { email: '', phone: '', emergencyContactName: '', emergencyContactPhone: '' },
-      address: { homeCountryAddress: '', currentHostAddress: '' },
-      status: 'PENDING',
-      academicHistory: [],
-    } as StudentProfile;
-  }, [students, user]);
-
   const changeStudentPassword = (currentPassword: string, newPassword: string) => {
     void currentPassword;
     void newPassword;
-    if (!currentStudent) {
+    if (user?.role !== UserRole.STUDENT) {
       return { ok: false, message: 'Student session not found. Please sign in again.' };
     }
 
@@ -71,7 +39,6 @@ export function useAuth(students: StudentProfile[]) {
 
   return {
     user,
-    currentStudent,
     changeStudentPassword,
     isHydrated: status !== 'loading',
   };

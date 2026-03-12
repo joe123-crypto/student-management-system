@@ -3,7 +3,7 @@ import { UserRole as PrismaUserRole } from '@prisma/client';
 import { findAuthUser, onFailedSignIn, onSuccessfulSignIn, recordAuditLog } from '@/lib/auth/store';
 import { verifyPassword } from '@/lib/auth/passwords';
 import { getSigninLimits, normalizeLoginId, normalizeRole, RawCredentials, toPrismaRole } from '@/lib/auth/shared';
-import { INITIAL_PROTOTYPE_DATABASE } from '@/mock/prototypeSeedData';
+import { INITIAL_PROTOTYPE_DATABASE } from '@/test/mock/prototypeSeedData';
 import { UserRole } from '@/types';
 
 const MOCK_ATTACHE_LOGIN_ID = 'admin@scholarsalger.dz';

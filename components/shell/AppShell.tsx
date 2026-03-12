@@ -1,21 +1,28 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import type { AppRoute } from '@/components/shell/routes';
 import { useAnnouncements } from '@/components/shell/domains/announcements/useAnnouncements';
 import { useAuth } from '@/components/shell/domains/auth/useAuth';
 import { usePermissionRequests } from '@/components/shell/domains/permissions/usePermissionRequests';
-import { usePrototypeDatabase } from '@/components/shell/domains/students/usePrototypeDatabase';
+import { useStudents } from '@/components/shell/domains/students/useStudents';
 import AttacheAppRouter from '@/components/shell/routers/AttacheAppRouter';
 import PublicAppRouter from '@/components/shell/routers/PublicAppRouter';
 import StudentAppRouter from '@/components/shell/routers/StudentAppRouter';
 
 export default function AppShell({ route }: { route: AppRoute }) {
   const router = useRouter();
-  const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
-  const { students, updateStudent, deleteStudents, importStudents, isHydrated: isDatabaseHydrated } = usePrototypeDatabase();
+  const { user, changeStudentPassword, isHydrated: isAuthHydrated } = useAuth();
+  const {
+    students,
+    currentStudent,
+    updateStudent,
+    deleteStudents,
+    importStudents,
+    isHydrated: isStudentsHydrated,
+  } = useStudents(user);
   const { announcements, addAnnouncement, isHydrated: isAnnouncementsHydrated } = useAnnouncements();
   const {
     permissionRequests,
@@ -23,34 +30,9 @@ export default function AppShell({ route }: { route: AppRoute }) {
     submitPermissionRequest,
     isHydrated: isPermissionRequestsHydrated,
   } = usePermissionRequests();
-  const {
-    user,
-    currentStudent,
-    changeStudentPassword,
-    isHydrated: isAuthHydrated,
-  } = useAuth(students);
-
-  const registeredStudentInscriptions = useMemo(
-    () => students.map((student) => student.student.inscriptionNumber.toUpperCase()),
-    [students],
-  );
-
-  const onboardingStudentInscriptions = useMemo(
-    () =>
-      students
-        .filter(
-          (student) =>
-            !student.bank.bankName ||
-            !student.bank.branchCode ||
-            !student.bankAccount.accountNumber ||
-            !student.bankAccount.iban,
-        )
-        .map((student) => student.student.inscriptionNumber.toUpperCase()),
-    [students],
-  );
 
   const isHydrated =
-    isDatabaseHydrated && isAnnouncementsHydrated && isPermissionRequestsHydrated && isAuthHydrated;
+    isStudentsHydrated && isAnnouncementsHydrated && isPermissionRequestsHydrated && isAuthHydrated;
 
   const handleLogout = useCallback(() => {
     void signOut({ callbackUrl: '/login' });
@@ -63,9 +45,6 @@ export default function AppShell({ route }: { route: AppRoute }) {
       return (
         <PublicAppRouter
           route={route}
-          registeredStudentInscriptions={registeredStudentInscriptions}
-          onboardingStudentInscriptions={onboardingStudentInscriptions}
-          demoMode={demoMode}
           existingPendingRequests={existingPendingRequests}
           onSubmitPermissionRequest={submitPermissionRequest}
         />
@@ -82,7 +61,11 @@ export default function AppShell({ route }: { route: AppRoute }) {
           user={user}
           currentStudent={currentStudent}
           announcements={announcements}
-          onUpdateStudent={updateStudent}
+          onUpdateStudent={(id, profile) => {
+            void updateStudent(id, profile).catch((error) => {
+              console.error('[STUDENTS] Failed to update student from AppShell:', error);
+            });
+          }}
           onNavigateStudentSection={(section) =>
             router.push(section === 'settings' ? '/student/settings' : '/student/dashboard')
           }
@@ -103,8 +86,16 @@ export default function AppShell({ route }: { route: AppRoute }) {
           announcements={announcements}
           permissionRequests={permissionRequests}
           onAddAnnouncement={addAnnouncement}
-          onDeleteStudents={deleteStudents}
-          onImportStudents={importStudents}
+          onDeleteStudents={(studentIds) => {
+            void deleteStudents(studentIds).catch((error) => {
+              console.error('[STUDENTS] Failed to delete students from AppShell:', error);
+            });
+          }}
+          onImportStudents={(records, mode) => {
+            void importStudents(records, mode).catch((error) => {
+              console.error('[STUDENTS] Failed to import students from AppShell:', error);
+            });
+          }}
           onNavigateAttacheSection={(section) =>
             router.push(section === 'settings' ? '/attache/settings' : '/attache/dashboard')
           }
@@ -117,6 +108,3 @@ export default function AppShell({ route }: { route: AppRoute }) {
     }
   }
 }
-
-
-

@@ -1,7 +1,7 @@
 import type { StudentProfile } from '@/types';
-import { INITIAL_PROTOTYPE_DATABASE } from '@/mock/prototypeSeedData';
-import type { BRANCH, PERSON, PrototypeDatabase } from '@/mock/prototypeSchema';
-export type { PrototypeDatabase } from '@/mock/prototypeSchema';
+import { INITIAL_PROTOTYPE_DATABASE } from '@/test/mock/prototypeSeedData';
+import type { BRANCH, PERSON, PrototypeDatabase } from '@/test/mock/prototypeSchema';
+export type { PrototypeDatabase } from '@/test/mock/prototypeSchema';
 export const PROTOTYPE_DATABASE_STORAGE_KEY = 'prototype_database_v2';
 const REQUIRED_TABLES: (keyof PrototypeDatabase)[] = [
   'PERSON',

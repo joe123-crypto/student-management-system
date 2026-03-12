@@ -8,18 +8,12 @@ type PublicRoute = '/' | '/login' | '/request-permission';
 
 interface PublicAppRouterProps {
   route: PublicRoute;
-  registeredStudentInscriptions: string[];
-  onboardingStudentInscriptions: string[];
-  demoMode: boolean;
   existingPendingRequests: string[];
   onSubmitPermissionRequest: (inscriptionNumber: string, fullName: string, passportNumber: string) => void;
 }
 
 export default function PublicAppRouter({
   route,
-  registeredStudentInscriptions,
-  onboardingStudentInscriptions,
-  demoMode,
   existingPendingRequests,
   onSubmitPermissionRequest,
 }: PublicAppRouterProps) {
@@ -27,17 +21,10 @@ export default function PublicAppRouter({
     case '/':
       return <LandingPage />;
     case '/login':
-      return (
-        <LoginPage
-          registeredStudentInscriptions={registeredStudentInscriptions}
-          onboardingStudentInscriptions={onboardingStudentInscriptions}
-          demoMode={demoMode}
-        />
-      );
+      return <LoginPage />;
     case '/request-permission':
       return (
         <PermissionRequestPage
-          existingInscriptions={registeredStudentInscriptions}
           existingRequests={existingPendingRequests}
           onSubmitRequest={onSubmitPermissionRequest}
         />
@@ -48,4 +35,3 @@ export default function PublicAppRouter({
     }
   }
 }
-

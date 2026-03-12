@@ -6,7 +6,7 @@ import {
   isPrototypeDatabase,
   PROTOTYPE_DATABASE_STORAGE_KEY,
   updateStudentProfileInDatabase,
-} from '@/mock/prototypeDatabase';
+} from '@/test/mock/prototypeDatabase';
 import { getFromStorage } from '@/components/shell/shared/storage';
 import type { StudentsService } from '@/services/contracts';
 

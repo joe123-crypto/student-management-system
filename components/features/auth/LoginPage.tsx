@@ -7,22 +7,12 @@ import FormField from '@/components/ui/FormField';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import { Hash, HelpCircle, Lock, LogIn, Mail } from 'lucide-react';
 
-interface LoginPageProps {
-  registeredStudentInscriptions: string[];
-  onboardingStudentInscriptions: string[];
-  demoMode: boolean;
-}
-
 const roleOptions = [
   { value: UserRole.STUDENT, label: 'Student' },
   { value: UserRole.ATTACHE, label: 'Attache' },
 ] as const;
 
-const LoginPage: React.FC<LoginPageProps> = ({
-  registeredStudentInscriptions,
-  onboardingStudentInscriptions,
-  demoMode,
-}) => {
+const LoginPage: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
@@ -37,12 +27,10 @@ const LoginPage: React.FC<LoginPageProps> = ({
     const normalizedEmail = normalizedLoginId.toLowerCase();
     const normalizedInscription = normalizedLoginId.toUpperCase();
 
-    if (role === UserRole.ATTACHE) {
-      if (!demoMode && (!normalizedEmail || !normalizedEmail.includes('@'))) {
-        alert('Enter a valid attache email.');
-        setIsSubmitting(false);
-        return;
-      }
+    if (role === UserRole.ATTACHE && (!normalizedEmail || !normalizedEmail.includes('@'))) {
+      alert('Enter a valid attache email.');
+      setIsSubmitting(false);
+      return;
     }
 
     const result = await signIn('credentials', {
@@ -59,14 +47,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
     }
 
     if (role === UserRole.STUDENT) {
-      if (
-        registeredStudentInscriptions.includes(normalizedInscription) &&
-        !onboardingStudentInscriptions.includes(normalizedInscription)
-      ) {
-        router.push('/student/dashboard');
-      } else {
-        router.push('/onboarding');
-      }
+      router.push('/student/dashboard');
       return;
     }
 

@@ -5,13 +5,11 @@ import FormField from '@/components/ui/FormField';
 import { Hash, ShieldCheck } from 'lucide-react';
 
 interface PermissionRequestPageProps {
-  existingInscriptions: string[];
   existingRequests: string[];
   onSubmitRequest: (inscriptionNumber: string, fullName: string, passportNumber: string) => void;
 }
 
 export default function PermissionRequestPage({
-  existingInscriptions,
   existingRequests,
   onSubmitRequest,
 }: PermissionRequestPageProps) {
@@ -20,6 +18,7 @@ export default function PermissionRequestPage({
   const [inscriptionNumber, setInscriptionNumber] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const normalizedFullName = useMemo(() => fullName.trim(), [fullName]);
@@ -32,7 +31,7 @@ export default function PermissionRequestPage({
     [inscriptionNumber],
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setError(null);
@@ -52,21 +51,43 @@ export default function PermissionRequestPage({
       return;
     }
 
-    if (!existingInscriptions.includes(normalizedInscription)) {
-      setError('No student record found for this inscription number.');
-      return;
-    }
-
     if (existingRequests.includes(normalizedInscription)) {
       setError('A request for this inscription number is already pending.');
       return;
     }
 
-    onSubmitRequest(normalizedInscription, normalizedFullName, normalizedPassportNumber);
-    setMessage('Request sent to the student attache.');
-    setFullName('');
-    setPassportNumber('');
-    setInscriptionNumber('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `/api/students/lookup?inscriptionNumber=${encodeURIComponent(normalizedInscription)}`,
+        {
+          method: 'GET',
+          cache: 'no-store',
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Lookup failed with status ${response.status}.`);
+      }
+
+      const payload = (await response.json()) as { exists?: boolean };
+      if (!payload.exists) {
+        setError('No student record found for this inscription number.');
+        return;
+      }
+
+      onSubmitRequest(normalizedInscription, normalizedFullName, normalizedPassportNumber);
+      setMessage('Request sent to the student attache.');
+      setFullName('');
+      setPassportNumber('');
+      setInscriptionNumber('');
+    } catch (lookupError) {
+      console.error('[PERMISSION_REQUEST] Failed to verify inscription number:', lookupError);
+      setError('Unable to verify this inscription number right now. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -119,11 +140,12 @@ export default function PermissionRequestPage({
 
             <Button
               type="submit"
+              disabled={isSubmitting}
               fullWidth
               className="rounded-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700"
             >
               <ShieldCheck className="w-4 h-4" />
-              Send request
+              {isSubmitting ? 'Sending...' : 'Send request'}
             </Button>
           </form>
 

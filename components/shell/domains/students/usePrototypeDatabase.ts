@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { StudentProfile } from '@/types';
-import { createPrototypeDatabase, type PrototypeDatabase } from '@/mock/prototypeDatabase';
+import { createPrototypeDatabase, type PrototypeDatabase } from '@/test/mock/prototypeDatabase';
 import { services } from '@/services';
 
 export function usePrototypeDatabase() {
@@ -45,4 +45,3 @@ export function usePrototypeDatabase() {
     isHydrated,
   };
 }
-
