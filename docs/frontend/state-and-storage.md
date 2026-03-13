@@ -2,12 +2,15 @@
 
 ## Local Storage Keys
 - `prototype_database_v2`: legacy prototype student database kept for mock/reference tooling.
-- `announcements`: announcements feed.
-- `permission_requests_v1`: permission request submissions.
+- `announcements`: mock announcements feed when `NEXT_PUBLIC_USE_MOCK_DB=true`.
+- `permission_requests_v1`: mock permission request submissions when `NEXT_PUBLIC_USE_MOCK_DB=true`.
 
 ## Server Persistence
-- Student profiles: Prisma `StudentProfileRecord` via `/api/students`, `/api/students/me`, and `/api/students/[id]`.
+- Student profiles: normalized Prisma tables via `/api/students`, `/api/students/me`, and `/api/students/[id]`.
+- Announcements: Prisma-backed records via `/api/announcements` and `/api/announcements/[id]`.
+- Permission requests: Prisma-backed records via `/api/permission-requests` and `/api/permission-requests/[id]`.
 - Auth session: Auth.js JWT session cookie.
+- Password changes: authenticated mutation via `POST /api/auth/change-password`.
 
 ## Domain Hook Ownership
 - Students DB: `components/shell/domains/students/useStudents.ts`
@@ -18,10 +21,11 @@
 - Storage helper: `components/shell/shared/storage.ts`
 
 ## Persistence Model
-- Source of truth for runtime student data is PostgreSQL via Prisma `StudentProfileRecord`.
+- Source of truth for runtime student data is PostgreSQL via normalized Prisma student tables.
+- Source of truth for runtime announcements and permission requests is PostgreSQL when `NEXT_PUBLIC_USE_MOCK_DB=false`.
 - Auth session state comes from Auth.js cookies via `useSession`, not `localStorage`.
 - UI consumes `StudentProfile[]` and `currentStudent` from authenticated API routes.
-- Announcements and permission requests remain local-storage domains until their backend cutover.
+- Announcements and permission requests use local storage only in mock mode.
 - `test/mock/prototypeDatabase.ts` remains as legacy prototype/reference tooling, not the runtime student store.
 
 ## Drift Prevention

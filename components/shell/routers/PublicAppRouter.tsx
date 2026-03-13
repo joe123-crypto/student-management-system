@@ -9,7 +9,11 @@ type PublicRoute = '/' | '/login' | '/request-permission';
 interface PublicAppRouterProps {
   route: PublicRoute;
   existingPendingRequests: string[];
-  onSubmitPermissionRequest: (inscriptionNumber: string, fullName: string, passportNumber: string) => void;
+  onSubmitPermissionRequest: (
+    inscriptionNumber: string,
+    fullName: string,
+    passportNumber: string,
+  ) => Promise<void>;
 }
 
 export default function PublicAppRouter({

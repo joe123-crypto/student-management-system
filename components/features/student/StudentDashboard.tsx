@@ -17,7 +17,10 @@ interface StudentDashboardProps {
   onUpdate: (id: string, profile: Partial<StudentProfile>) => void;
   section: 'dashboard' | 'settings';
   onNavigateSection: (section: 'dashboard' | 'settings') => void;
-  onChangePassword: (currentPassword: string, newPassword: string) => { ok: boolean; message: string };
+  onChangePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<{ ok: boolean; message: string }>;
   onLogout: () => void;
 }
 

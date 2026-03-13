@@ -19,9 +19,9 @@ flowchart LR
   end
 
   subgraph MAP[Mapping Layer]
-    M1[getStudentProfilesFromDatabase\n(test/mock/prototypeDatabase.ts)]
-    M2[updateStudentProfileInDatabase\n(test/mock/prototypeDatabase.ts)]
-    M3[addStudentProfileToDatabase\n(test/mock/prototypeDatabase.ts)]
+    M1[list/find student mapping\n(lib/students/store.ts)]
+    M2[updateStudentProfile\n(lib/students/store.ts)]
+    M3[import/ensure student creation\n(lib/students/store.ts)]
   end
 
   subgraph FE[Frontend Domain Layer]
@@ -103,5 +103,5 @@ flowchart LR
 
 - `app-schema.md` is the source of truth for storage structure and keys.
 - `frontend-data-model.md` is the source of truth for UI/service contracts.
-- Mapper functions in `test/mock/prototypeDatabase.ts` are the integration contract between both layers.
+- Mapper functions in `lib/students/store.ts` are the runtime integration contract between both layers.
 - Field differences (for example `profilePicture`, combined address strings, derived nationality) are expected denormalization decisions at the frontend layer.

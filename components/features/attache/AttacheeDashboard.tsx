@@ -11,9 +11,14 @@ interface AttacheDashboardProps {
   students: StudentProfile[];
   announcements: Announcement[];
   permissionRequests: PermissionRequest[];
-  onAddAnnouncement: (a: Announcement) => void;
+  onAddAnnouncement: (input: { title: string; content: string }) => Promise<void>;
+  onDeleteAnnouncement: (announcementId: string) => Promise<void>;
   onDeleteStudents: (studentIds: string[]) => void;
   onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => void;
+  onUpdatePermissionRequestStatus: (
+    requestId: string,
+    status: Exclude<PermissionRequest['status'], 'PENDING'>,
+  ) => Promise<void>;
   section: 'dashboard' | 'settings';
   onNavigateSection: (section: 'dashboard' | 'settings') => void;
   onLogout: () => void;
@@ -32,8 +37,10 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   announcements,
   permissionRequests,
   onAddAnnouncement,
+  onDeleteAnnouncement,
   onDeleteStudents,
   onImportStudents,
+  onUpdatePermissionRequestStatus,
   section,
   onNavigateSection,
   onLogout,
@@ -54,9 +61,18 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
           <Tabs items={tabItems} activeTab={activeView} onChange={(tab) => setActiveView(tab as ActiveView)} className="mb-8" />
           {activeView === 'students' ? <StudentsSection students={students} onDeleteStudents={onDeleteStudents} /> : null}
           {activeView === 'announcements' ? (
-            <AnnouncementsSection announcements={announcements} onAddAnnouncement={onAddAnnouncement} />
+            <AnnouncementsSection
+              announcements={announcements}
+              onAddAnnouncement={onAddAnnouncement}
+              onDeleteAnnouncement={onDeleteAnnouncement}
+            />
           ) : null}
-          {activeView === 'permission-requests' ? <PermissionRequestsSection requests={permissionRequests} /> : null}
+          {activeView === 'permission-requests' ? (
+            <PermissionRequestsSection
+              requests={permissionRequests}
+              onUpdateStatus={onUpdatePermissionRequestStatus}
+            />
+          ) : null}
         </>
       ) : (
         <DatabaseImportSection students={students} onImportStudents={onImportStudents} />

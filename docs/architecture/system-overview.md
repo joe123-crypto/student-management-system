@@ -3,13 +3,16 @@
 ## Stack
 - Next.js (App Router), React, and TypeScript.
 - Auth.js credentials auth with Prisma-backed identity records.
-- Prisma + PostgreSQL for student profile persistence.
+- Prisma + PostgreSQL for normalized student profiles, announcements, and permission requests.
 - Tailwind CSS for styling.
-- Announcements and permission requests still persist in `localStorage`.
+- Mock mode can still persist announcements and permission requests in `localStorage`.
 
 ## Code Layout
 - `app/`: thin page wrappers that pass route intent into `AppShell`.
 - `app/api/students/*`: student profile API surface.
+- `app/api/announcements/*`: announcement CRUD surface.
+- `app/api/permission-requests/*`: permission request submission and review surface.
+- `app/api/auth/*`: Auth.js session routes plus password-change endpoint.
 - `components/shell/`: routing shell, guards, and domain hooks orchestration.
 - `components/features/*`: feature screens and feature-specific UI logic.
 - `components/layout/`: shared page shell (sidebar, top nav, footer wrappers).
@@ -22,8 +25,9 @@
 1. Next page entry renders `components/shell/AppShell.tsx` with a route.
 2. `AppShell` hydrates Auth.js session state plus student, announcement, and permission-request domains.
 3. Student profile reads and writes go through `components/shell/domains/students/useStudents.ts`.
-4. `/api/students*` route handlers authorize the caller and delegate to `lib/students/store.ts`.
-5. Middleware and router guards enforce role-based access before feature screens render.
+4. `/api/students*`, `/api/announcements*`, and `/api/permission-requests*` route handlers authorize the caller and delegate to their domain stores under `lib/`.
+5. `POST /api/auth/change-password` rotates credential hashes for signed-in users.
+6. Middleware and router guards enforce role-based access before feature screens render.
 
 ## Route Ownership
 - Route literals: `components/shell/routes.ts`.
@@ -35,8 +39,8 @@
 ## Data and Storage Ownership
 - Student CRUD + persistence: `components/shell/domains/students/useStudents.ts` + `app/api/students/*` + `lib/students/store.ts`.
 - Auth/session: `components/shell/domains/auth/useAuth.ts`.
-- Announcements: `components/shell/domains/announcements/useAnnouncements.ts`.
-- Permission requests: `components/shell/domains/permissions/usePermissionRequests.ts`.
+- Announcements: `components/shell/domains/announcements/useAnnouncements.ts` + `app/api/announcements/*` + `lib/announcements/*`.
+- Permission requests: `components/shell/domains/permissions/usePermissionRequests.ts` + `app/api/permission-requests/*` + `lib/permission-requests/*`.
 - Legacy prototype helpers: `test/mock/prototypeDatabase.ts`.
 - Service contracts: `services/contracts.ts`.
 

@@ -1,9 +1,11 @@
 import React, { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AreaChart, Area, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { PROGRESS_DATA, MOCK_ANNOUNCEMENTS } from '@/constants';
+import { PROGRESS_DATA } from '@/constants';
 import Footer from '@/components/layout/Footer';
 import Button from '@/components/ui/Button';
+import { MOCK_ANNOUNCEMENTS } from '@/test/mock/announcements';
+import { isMockDbEnabled } from '@/test/mock/config';
 import { ArrowRight, BarChart3, Bell, CalendarDays, DollarSign, FolderOpen, Globe2, MessageSquare, Search, User } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
@@ -39,7 +41,7 @@ const LandingPage: React.FC = () => {
     }
   };
 
-  const latestAnnouncement = MOCK_ANNOUNCEMENTS[0];
+  const latestAnnouncement = isMockDbEnabled() ? (MOCK_ANNOUNCEMENTS[0] ?? null) : null;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden font-['Inter']">
@@ -233,36 +235,53 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="max-w-3xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full mb-6">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">New Announcement</span>
-                </div>
+              {latestAnnouncement ? (
+                <div className="max-w-3xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full mb-6">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">New Announcement</span>
+                  </div>
 
-                <h3 className="text-3xl md:text-4xl font-black text-[#1a1b3a] mb-6 leading-tight group-hover:text-indigo-600 transition-colors">{latestAnnouncement.title}</h3>
+                  <h3 className="text-3xl md:text-4xl font-black text-[#1a1b3a] mb-6 leading-tight group-hover:text-indigo-600 transition-colors">{latestAnnouncement.title}</h3>
 
-                <p className="text-lg text-slate-500 mb-8 leading-relaxed font-medium">{latestAnnouncement.content}</p>
+                  <p className="text-lg text-slate-500 mb-8 leading-relaxed font-medium">{latestAnnouncement.content}</p>
 
-                <div className="flex items-center gap-6 pt-8 border-t border-slate-100/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                      <User className="w-4 h-4" />
+                  <div className="flex items-center gap-6 pt-8 border-t border-slate-100/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Posted by</p>
+                        <p className="text-sm font-bold text-slate-700">{latestAnnouncement.author}</p>
+                      </div>
                     </div>
+                    <div className="w-[1px] h-8 bg-slate-100" />
                     <div>
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Posted by</p>
-                      <p className="text-sm font-bold text-slate-700">{latestAnnouncement.author}</p>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Published on</p>
+                      <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                        <CalendarDays className="w-4 h-4 text-slate-400" />
+                        {latestAnnouncement.date}
+                      </p>
                     </div>
                   </div>
-                  <div className="w-[1px] h-8 bg-slate-100" />
-                  <div>
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Published on</p>
-                    <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                      <CalendarDays className="w-4 h-4 text-slate-400" />
-                      {latestAnnouncement.date}
-                    </p>
-                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="max-w-3xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-500 rounded-full mb-6">
+                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Announcements Feed</span>
+                  </div>
+
+                  <h3 className="text-3xl md:text-4xl font-black text-[#1a1b3a] mb-6 leading-tight">
+                    Announcements will appear here once they are published
+                  </h3>
+
+                  <p className="text-lg text-slate-500 leading-relaxed font-medium">
+                    The live announcement feed is empty right now. Attache updates will show up here as soon as they are available.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

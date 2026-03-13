@@ -5,7 +5,6 @@ export type AuthUserRecord = {
   id: string;
   role: UserRole;
   loginId: string;
-  subject: string;
   authProvider: AuthProvider;
   passwordHash: string;
   failedSignInCount: number;
@@ -22,6 +21,44 @@ export async function findAuthUser(role: UserRole, loginId: string): Promise<Aut
       },
     },
   });
+}
+
+export async function findAuthUserById(id: string): Promise<AuthUserRecord | null> {
+  return prisma.authUser.findUnique({
+    where: { id },
+  });
+}
+
+export async function deriveAuthSubject(authUser: Pick<AuthUserRecord, 'role' | 'loginId'>): Promise<string> {
+  if (authUser.role === UserRole.ATTACHE) {
+    return 'Administration';
+  }
+
+  const student = await prisma.student.findUnique({
+    where: {
+      inscriptionNo: authUser.loginId.trim().toUpperCase(),
+    },
+    include: {
+      enrollments: {
+        orderBy: [{ dateEnrolled: 'desc' }, { id: 'desc' }],
+        take: 1,
+        include: {
+          program: {
+            include: {
+              department: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const latestEnrollment = student?.enrollments[0];
+  return (
+    latestEnrollment?.program.name ||
+    latestEnrollment?.program.department.name ||
+    'Student'
+  );
 }
 
 export async function recordAuditLog(params: {

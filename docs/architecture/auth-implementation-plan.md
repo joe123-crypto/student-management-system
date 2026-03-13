@@ -18,11 +18,8 @@ Move from browser-only prototype auth (`localStorage`) to secure server-side aut
 6. Removed the legacy mock auth service and the inactive mock-database auth fallback.
 
 ## Remaining Hardening
-1. Implement password-change endpoint:
-   - `POST /api/auth/change-password`
-   - Verify current password hash, rotate to new hash, audit log event.
-2. Add rate limit and lockout strategy tuning for failed attempts.
-3. Add automated auth tests:
+1. Add rate limit and lockout strategy tuning for failed attempts.
+2. Add automated auth tests:
    - Sign-in success/failure by role
    - Route access by role
    - Logout + session invalidation
@@ -39,4 +36,5 @@ Move from browser-only prototype auth (`localStorage`) to secure server-side aut
 - [ ] Login page calls server sign-in.
 - [ ] Middleware enabled (`AUTH_ENABLE_MIDDLEWARE=true`) in staging first.
 - [ ] Student and attache route guards pass in middleware and UI.
-- [ ] Password-change flow implemented and tested.
+- [x] Password-change flow implemented.
+- [ ] Password-change flow tested.

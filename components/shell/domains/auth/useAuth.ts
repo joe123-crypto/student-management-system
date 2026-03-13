@@ -27,15 +27,40 @@ export function useAuth() {
     };
   }, [session?.user]);
 
-  const changeStudentPassword = (currentPassword: string, newPassword: string) => {
-    void currentPassword;
-    void newPassword;
+  async function changeStudentPassword(currentPassword: string, newPassword: string) {
     if (user?.role !== UserRole.STUDENT) {
       return { ok: false, message: 'Student session not found. Please sign in again.' };
     }
 
-    return { ok: false, message: 'Password update endpoint is not implemented yet.' };
-  };
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const payload = (await response.json()) as { message?: string; error?: string };
+      if (!response.ok) {
+        return {
+          ok: false,
+          message: payload.error || `Failed to update password (${response.status}).`,
+        };
+      }
+
+      return {
+        ok: true,
+        message: payload.message || 'Password updated successfully.',
+      };
+    } catch (error) {
+      console.error('[AUTH] Failed to change password from useAuth:', error);
+      return {
+        ok: false,
+        message: 'Unable to update password right now. Please try again.',
+      };
+    }
+  }
 
   return {
     user,
@@ -43,4 +68,3 @@ export function useAuth() {
     isHydrated: status !== 'loading',
   };
 }
-
