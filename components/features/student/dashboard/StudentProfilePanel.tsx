@@ -3,7 +3,7 @@ import { StudentProfile } from '@/types';
 import ProfilePictureUpload from '@/components/ui/ProfilePictureUpload';
 
 interface StudentProfilePanelProps {
-  student: StudentProfile;
+  student: StudentProfile | null;
   currentPicture?: string;
   loading?: boolean;
   onProfilePictureChange: (base64: string) => void;
@@ -20,7 +20,7 @@ const StudentProfilePanel: React.FC<StudentProfilePanelProps> = ({
   onProfilePictureChange,
   onProfilePictureRemove,
 }) => {
-  if (loading) {
+  if (loading || !student) {
     return (
       <div className="space-y-7 animate-pulse">
         <div className="flex justify-end">

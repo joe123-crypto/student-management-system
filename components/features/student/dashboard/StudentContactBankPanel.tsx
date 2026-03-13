@@ -1,16 +1,18 @@
 import React from 'react';
 import { StudentProfile } from '@/types';
 import Button from '@/components/ui/Button';
+import Skeleton from '@/components/ui/Skeleton';
 
 interface StudentContactBankPanelProps {
-  student: StudentProfile;
-  editData: StudentProfile;
-  isEditing: boolean;
-  inputClassName: string;
-  onToggleEdit: () => void;
-  onDiscard: () => void;
-  onSave: () => void;
-  onUpdateField: (section: keyof StudentProfile, field: string, value: unknown) => void;
+  student?: StudentProfile;
+  editData?: StudentProfile;
+  isEditing?: boolean;
+  inputClassName?: string;
+  onToggleEdit?: () => void;
+  onDiscard?: () => void;
+  onSave?: () => void;
+  onUpdateField?: (section: keyof StudentProfile, field: string, value: unknown) => void;
+  loading?: boolean;
 }
 
 const tinyLabelClass = 'mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400';
@@ -24,7 +26,31 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
   onDiscard,
   onSave,
   onUpdateField,
+  loading = false,
 }) => {
+  if (loading || !student || !editData || !inputClassName || !onToggleEdit || !onDiscard || !onSave || !onUpdateField) {
+    return (
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm md:p-8">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="h-8 w-2 rounded-full bg-amber-200" />
+            <Skeleton className="h-5 w-40" />
+          </div>
+          <Skeleton className="h-10 w-36 rounded-full" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="space-y-3">
+              <Skeleton className="h-3 w-24 rounded-md" />
+              <Skeleton className="h-10 w-full rounded-xl" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="mt-5 h-4 w-72 rounded-md" />
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm md:p-8">
       <div className="mb-6 flex items-center justify-between">

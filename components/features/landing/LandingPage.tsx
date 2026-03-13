@@ -4,11 +4,14 @@ import { AreaChart, Area, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { PROGRESS_DATA } from '@/constants';
 import Footer from '@/components/layout/Footer';
 import Button from '@/components/ui/Button';
-import { MOCK_ANNOUNCEMENTS } from '@/test/mock/announcements';
-import { isMockDbEnabled } from '@/test/mock/config';
+import type { Announcement } from '@/types';
 import { ArrowRight, BarChart3, Bell, CalendarDays, DollarSign, FolderOpen, Globe2, MessageSquare, Search, User } from 'lucide-react';
 
-const LandingPage: React.FC = () => {
+interface LandingPageProps {
+  latestAnnouncement?: Announcement | null;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) => {
   const router = useRouter();
   const howItWorksRef = useRef<HTMLDivElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
@@ -40,8 +43,6 @@ const LandingPage: React.FC = () => {
         return <ArrowRight className="w-5 h-5" />;
     }
   };
-
-  const latestAnnouncement = isMockDbEnabled() ? (MOCK_ANNOUNCEMENTS[0] ?? null) : null;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden font-['Inter']">

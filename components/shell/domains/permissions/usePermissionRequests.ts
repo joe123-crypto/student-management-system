@@ -23,7 +23,9 @@ function upsertPermissionRequest(
 
 export function usePermissionRequests(user: User | null) {
   const [permissionRequests, setPermissionRequests] = useState<PermissionRequest[]>([]);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [hydratedKey, setHydratedKey] = useState<string | null>(null);
+  const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
+  const isHydrated = hydratedKey === userKey;
 
   useEffect(() => {
     let isCancelled = false;
@@ -43,7 +45,7 @@ export function usePermissionRequests(user: User | null) {
           }
         } finally {
           if (!isCancelled) {
-            setIsHydrated(true);
+            setHydratedKey(userKey);
           }
         }
 
@@ -53,12 +55,10 @@ export function usePermissionRequests(user: User | null) {
       if (user?.role !== UserRole.ATTACHE) {
         if (!isCancelled) {
           setPermissionRequests([]);
-          setIsHydrated(true);
+          setHydratedKey(userKey);
         }
         return;
       }
-
-      setIsHydrated(false);
 
       try {
         const response = await fetch('/api/permission-requests', {
@@ -85,7 +85,7 @@ export function usePermissionRequests(user: User | null) {
         }
       } finally {
         if (!isCancelled) {
-          setIsHydrated(true);
+          setHydratedKey(userKey);
         }
       }
     }
@@ -96,7 +96,7 @@ export function usePermissionRequests(user: User | null) {
       isCancelled = true;
       controller.abort();
     };
-  }, [user]);
+  }, [user, userKey]);
 
   async function submitPermissionRequest(
     inscriptionNumber: string,

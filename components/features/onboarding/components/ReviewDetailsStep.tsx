@@ -9,7 +9,8 @@ interface ReviewDetailsStepProps {
   student: StudentProfile;
   readOnlyInputClass: string;
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: () => Promise<void>;
+  isSubmitting: boolean;
 }
 
 const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
@@ -18,6 +19,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
   readOnlyInputClass,
   onBack,
   onComplete,
+  isSubmitting,
 }) => (
   <div className="space-y-8">
     <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
@@ -47,6 +49,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
       <div className="col-span-2 pt-6 flex items-center justify-between">
         <Button
           onClick={onBack}
+          disabled={isSubmitting}
           variant="secondary"
           className="px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-600"
         >
@@ -54,8 +57,15 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
           Back
         </Button>
         <div className="flex items-center gap-6">
-          <Button onClick={onComplete} variant="success" className="px-12 py-4 rounded-2xl">
-            Complete and Continue
+          <Button
+            onClick={() => {
+              void onComplete();
+            }}
+            disabled={isSubmitting}
+            variant="success"
+            className="px-12 py-4 rounded-2xl"
+          >
+            {isSubmitting ? 'Saving...' : 'Complete and Continue'}
           </Button>
         </div>
       </div>

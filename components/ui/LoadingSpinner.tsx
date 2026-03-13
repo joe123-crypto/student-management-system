@@ -13,7 +13,7 @@ export default function LoadingSpinner({ label = 'Loading...', fullScreen = fals
   return (
     <div className={containerClass}>
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
         <p className="font-bold text-slate-600">{label}</p>
       </div>
     </div>

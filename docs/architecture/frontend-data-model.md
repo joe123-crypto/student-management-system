@@ -18,6 +18,11 @@ This document is the complete reference for frontend data contracts used by the 
 | `ANNOUNCEMENTS_STORAGE_KEY` | `announcements` | Announcements feed |
 | `PERMISSION_REQUESTS_STORAGE_KEY` | `permission_requests_v1` | Permission requests |
 
+### Runtime Browser Cache
+| Cache target | Store | Notes |
+|---|---|---|
+| Authenticated announcement list | IndexedDB | User-scoped short-lived cache used to warm `useAnnouncements.ts` before the network refresh completes |
+
 ### Server Persistence
 | Runtime model | Store | Notes |
 |---|---|---|
@@ -29,6 +34,7 @@ This document is the complete reference for frontend data contracts used by the 
 ### Storage Ownership
 - Student records are persisted server-side in normalized Prisma tables.
 - Announcements and permission requests are persisted server-side when `NEXT_PUBLIC_USE_MOCK_DB=false`.
+- Runtime announcements may be cached client-side in IndexedDB for faster warm loads.
 - Auth session state is handled by Auth.js cookies rather than frontend storage keys.
 - The legacy normalized prototype database remains only for mock/reference tooling.
 - Some fields are frontend-only or derived and are not first-class query columns.

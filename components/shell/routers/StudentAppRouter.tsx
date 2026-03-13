@@ -3,6 +3,7 @@
 import type { StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
 import Redirect from '@/components/shell/Redirect';
+import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
 import OnboardingPage from '@/components/features/onboarding/OnboardingPage';
 import StudentDashboard from '@/components/features/student/StudentDashboard';
 import type { Announcement } from '@/types';
@@ -13,7 +14,9 @@ interface StudentAppRouterProps {
   user: User | null;
   currentStudent: StudentProfile | null;
   announcements: Announcement[];
-  onUpdateStudent: (id: string, profile: Partial<StudentProfile>) => void;
+  isStudentLoading: boolean;
+  isAnnouncementsLoading: boolean;
+  onUpdateStudent: (id: string, profile: Partial<StudentProfile>) => Promise<void>;
   onNavigateStudentSection: (section: 'dashboard' | 'settings') => void;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<{
     ok: boolean;
@@ -27,15 +30,24 @@ export default function StudentAppRouter({
   user,
   currentStudent,
   announcements,
+  isStudentLoading,
+  isAnnouncementsLoading,
   onUpdateStudent,
   onNavigateStudentSection,
   onChangePassword,
   onLogout,
 }: StudentAppRouterProps) {
+  const handleDashboardUpdate = (id: string, profile: Partial<StudentProfile>) => {
+    void onUpdateStudent(id, profile).catch(() => undefined);
+  };
+
   switch (route) {
     case '/onboarding':
       if (user?.role !== UserRole.STUDENT) {
         return <Redirect to="/login" />;
+      }
+      if (isStudentLoading) {
+        return <AppLoadingScreen label="Loading your student record..." />;
       }
       if (!currentStudent) {
         return <Redirect to="/login" />;
@@ -52,10 +64,16 @@ export default function StudentAppRouter({
         />
       );
     case '/student/dashboard':
-      if (user?.role !== UserRole.STUDENT || !currentStudent) {
+      if (user?.role !== UserRole.STUDENT) {
         return <Redirect to="/login" />;
       }
-      if (requiresStudentOnboarding(currentStudent)) {
+      if (isStudentLoading) {
+        return <AppLoadingScreen label="Loading your student record..." />;
+      }
+      if (!isStudentLoading && !currentStudent) {
+        return <Redirect to="/login" />;
+      }
+      if (currentStudent && !isStudentLoading && requiresStudentOnboarding(currentStudent)) {
         return <Redirect to="/onboarding" />;
       }
 
@@ -63,7 +81,9 @@ export default function StudentAppRouter({
         <StudentDashboard
           student={currentStudent}
           announcements={announcements}
-          onUpdate={onUpdateStudent}
+          isStudentLoading={isStudentLoading}
+          isAnnouncementsLoading={isAnnouncementsLoading}
+          onUpdate={handleDashboardUpdate}
           section="dashboard"
           onNavigateSection={onNavigateStudentSection}
           onChangePassword={onChangePassword}
@@ -71,15 +91,26 @@ export default function StudentAppRouter({
         />
       );
     case '/student/settings':
-      if (user?.role !== UserRole.STUDENT || !currentStudent) {
+      if (user?.role !== UserRole.STUDENT) {
         return <Redirect to="/login" />;
+      }
+      if (isStudentLoading) {
+        return <AppLoadingScreen label="Loading your student record..." />;
+      }
+      if (!isStudentLoading && !currentStudent) {
+        return <Redirect to="/login" />;
+      }
+      if (currentStudent && !isStudentLoading && requiresStudentOnboarding(currentStudent)) {
+        return <Redirect to="/onboarding" />;
       }
 
       return (
         <StudentDashboard
           student={currentStudent}
           announcements={announcements}
-          onUpdate={onUpdateStudent}
+          isStudentLoading={isStudentLoading}
+          isAnnouncementsLoading={isAnnouncementsLoading}
+          onUpdate={handleDashboardUpdate}
           section="settings"
           onNavigateSection={onNavigateStudentSection}
           onChangePassword={onChangePassword}

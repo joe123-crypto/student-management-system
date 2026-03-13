@@ -14,6 +14,8 @@ import StudentPasswordSettings from '@/components/features/student/dashboard/Stu
 interface StudentDashboardProps {
   student: StudentProfile | null;
   announcements: Announcement[];
+  isStudentLoading: boolean;
+  isAnnouncementsLoading: boolean;
   onUpdate: (id: string, profile: Partial<StudentProfile>) => void;
   section: 'dashboard' | 'settings';
   onNavigateSection: (section: 'dashboard' | 'settings') => void;
@@ -38,6 +40,8 @@ const inputClass =
 const StudentDashboard: React.FC<StudentDashboardProps> = ({
   student,
   announcements,
+  isStudentLoading,
+  isAnnouncementsLoading,
   onUpdate,
   section,
   onNavigateSection,
@@ -72,9 +76,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     return () => window.clearTimeout(timerId);
   }, [student]);
 
-  if (!student) {
+  if (!student && !isStudentLoading) {
     return <LoadingSpinner fullScreen label="Loading your profile..." />;
   }
+
+  const isStudentDataPending = isStudentLoading || !student;
 
   const handleUpdateField = (section: keyof StudentProfile, field: string, value: unknown) => {
     setEditData((prev) => {
@@ -90,7 +96,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   };
 
   const saveProfile = () => {
-    if (!editData) return;
+    if (!editData || !student) return;
     onUpdate(student.id, {
       student: { ...student.student, profilePicture: editData.student.profilePicture },
       bank: editData.bank,
@@ -100,6 +106,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   };
 
   const submitAcademicUpdate = () => {
+    if (!student) {
+      return;
+    }
+
     if (!newProgress.year || !newProgress.grade || !newProgress.level) {
       alert('Please fill in Year, Level, and Grade.');
       return;
@@ -123,6 +133,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   };
 
   const getMissingItems = () => {
+    if (!student) {
+      return [];
+    }
+
     const items: string[] = [];
     if (!student.student.profilePicture) items.push('Profile picture is missing');
     if (!student.bankAccount.iban) items.push('Bank RIB Key is missing');
@@ -135,7 +149,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   };
 
   const missingItems = getMissingItems();
-  const currentPicture = isEditing && editData ? editData.student.profilePicture : student.student.profilePicture;
+  const currentPicture =
+    isEditing && editData ? editData.student.profilePicture : student?.student.profilePicture;
 
   const handleTabChange = (tab: ActiveTab) => {
     setActiveTab(tab);
@@ -160,7 +175,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       setActiveTab={(tab: string) =>
         onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')
       }
-      profilePicture={student.student.profilePicture}
+      profilePicture={student?.student.profilePicture}
       showSettingsMenu
     >
       {section === 'dashboard' ? (
@@ -169,15 +184,25 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
           <div className="relative grid gap-8 pb-24 md:grid-cols-3">
             <div className="space-y-10 md:col-span-2">
-              {activeTab === 'overview' ? <StudentDashboardOverview announcements={announcements} /> : null}
+              {activeTab === 'overview' ? (
+                <StudentDashboardOverview
+                  announcements={announcements}
+                  isStudentLoading={isStudentDataPending}
+                  isAnnouncementsLoading={isAnnouncementsLoading}
+                />
+              ) : null}
 
               {activeTab === 'profile' ? (
                 <>
                   <StudentProfilePanel
                     student={student}
                     currentPicture={currentPicture}
-                    loading={isProfileDataLoading || !editData}
+                    loading={isStudentDataPending || isProfileDataLoading || !editData}
                     onProfilePictureChange={(base64) => {
+                      if (!student) {
+                        return;
+                      }
+
                       handleUpdateField('student', 'profilePicture', base64);
                       if (!isEditing) {
                         onUpdate(student.id, {
@@ -186,6 +211,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       }
                     }}
                     onProfilePictureRemove={() => {
+                      if (!student) {
+                        return;
+                      }
+
                       handleUpdateField('student', 'profilePicture', '');
                       if (!isEditing) {
                         onUpdate(student.id, {
@@ -195,7 +224,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     }}
                   />
 
-                  {!isProfileDataLoading && editData ? (
+                  {!isStudentDataPending && !isProfileDataLoading && editData && student ? (
                     <StudentContactBankPanel
                       student={student}
                       editData={editData}
@@ -206,12 +235,16 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       onSave={saveProfile}
                       onUpdateField={handleUpdateField}
                     />
-                  ) : null}
+                  ) : (
+                    <StudentContactBankPanel loading />
+                  )}
                 </>
               ) : null}
 
               {activeTab === 'academic' ? (
-                isUpdatingAcademic ? (
+                isStudentDataPending ? (
+                  <StudentAcademicProgressPanel loading onStartUpdate={() => undefined} />
+                ) : isUpdatingAcademic ? (
                   <StudentAcademicUpdateForm
                     newProgress={newProgress}
                     inputClassName={inputClass}
@@ -228,7 +261,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
               ) : null}
             </div>
 
-            <StudentMissingInfoSidebar items={missingItems} />
+            <StudentMissingInfoSidebar items={missingItems} loading={isStudentDataPending} />
           </div>
         </>
       ) : (

@@ -21,9 +21,11 @@ import {
   getQualityFlags,
   REPORT_COLUMNS,
 } from '@/components/features/attache/utils/studentData';
+import Skeleton from '@/components/ui/Skeleton';
 
 interface StudentsSectionProps {
   students: StudentProfile[];
+  isLoading?: boolean;
   onDeleteStudents: (studentIds: string[]) => void;
 }
 
@@ -32,7 +34,11 @@ const PAGE_SIZE_OPTIONS = [25, 50, 100];
 const DEFAULT_PAGE_SIZE = 50;
 const makeId = () => Math.random().toString(36).slice(2, 11);
 
-export default function StudentsSection({ students, onDeleteStudents }: StudentsSectionProps) {
+export default function StudentsSection({
+  students,
+  isLoading = false,
+  onDeleteStudents,
+}: StudentsSectionProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [communicationLogs, setCommunicationLogs] = useState<CommunicationLogEntry[]>([]);
   const [exportPopupOpen, setExportPopupOpen] = useState(false);
@@ -165,6 +171,25 @@ export default function StudentsSection({ students, onDeleteStudents }: Students
 
   if (selectedStudent) {
     return <StudentDetailView student={selectedStudent} onBack={() => setSelectedStudentId(null)} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-6">
+            <Skeleton className="h-24" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-[420px]" />
+            <Skeleton className="hidden h-52 md:block" />
+          </div>
+          <aside className="hidden space-y-4 md:block xl:sticky xl:top-24">
+            <Skeleton className="h-72" />
+            <Skeleton className="h-48" />
+          </aside>
+        </div>
+      </div>
+    );
   }
 
   return (

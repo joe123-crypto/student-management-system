@@ -14,6 +14,10 @@ function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 }
 
+function hasText(value: string | null | undefined): boolean {
+  return Boolean(value && value.trim().length > 0);
+}
+
 function normalizeGender(value: unknown): StudentProfile['student']['gender'] {
   const normalized = stringValue(value).toUpperCase();
   if (normalized === 'F') return 'F';
@@ -271,13 +275,32 @@ export function normalizeStudentProfile(
   return normalized;
 }
 
-export function requiresStudentOnboarding(student: StudentProfile | null): boolean {
-  if (!student) return true;
+export function getMissingStudentOnboardingFields(student: StudentProfile | null): string[] {
+  if (!student) {
+    return ['student profile'];
+  }
 
-  return (
-    !student.bank.bankName ||
-    !student.bank.branchCode ||
-    !student.bankAccount.accountNumber ||
-    !student.bankAccount.iban
-  );
+  const missingFields: string[] = [];
+
+  if (!hasText(student.bank.bankName)) {
+    missingFields.push('bank name');
+  }
+
+  if (!hasText(student.bank.branchCode)) {
+    missingFields.push('branch code');
+  }
+
+  if (!hasText(student.bankAccount.accountNumber)) {
+    missingFields.push('account number');
+  }
+
+  if (!hasText(student.bankAccount.iban)) {
+    missingFields.push('RIB key');
+  }
+
+  return missingFields;
+}
+
+export function requiresStudentOnboarding(student: StudentProfile | null): boolean {
+  return getMissingStudentOnboardingFields(student).length > 0;
 }

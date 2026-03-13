@@ -3,7 +3,9 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import { clearCacheByPrefix, getRuntimeCachePrefix } from '@/components/shell/shared/browser-cache';
 import type { AppRoute } from '@/components/shell/routes';
+import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
 import { useAnnouncements } from '@/components/shell/domains/announcements/useAnnouncements';
 import { useAuth } from '@/components/shell/domains/auth/useAuth';
 import { usePermissionRequests } from '@/components/shell/domains/permissions/usePermissionRequests';
@@ -11,8 +13,15 @@ import { useStudents } from '@/components/shell/domains/students/useStudents';
 import AttacheAppRouter from '@/components/shell/routers/AttacheAppRouter';
 import PublicAppRouter from '@/components/shell/routers/PublicAppRouter';
 import StudentAppRouter from '@/components/shell/routers/StudentAppRouter';
+import type { Announcement } from '@/types';
 
-export default function AppShell({ route }: { route: AppRoute }) {
+export default function AppShell({
+  route,
+  latestAnnouncement = null,
+}: {
+  route: AppRoute;
+  latestAnnouncement?: Announcement | null;
+}) {
   const router = useRouter();
   const { user, changeStudentPassword, isHydrated: isAuthHydrated } = useAuth();
   const {
@@ -36,13 +45,30 @@ export default function AppShell({ route }: { route: AppRoute }) {
     updatePermissionRequestStatus,
     isHydrated: isPermissionRequestsHydrated,
   } = usePermissionRequests(user);
-
-  const isHydrated =
-    isStudentsHydrated && isAnnouncementsHydrated && isPermissionRequestsHydrated && isAuthHydrated;
+  const isProtectedRoute =
+    route === '/onboarding' ||
+    route === '/student/dashboard' ||
+    route === '/student/settings' ||
+    route === '/attache/dashboard' ||
+    route === '/attache/settings';
 
   const handleLogout = useCallback(() => {
-    void signOut({ callbackUrl: '/login' });
-  }, []);
+    void (async () => {
+      try {
+        if (user) {
+          await clearCacheByPrefix(getRuntimeCachePrefix(user));
+        }
+      } catch (error) {
+        console.error('[CACHE] Failed to clear runtime browser cache during logout:', error);
+      } finally {
+        await signOut({ callbackUrl: '/login' });
+      }
+    })();
+  }, [user]);
+
+  if (isProtectedRoute && !isAuthHydrated) {
+    return <AppLoadingScreen label="Loading your application..." />;
+  }
 
   switch (route) {
     case '/':
@@ -51,6 +77,7 @@ export default function AppShell({ route }: { route: AppRoute }) {
       return (
         <PublicAppRouter
           route={route}
+          latestAnnouncement={latestAnnouncement}
           existingPendingRequests={existingPendingRequests}
           onSubmitPermissionRequest={submitPermissionRequest}
         />
@@ -58,19 +85,21 @@ export default function AppShell({ route }: { route: AppRoute }) {
     case '/onboarding':
     case '/student/dashboard':
     case '/student/settings':
-      if (!isHydrated) {
-        return null;
-      }
       return (
         <StudentAppRouter
           route={route}
           user={user}
           currentStudent={currentStudent}
           announcements={announcements}
-          onUpdateStudent={(id, profile) => {
-            void updateStudent(id, profile).catch((error) => {
+          isStudentLoading={!isStudentsHydrated}
+          isAnnouncementsLoading={!isAnnouncementsHydrated}
+          onUpdateStudent={async (id, profile) => {
+            try {
+              await updateStudent(id, profile);
+            } catch (error) {
               console.error('[STUDENTS] Failed to update student from AppShell:', error);
-            });
+              throw error;
+            }
           }}
           onNavigateStudentSection={(section) =>
             router.push(section === 'settings' ? '/student/settings' : '/student/dashboard')
@@ -81,9 +110,6 @@ export default function AppShell({ route }: { route: AppRoute }) {
       );
     case '/attache/dashboard':
     case '/attache/settings':
-      if (!isHydrated) {
-        return null;
-      }
       return (
         <AttacheAppRouter
           route={route}
@@ -91,6 +117,9 @@ export default function AppShell({ route }: { route: AppRoute }) {
           students={students}
           announcements={announcements}
           permissionRequests={permissionRequests}
+          isStudentsLoading={!isStudentsHydrated}
+          isAnnouncementsLoading={!isAnnouncementsHydrated}
+          isPermissionRequestsLoading={!isPermissionRequestsHydrated}
           onAddAnnouncement={addAnnouncement}
           onDeleteAnnouncement={deleteAnnouncement}
           onDeleteStudents={(studentIds) => {

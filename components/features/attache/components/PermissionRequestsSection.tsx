@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import type { PermissionRequest } from '@/types';
+import Skeleton from '@/components/ui/Skeleton';
 
 interface PermissionRequestsSectionProps {
   requests: PermissionRequest[];
+  isLoading?: boolean;
   onUpdateStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
@@ -23,10 +25,32 @@ function statusTone(status: PermissionRequest['status']): string {
 
 export default function PermissionRequestsSection({
   requests,
+  isLoading = false,
   onUpdateStatus,
 }: PermissionRequestsSectionProps) {
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  if (isLoading) {
+    return (
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <Skeleton className="h-7 w-52" />
+        <Skeleton className="mt-2 h-4 w-72 rounded-md" />
+        <div className="mt-6 space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="grid gap-4 rounded-xl border border-slate-100 p-4 md:grid-cols-6">
+              <Skeleton className="h-4 w-full rounded-md" />
+              <Skeleton className="h-4 w-full rounded-md" />
+              <Skeleton className="h-4 w-full rounded-md" />
+              <Skeleton className="h-4 w-full rounded-md" />
+              <Skeleton className="h-8 w-24 rounded-full" />
+              <Skeleton className="h-8 w-40 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
