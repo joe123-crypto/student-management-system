@@ -56,7 +56,7 @@ const LoginPage: React.FC = () => {
     }
 
     if (role === UserRole.STUDENT) {
-      router.push('/student/dashboard');
+      router.push('/onboarding');
       return;
     }
 

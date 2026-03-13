@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evaluateAccess, getDefaultDashboard } from '@/lib/auth/access-control';
+import { evaluateAccess, getDefaultSignedInRoute } from '@/lib/auth/access-control';
 import { UserRole } from '@/types';
 
 test('students are redirected to the login page when they access protected routes anonymously', () => {
@@ -39,7 +39,7 @@ test('students cannot access attache routes', () => {
     role: UserRole.STUDENT,
   });
 
-  assert.deepEqual(decision, { action: 'redirect', target: '/student/dashboard' });
+  assert.deepEqual(decision, { action: 'redirect', target: '/onboarding' });
 });
 
 test('signed-in users are redirected away from the login page', () => {
@@ -54,7 +54,7 @@ test('signed-in users are redirected away from the login page', () => {
     role: UserRole.ATTACHE,
   });
 
-  assert.deepEqual(studentDecision, { action: 'redirect', target: '/student/dashboard' });
+  assert.deepEqual(studentDecision, { action: 'redirect', target: '/onboarding' });
   assert.deepEqual(attacheDecision, { action: 'redirect', target: '/attache/dashboard' });
 });
 
@@ -73,7 +73,7 @@ test('onboarding remains student-only', () => {
   assert.deepEqual(attacheDecision, { action: 'redirect', target: '/attache/dashboard' });
 });
 
-test('default dashboards stay role-specific', () => {
-  assert.equal(getDefaultDashboard(UserRole.STUDENT), '/student/dashboard');
-  assert.equal(getDefaultDashboard(UserRole.ATTACHE), '/attache/dashboard');
+test('default signed-in routes stay role-specific', () => {
+  assert.equal(getDefaultSignedInRoute(UserRole.STUDENT), '/onboarding');
+  assert.equal(getDefaultSignedInRoute(UserRole.ATTACHE), '/attache/dashboard');
 });

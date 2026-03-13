@@ -67,6 +67,9 @@ export default function StudentAppRouter({
       if (user?.role !== UserRole.STUDENT) {
         return <Redirect to="/login" />;
       }
+      if (isStudentLoading) {
+        return <AppLoadingScreen label="Loading your student record..." />;
+      }
       if (!isStudentLoading && !currentStudent) {
         return <Redirect to="/login" />;
       }
@@ -91,8 +94,14 @@ export default function StudentAppRouter({
       if (user?.role !== UserRole.STUDENT) {
         return <Redirect to="/login" />;
       }
+      if (isStudentLoading) {
+        return <AppLoadingScreen label="Loading your student record..." />;
+      }
       if (!isStudentLoading && !currentStudent) {
         return <Redirect to="/login" />;
+      }
+      if (currentStudent && !isStudentLoading && requiresStudentOnboarding(currentStudent)) {
+        return <Redirect to="/onboarding" />;
       }
 
       return (

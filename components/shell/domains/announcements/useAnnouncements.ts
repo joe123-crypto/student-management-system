@@ -25,6 +25,10 @@ export function useAnnouncements(user: User | null) {
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const isHydrated = hydratedKey === userKey;
 
+  function isAbortError(error: unknown) {
+    return error instanceof Error && error.name === 'AbortError';
+  }
+
   function setAnnouncementsState(nextAnnouncements: Announcement[]) {
     announcementsRef.current = nextAnnouncements;
     setAnnouncements(nextAnnouncements);
@@ -75,12 +79,6 @@ export function useAnnouncements(user: User | null) {
       let hasCachedAnnouncements = false;
 
       try {
-        const fetchPromise = fetch('/api/announcements', {
-          method: 'GET',
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-
         try {
           const cachedAnnouncements = await readCache<Announcement[]>(cacheKey);
           if (!isCancelled && cachedAnnouncements) {
@@ -92,7 +90,11 @@ export function useAnnouncements(user: User | null) {
           console.error('[ANNOUNCEMENTS] Failed to read IndexedDB announcement cache:', error);
         }
 
-        const response = await fetchPromise;
+        const response = await fetch('/api/announcements', {
+          method: 'GET',
+          cache: 'no-store',
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to load announcements (${response.status}).`);
@@ -107,7 +109,7 @@ export function useAnnouncements(user: User | null) {
           });
         }
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
+        if (!isAbortError(error)) {
           console.error('[ANNOUNCEMENTS] Failed to hydrate announcements:', error);
         }
 
@@ -125,7 +127,9 @@ export function useAnnouncements(user: User | null) {
 
     return () => {
       isCancelled = true;
-      controller.abort();
+      if (!controller.signal.aborted) {
+        controller.abort();
+      }
     };
   }, [user, userKey]);
 
