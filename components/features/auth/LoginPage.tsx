@@ -5,12 +5,21 @@ import { UserRole } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import SegmentedControl from '@/components/ui/SegmentedControl';
+import {
+  MOCK_ATTACHE_LOGIN_ID,
+  MOCK_PASSWORD_PLACEHOLDER,
+  MOCK_STUDENT_LOGIN_ID,
+} from '@/test/mock/auth';
+import { isMockDbEnabled } from '@/test/mock/config';
 import { Hash, HelpCircle, Lock, LogIn, Mail } from 'lucide-react';
 
 const roleOptions = [
   { value: UserRole.STUDENT, label: 'Student' },
   { value: UserRole.ATTACHE, label: 'Attache' },
 ] as const;
+
+const studentLoginPlaceholder = isMockDbEnabled() ? MOCK_STUDENT_LOGIN_ID : 'STUDENT123';
+const passwordPlaceholder = isMockDbEnabled() ? MOCK_PASSWORD_PLACEHOLDER : 'password123';
 
 const LoginPage: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
@@ -95,7 +104,7 @@ const LoginPage: React.FC = () => {
                   type="text"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  placeholder={role === UserRole.STUDENT ? 'INS-2023-001' : 'attache@example.com'}
+                  placeholder={role === UserRole.STUDENT ? studentLoginPlaceholder : MOCK_ATTACHE_LOGIN_ID}
                   className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
                 />
                 <HelpCircle className="w-4 h-4 text-indigo-500" />
@@ -109,7 +118,7 @@ const LoginPage: React.FC = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="jean"
+                  placeholder={passwordPlaceholder}
                   className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
                 />
                 <HelpCircle className="w-4 h-4 text-indigo-500" />

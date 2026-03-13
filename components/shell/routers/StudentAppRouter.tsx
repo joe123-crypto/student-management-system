@@ -15,10 +15,10 @@ interface StudentAppRouterProps {
   announcements: Announcement[];
   onUpdateStudent: (id: string, profile: Partial<StudentProfile>) => void;
   onNavigateStudentSection: (section: 'dashboard' | 'settings') => void;
-  onChangePassword: (currentPassword: string, newPassword: string) => {
+  onChangePassword: (currentPassword: string, newPassword: string) => Promise<{
     ok: boolean;
     message: string;
-  };
+  }>;
   onLogout: () => void;
 }
 

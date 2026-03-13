@@ -6,7 +6,11 @@ import { Hash, ShieldCheck } from 'lucide-react';
 
 interface PermissionRequestPageProps {
   existingRequests: string[];
-  onSubmitRequest: (inscriptionNumber: string, fullName: string, passportNumber: string) => void;
+  onSubmitRequest: (
+    inscriptionNumber: string,
+    fullName: string,
+    passportNumber: string,
+  ) => Promise<void>;
 }
 
 export default function PermissionRequestPage({
@@ -77,14 +81,18 @@ export default function PermissionRequestPage({
         return;
       }
 
-      onSubmitRequest(normalizedInscription, normalizedFullName, normalizedPassportNumber);
+      await onSubmitRequest(normalizedInscription, normalizedFullName, normalizedPassportNumber);
       setMessage('Request sent to the student attache.');
       setFullName('');
       setPassportNumber('');
       setInscriptionNumber('');
     } catch (lookupError) {
-      console.error('[PERMISSION_REQUEST] Failed to verify inscription number:', lookupError);
-      setError('Unable to verify this inscription number right now. Please try again.');
+      console.error('[PERMISSION_REQUEST] Failed to submit permission request:', lookupError);
+      setError(
+        lookupError instanceof Error
+          ? lookupError.message
+          : 'Unable to verify this inscription number right now. Please try again.',
+      );
     } finally {
       setIsSubmitting(false);
     }

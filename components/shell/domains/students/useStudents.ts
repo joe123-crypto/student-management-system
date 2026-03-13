@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { services } from '@/services';
 import type { PrototypeDatabase } from '@/test/mock/prototypeDatabase';
+import { isMockDbEnabled } from '@/test/mock/config';
 import type { StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
 
@@ -16,10 +17,6 @@ function upsertStudent(students: StudentProfile[], nextStudent: StudentProfile):
   const next = [...students];
   next[existingIndex] = nextStudent;
   return next;
-}
-
-function isMockDbEnabled() {
-  return process.env.NEXT_PUBLIC_USE_MOCK_DB === 'true';
 }
 
 export function useStudents(user: User | null) {

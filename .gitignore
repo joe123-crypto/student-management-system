@@ -26,5 +26,9 @@ dist-ssr
 .next
 tsconfig.tsbuildinfo
 
+.gitignore
+
 memory
 .env*
+test/test-db-output.txt
+test/test-db-output-2.txt

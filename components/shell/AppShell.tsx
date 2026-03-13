@@ -23,13 +23,19 @@ export default function AppShell({ route }: { route: AppRoute }) {
     importStudents,
     isHydrated: isStudentsHydrated,
   } = useStudents(user);
-  const { announcements, addAnnouncement, isHydrated: isAnnouncementsHydrated } = useAnnouncements();
+  const {
+    announcements,
+    addAnnouncement,
+    deleteAnnouncement,
+    isHydrated: isAnnouncementsHydrated,
+  } = useAnnouncements(user);
   const {
     permissionRequests,
     existingPendingRequests,
     submitPermissionRequest,
+    updatePermissionRequestStatus,
     isHydrated: isPermissionRequestsHydrated,
-  } = usePermissionRequests();
+  } = usePermissionRequests(user);
 
   const isHydrated =
     isStudentsHydrated && isAnnouncementsHydrated && isPermissionRequestsHydrated && isAuthHydrated;
@@ -86,11 +92,13 @@ export default function AppShell({ route }: { route: AppRoute }) {
           announcements={announcements}
           permissionRequests={permissionRequests}
           onAddAnnouncement={addAnnouncement}
+          onDeleteAnnouncement={deleteAnnouncement}
           onDeleteStudents={(studentIds) => {
             void deleteStudents(studentIds).catch((error) => {
               console.error('[STUDENTS] Failed to delete students from AppShell:', error);
             });
           }}
+          onUpdatePermissionRequestStatus={updatePermissionRequestStatus}
           onImportStudents={(records, mode) => {
             void importStudents(records, mode).catch((error) => {
               console.error('[STUDENTS] Failed to import students from AppShell:', error);

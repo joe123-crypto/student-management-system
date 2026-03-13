@@ -1,5 +1,5 @@
-import { MOCK_ANNOUNCEMENTS } from '@/constants';
 import { getFromStorage } from '@/components/shell/shared/storage';
+import { MOCK_ANNOUNCEMENTS } from '@/test/mock/announcements';
 import type { AnnouncementsService } from '@/services/contracts';
 import type { Announcement } from '@/types';
 

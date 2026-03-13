@@ -16,6 +16,10 @@ Copy `.env.example` into `.env` and configure:
 - `AUTH_SECRET`
 - `AUTH_ENABLE_MIDDLEWARE`
 
+If you want to sign in with the Prisma users created by [`prisma/seed.ts`](/c:/Users/Joe/Documents/workspace/Student%20Platform/prisma/seed.ts), set `NEXT_PUBLIC_USE_MOCK_DB=false`. When it is `true`, login uses the prototype mock dataset instead of the seeded database users.
+
+With `NEXT_PUBLIC_USE_MOCK_DB=false`, the runtime now also persists announcements, permission requests, and password changes through the Prisma-backed API routes.
+
 ## Run
 ```bash
 npm run dev

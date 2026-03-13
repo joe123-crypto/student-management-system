@@ -17,28 +17,29 @@ enum AuthProvider {
   attache_email
 }
 
-enum StudentProfileStatus {
+enum PermissionRequestStatus {
   PENDING
-  ACTIVE
-  COMPLETED
+  APPROVED
+  REJECTED
 }
 
 model AuthUser {
-  id                String       @id @default(cuid())
+  id                String              @id @default(cuid())
   role              UserRole
   loginId           String
-  subject           String
   authProvider      AuthProvider
   passwordHash      String
-  isActive          Boolean      @default(true)
-  failedSignInCount Int          @default(0)
+  isActive          Boolean             @default(true)
+  failedSignInCount Int                 @default(0)
   lockedUntil       DateTime?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
   auditLogs         AuditLog[]
-  studentProfile    StudentProfileRecord?
+  announcements     Announcement[]
+  reviewedRequests  PermissionRequest[] @relation("PermissionRequestReviewer")
 
   @@unique([role, loginId])
+  @@index([role])
 }
 
 model AuditLog {
@@ -52,17 +53,243 @@ model AuditLog {
   user      AuthUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
-model StudentProfileRecord {
-  id                String               @id
-  authUserId        String?              @unique
-  inscriptionNumber String               @unique
-  fullName          String
-  status            StudentProfileStatus @default(PENDING)
-  profile           Json
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
-  authUser          AuthUser?            @relation(fields: [authUserId], references: [id], onDelete: SetNull)
+model Announcement {
+  id           String    @id @default(cuid())
+  title        String
+  content      String
+  authorName   String
+  authorUserId String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  authorUser   AuthUser? @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
 
+  @@index([createdAt])
+  @@index([authorUserId])
+}
+
+model PermissionRequest {
+  id                String                  @id @default(cuid())
+  inscriptionNumber String
+  fullName          String
+  passportNumber    String
+  status            PermissionRequestStatus @default(PENDING)
+  submittedAt       DateTime                @default(now())
+  reviewedAt        DateTime?
+  reviewedById      String?
+  reviewedBy        AuthUser?               @relation("PermissionRequestReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([inscriptionNumber])
   @@index([status])
-  @@index([fullName])
+  @@index([submittedAt])
+  @@index([reviewedById])
+}
+
+model Person {
+  id            Int        @id @default(autoincrement())
+  givenName     String     @map("given_name")
+  familyName    String     @map("family_name")
+  dob           String
+  gender        String
+  homeAddressId Int?       @map("home_address_id")
+  homeAddress   Address?   @relation("PersonHomeAddress", fields: [homeAddressId], references: [id], onDelete: SetNull)
+  student       Student?
+  passports     Passport[]
+  contacts      Contact[]
+  accounts      Account[]
+
+  @@index([givenName])
+  @@index([familyName])
+  @@index([homeAddressId])
+  @@map("PERSON")
+}
+
+model Student {
+  id            Int          @id @default(autoincrement())
+  personId      Int          @unique @map("person_id")
+  inscriptionNo String       @unique @map("inscription_no")
+  addressId     Int?         @map("address_id")
+  person        Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  address       Address?     @relation("StudentCurrentAddress", fields: [addressId], references: [id], onDelete: SetNull)
+  enrollments   Enrollment[]
+
+  @@index([addressId])
+  @@map("STUDENT")
+}
+
+model Passport {
+  id         Int    @id @default(autoincrement())
+  passportNo String @map("passport_no")
+  issueDate  String @map("issue_date")
+  expiry     String
+  personId   Int    @map("person_id")
+  person     Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([personId])
+  @@index([passportNo])
+  @@map("PASSPORT")
+}
+
+model Contact {
+  id        Int     @id @default(autoincrement())
+  ownerId   Int     @map("owner_id")
+  type      String
+  value     String
+  label     String
+  isPrimary Boolean @default(false) @map("is_primary")
+  createdAt String  @map("created_at")
+  owner     Person  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, type])
+  @@index([ownerId, type, label])
+  @@map("CONTACT")
+}
+
+model Address {
+  id               Int          @id @default(autoincrement())
+  name             String
+  wilayaId         Int?         @map("wilaya_id")
+  province         Province?    @relation(fields: [wilayaId], references: [id], onDelete: SetNull)
+  homeResidents    Person[]     @relation("PersonHomeAddress")
+  studentResidents Student[]    @relation("StudentCurrentAddress")
+  universities     University[]
+  banks            Bank[]
+  branches         Branch[]
+
+  @@index([name])
+  @@index([wilayaId])
+  @@map("ADDRESS")
+}
+
+model Province {
+  id        Int       @id @default(autoincrement())
+  name      String
+  addresses Address[]
+
+  @@index([name])
+  @@map("PROVINCE")
+}
+
+model University {
+  id        Int      @id @default(autoincrement())
+  name      String
+  acronym   String
+  addressId Int?     @map("address_id")
+  address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
+
+  @@index([name])
+  @@index([addressId])
+  @@map("UNIVERSITY")
+}
+
+model Department {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  programs    Program[]
+
+  @@index([name])
+  @@map("DEPARTMENT")
+}
+
+model ProgramType {
+  id              Int       @id @default(autoincrement())
+  name            String
+  defaultDuration Int       @map("default_duration")
+  programs        Program[]
+
+  @@index([name])
+  @@map("PROGRAMTYPE")
+}
+
+model Program {
+  id            Int          @id @default(autoincrement())
+  name          String
+  description   String
+  departmentId  Int          @map("department_id")
+  programTypeId Int          @map("programtype_id")
+  department    Department   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  programType   ProgramType  @relation(fields: [programTypeId], references: [id], onDelete: Restrict)
+  enrollments   Enrollment[]
+
+  @@index([name])
+  @@index([departmentId])
+  @@index([programTypeId])
+  @@map("PROGRAM")
+}
+
+model Enrollment {
+  id             Int        @id @default(autoincrement())
+  registrationNo String     @map("registration_no")
+  dateEnrolled   String     @map("date_enrolled")
+  status         String
+  studentId      Int        @map("student_id")
+  programId      Int        @map("program_id")
+  student        Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  program        Program    @relation(fields: [programId], references: [id], onDelete: Restrict)
+  progressRows   Progress[]
+
+  @@index([studentId])
+  @@index([programId])
+  @@index([status])
+  @@map("ENROLLMENT")
+}
+
+model Progress {
+  id           Int        @id @default(autoincrement())
+  date         String
+  semester     String
+  level        String
+  grade        String
+  status       String
+  enrollmentId Int        @map("enrollment_id")
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([enrollmentId])
+  @@map("PROGRESS")
+}
+
+model Bank {
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      Int
+  addressId Int?     @map("address_id")
+  address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  branches  Branch[]
+
+  @@index([name])
+  @@index([code])
+  @@index([addressId])
+  @@map("BANK")
+}
+
+model Branch {
+  id        Int       @id @default(autoincrement())
+  code      Int
+  name      String
+  addressId Int?      @map("address_id")
+  bankId    Int       @map("bank_id")
+  address   Address?  @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  bank      Bank      @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  accounts  Account[]
+
+  @@index([code])
+  @@index([addressId])
+  @@index([bankId])
+  @@map("BRANCH")
+}
+
+model Account {
+  id          Int    @id @default(autoincrement())
+  accountNo   String @map("account_no")
+  rib         BigInt
+  currency    String @default("")
+  dateCreated String @map("date_created")
+  branchId    Int    @map("branch_id")
+  personId    Int    @map("person_id")
+  branch      Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  person      Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([personId])
+  @@index([branchId])
+  @@map("ACCOUNT")
 }

@@ -3,7 +3,10 @@ import FormField from '@/components/ui/FormField';
 import Button from '@/components/ui/Button';
 
 interface StudentPasswordSettingsProps {
-  onChangePassword: (currentPassword: string, newPassword: string) => { ok: boolean; message: string };
+  onChangePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<{ ok: boolean; message: string }>;
   inputClassName: string;
 }
 
@@ -14,9 +17,10 @@ export default function StudentPasswordSettings({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [passwordStatus, setPasswordStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const handlePasswordSubmit = (event: React.FormEvent) => {
+  const handlePasswordSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setPasswordStatus(null);
 
@@ -35,12 +39,18 @@ export default function StudentPasswordSettings({
       return;
     }
 
-    const result = onChangePassword(currentPassword, newPassword);
-    setPasswordStatus({ type: result.ok ? 'success' : 'error', message: result.message });
-    if (result.ok) {
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+    setIsSubmitting(true);
+
+    try {
+      const result = await onChangePassword(currentPassword, newPassword);
+      setPasswordStatus({ type: result.ok ? 'success' : 'error', message: result.message });
+      if (result.ok) {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -96,8 +106,8 @@ export default function StudentPasswordSettings({
           ) : null}
 
           <div className="pt-2">
-            <Button type="submit" className="rounded-full px-8">
-              Save Password
+            <Button type="submit" className="rounded-full px-8" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save Password'}
             </Button>
           </div>
         </form>

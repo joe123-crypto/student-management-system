@@ -23,7 +23,7 @@ Use this page to debug common local issues quickly.
 
 ## Data looks stale after edits/import
 - Verify `/api/students`, `/api/students/me`, or `/api/students/[id]` completed successfully.
-- Verify Prisma `StudentProfileRecord` rows were updated as expected.
+- Verify normalized Prisma student rows were updated as expected.
 - For CSV import, inspect parser behavior in `components/features/attache/utils/csvImport.ts`.
 
 ## `docs:check` fails

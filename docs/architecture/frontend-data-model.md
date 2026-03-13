@@ -22,11 +22,13 @@ This document is the complete reference for frontend data contracts used by the 
 | Runtime model | Store | Notes |
 |---|---|---|
 | `Auth.js` session | Signed JWT cookie | Auth session and role claims |
-| `StudentProfileRecord` | PostgreSQL via Prisma | Stores query columns plus `profile` JSONB payload |
+| Normalized student domain tables | PostgreSQL via Prisma | `PERSON`/`STUDENT`/`ENROLLMENT` and related tables mapped through `lib/students/store.ts` |
+| `Announcement` | PostgreSQL via Prisma | Served through `lib/announcements/store.ts` and `/api/announcements*` |
+| `PermissionRequest` | PostgreSQL via Prisma | Served through `lib/permission-requests/store.ts` and `/api/permission-requests*` |
 
 ### Storage Ownership
-- Student records are persisted server-side in Prisma `StudentProfileRecord`.
-- Announcements and permission requests are stored independently in `localStorage`.
+- Student records are persisted server-side in normalized Prisma tables.
+- Announcements and permission requests are persisted server-side when `NEXT_PUBLIC_USE_MOCK_DB=false`.
 - Auth session state is handled by Auth.js cookies rather than frontend storage keys.
 - The legacy normalized prototype database remains only for mock/reference tooling.
 - Some fields are frontend-only or derived and are not first-class query columns.
@@ -80,9 +82,11 @@ This document is the complete reference for frontend data contracts used by the 
 - `loadDatabase`, `saveDatabase`, `getProfiles`, `updateStudent`, `deleteStudents`, `importStudents`
 
 ### `AnnouncementsService`
+- Mock-only service used when `NEXT_PUBLIC_USE_MOCK_DB=true`.
 - `loadAnnouncements`, `saveAnnouncements`
 
 ### `PermissionsService`
+- Mock-only service used when `NEXT_PUBLIC_USE_MOCK_DB=true`.
 - `loadPermissionRequests`, `savePermissionRequests`, `createPendingRequest`
 
 ## Attache Domain Types (`components/features/attache/types.ts`)
@@ -116,12 +120,12 @@ This document is the complete reference for frontend data contracts used by the 
 ## Current Runtime Student Persistence
 | Field | Store | Notes |
 |---|---|---|
-| `id` | `StudentProfileRecord.id` | Primary UI identifier |
-| `student.inscriptionNumber` | `StudentProfileRecord.inscriptionNumber` | Unique student lookup key |
-| `student.fullName` | `StudentProfileRecord.fullName` | Query/display column |
-| `status` | `StudentProfileRecord.status` | Query/display column |
-| full `StudentProfile` payload | `StudentProfileRecord.profile` | JSONB document normalized through `lib/students/profile.ts` |
-| `authUserId` linkage | `StudentProfileRecord.authUserId` | Optional relation to `AuthUser.id` |
+| `id` | Derived from `STUDENT.id` | Serialized as `student-{STUDENT.id}` |
+| `student.inscriptionNumber` | `STUDENT.inscription_no` | Unique student lookup key |
+| `student.fullName` | Derived from `PERSON.given_name + family_name` | Derived at mapping time |
+| `status` | Latest `ENROLLMENT.status` | Normalized to `PENDING/ACTIVE/COMPLETED` in the store |
+| full `StudentProfile` payload | Assembled from normalized tables | Mapped through `lib/students/store.ts` |
+| auth linkage | `AuthUser.loginId = STUDENT.inscription_no` | Student auth identity joins by normalized inscription number |
 
 ## Legacy Prototype Mapping
 | Frontend path | Source table/field(s) | Notes |
@@ -149,7 +153,7 @@ This document is the complete reference for frontend data contracts used by the 
 | `program.major` | `PROGRAM.name` | |
 | `program.startDate` | `ENROLLMENT.date_enrolled` | |
 | `program.expectedEndDate` | Derived from start date and `PROGRAMTYPE.default_duration` | Derived |
-| `program.programType` | Not mapped in current database mapper | Optional frontend field |
+| `program.programType` | `PROGRAMTYPE.name` | Mirrors `degreeLevel` in the current mapper |
 | `bankAccount.accountHolderName` | Derived from student full name | Derived |
 | `bankAccount.accountNumber` | `ACCOUNT.account_no` | |
 | `bankAccount.iban` | `ACCOUNT.rib` | Stringified in mapper |
@@ -165,7 +169,8 @@ This document is the complete reference for frontend data contracts used by the 
 | `contact.emergencyContactPhone` | `CONTACT.value` where `type=EMERGENCY,label=phone` | |
 | `address.homeCountryAddress` | `ADDRESS.name` + province via `PERSON.home_address_id` | Joined string |
 | `address.currentHostAddress` | `ADDRESS.name` + province via `STUDENT.address_id` | Joined string |
-| `address.street/city/state/countryCode/wilaya` | Not mapped in current database mapper | Optional frontend fields |
+| `address.street/city/state/wilaya` | Current `STUDENT.address_id` + `PROVINCE.name` | Derived from current host address |
+| `address.countryCode` | Not mapped in current database mapper | Optional frontend field |
 | `status` | `ENROLLMENT.status` | Normalized to `PENDING/ACTIVE/COMPLETED` |
 | `academicHistory[].id` | `PROGRESS.id` | Serialized as `progress-{id}` |
 | `academicHistory[].date` | `PROGRESS.date` | |

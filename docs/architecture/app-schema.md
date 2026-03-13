@@ -1,7 +1,7 @@
 # App Data Schema (DB Layer Only)
 
 ## Overview
-This schema is derived from the current mock database in `test/mock/prototypeDatabase.ts`.  
+This schema is derived from the normalized student model used by the backend runtime.
 Primary entities are student-centric and grouped into identity, academics, contact, and banking.
 
 For full frontend data contracts (including announcements, permission requests, auth user/session, service contracts, and UI-only fields), see `docs/architecture/frontend-data-model.md`.
@@ -10,19 +10,23 @@ For full frontend data contracts (including announcements, permission requests, 
 
 ### `AuthUser`
 - Stores credential-bearing auth identities used by Auth.js.
-- Key fields: `id`, `role`, `loginId`, `subject`, `authProvider`, `passwordHash`, `isActive`.
+- Key fields: `id`, `role`, `loginId`, `authProvider`, `passwordHash`, `isActive`.
 
 ### `AuditLog`
 - Stores auth audit events keyed optionally to `AuthUser.id`.
 - Key fields: `event`, `metadata`, `ip`, `userAgent`, `createdAt`.
 
-### `StudentProfileRecord`
-- Stores production student records.
-- Query columns: `id`, `authUserId`, `inscriptionNumber`, `fullName`, `status`.
-- Document column: `profile` (`JSONB`) containing the normalized `StudentProfile` payload.
+### `Announcement`
+- Stores attache-authored announcement feed entries rendered in both attache and student dashboards.
+- Key fields: `title`, `content`, `authorName`, `authorUserId`, `createdAt`.
 
-## Legacy Prototype Schema
-The remaining entity definitions below describe the mock normalized database retained for legacy tooling and reference. They are not the current production persistence model for student records.
+### `PermissionRequest`
+- Stores student access requests submitted from the public login flow and reviewed by attaches.
+- Key fields: `inscriptionNumber`, `fullName`, `passportNumber`, `status`, `submittedAt`, `reviewedById`.
+
+### Normalized Student Domain
+- Student records are persisted across the normalized tables documented below.
+- `lib/students/store.ts` maps these tables to and from the shared `StudentProfile` contract.
 
 ## Entity Definitions
 
@@ -157,10 +161,36 @@ The remaining entity definitions below describe the mock normalized database ret
 | `branch_id` | number | FK -> `BRANCH.id` |
 | `person_id` | number | FK -> `PERSON.id` |
 
+### `Announcement`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | string | PK |
+| `title` | string |  |
+| `content` | string |  |
+| `authorName` | string | rendered author label |
+| `authorUserId` | string | optional FK -> `AuthUser.id` |
+| `createdAt` | datetime | created timestamp |
+| `updatedAt` | datetime | update timestamp |
+
+### `PermissionRequest`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | string | PK |
+| `inscriptionNumber` | string | normalized uppercase inscription |
+| `fullName` | string | submitter-provided name |
+| `passportNumber` | string | normalized uppercase passport |
+| `status` | enum | `PENDING`, `APPROVED`, `REJECTED` |
+| `submittedAt` | datetime | created timestamp |
+| `reviewedAt` | datetime | nullable review timestamp |
+| `reviewedById` | string | optional FK -> `AuthUser.id` |
+
 ## Relationship Map
 
 ```mermaid
 erDiagram
+  AUTHUSER ||--o{ AUDITLOG : "writes"
+  AUTHUSER ||--o{ ANNOUNCEMENT : "authors"
+  AUTHUSER ||--o{ PERMISSIONREQUEST : "reviews"
   PERSON ||--o| STUDENT : "has student profile"
   PERSON ||--o{ PASSPORT : "has"
   PERSON ||--o{ CONTACT : "owns"
@@ -181,6 +211,7 @@ erDiagram
 ```
 
 ## Notes
-- The schema is stored as in-memory arrays, so FK constraints are enforced in application logic rather than database-level constraints.
+- The runtime backend persists this schema in PostgreSQL via Prisma.
 - `CONTACT.owner_id` behaves as a polymorphic owner field in name, but current usage links it to `PERSON.id`.
 - `STUDENT` references two addresses: `PERSON.home_address_id` (home) and `STUDENT.address_id` (current/host).
+- `StudentProfile.id` is derived at the mapping layer as `student-{STUDENT.id}` rather than stored as a separate column.
