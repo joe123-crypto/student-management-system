@@ -4,16 +4,44 @@ import { ProgressDetails } from '@/types';
 import { PROGRESS_DATA } from '@/constants';
 import Button from '@/components/ui/Button';
 import AcademicHistoryItem from '@/components/ui/AcademicHistoryItem';
+import Skeleton from '@/components/ui/Skeleton';
 
 interface StudentAcademicProgressPanelProps {
   academicHistory?: ProgressDetails[];
   onStartUpdate: () => void;
+  loading?: boolean;
 }
 
 const StudentAcademicProgressPanel: React.FC<StudentAcademicProgressPanelProps> = ({
   academicHistory,
   onStartUpdate,
+  loading = false,
 }) => {
+  if (loading) {
+    return (
+      <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:rounded-[2.5rem] sm:p-10">
+        <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-9 w-20 rounded-full" />
+          </div>
+          <Skeleton className="h-10 w-36 rounded-full" />
+        </div>
+        <div className="space-y-8 sm:space-y-12">
+          <Skeleton className="h-64 w-full sm:h-80" />
+          <div className="space-y-4">
+            <Skeleton className="h-3 w-32 rounded-md" />
+            <div className="grid gap-4">
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-[500px] overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm transition-all sm:rounded-[2.5rem] sm:p-10">
       <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-center sm:justify-between">

@@ -11,6 +11,9 @@ interface AttacheDashboardProps {
   students: StudentProfile[];
   announcements: Announcement[];
   permissionRequests: PermissionRequest[];
+  isStudentsLoading: boolean;
+  isAnnouncementsLoading: boolean;
+  isPermissionRequestsLoading: boolean;
   onAddAnnouncement: (input: { title: string; content: string }) => Promise<void>;
   onDeleteAnnouncement: (announcementId: string) => Promise<void>;
   onDeleteStudents: (studentIds: string[]) => void;
@@ -36,6 +39,9 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   students,
   announcements,
   permissionRequests,
+  isStudentsLoading,
+  isAnnouncementsLoading,
+  isPermissionRequestsLoading,
   onAddAnnouncement,
   onDeleteAnnouncement,
   onDeleteStudents,
@@ -59,10 +65,17 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
       {section === 'dashboard' ? (
         <>
           <Tabs items={tabItems} activeTab={activeView} onChange={(tab) => setActiveView(tab as ActiveView)} className="mb-8" />
-          {activeView === 'students' ? <StudentsSection students={students} onDeleteStudents={onDeleteStudents} /> : null}
+          {activeView === 'students' ? (
+            <StudentsSection
+              students={students}
+              isLoading={isStudentsLoading}
+              onDeleteStudents={onDeleteStudents}
+            />
+          ) : null}
           {activeView === 'announcements' ? (
             <AnnouncementsSection
               announcements={announcements}
+              isLoading={isAnnouncementsLoading}
               onAddAnnouncement={onAddAnnouncement}
               onDeleteAnnouncement={onDeleteAnnouncement}
             />
@@ -70,6 +83,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
           {activeView === 'permission-requests' ? (
             <PermissionRequestsSection
               requests={permissionRequests}
+              isLoading={isPermissionRequestsLoading}
               onUpdateStatus={onUpdatePermissionRequestStatus}
             />
           ) : null}

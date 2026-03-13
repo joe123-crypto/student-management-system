@@ -11,6 +11,9 @@ interface AttacheAppRouterProps {
   students: StudentProfile[];
   announcements: Announcement[];
   permissionRequests: PermissionRequest[];
+  isStudentsLoading: boolean;
+  isAnnouncementsLoading: boolean;
+  isPermissionRequestsLoading: boolean;
   onAddAnnouncement: (input: { title: string; content: string }) => Promise<void>;
   onDeleteAnnouncement: (announcementId: string) => Promise<void>;
   onDeleteStudents: (studentIds: string[]) => void;
@@ -29,6 +32,9 @@ export default function AttacheAppRouter({
   students,
   announcements,
   permissionRequests,
+  isStudentsLoading,
+  isAnnouncementsLoading,
+  isPermissionRequestsLoading,
   onAddAnnouncement,
   onDeleteAnnouncement,
   onDeleteStudents,
@@ -47,6 +53,9 @@ export default function AttacheAppRouter({
       students={students}
       announcements={announcements}
       permissionRequests={permissionRequests}
+      isStudentsLoading={isStudentsLoading}
+      isAnnouncementsLoading={isAnnouncementsLoading}
+      isPermissionRequestsLoading={isPermissionRequestsLoading}
       onAddAnnouncement={onAddAnnouncement}
       onDeleteAnnouncement={onDeleteAnnouncement}
       onDeleteStudents={onDeleteStudents}

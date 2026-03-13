@@ -5,15 +5,18 @@ import {
   AnnouncementComposerCard,
   AnnouncementFeedSection,
 } from '@/components/features/shared/announcements/AnnouncementSections';
+import Skeleton from '@/components/ui/Skeleton';
 
 interface AnnouncementsSectionProps {
   announcements: Announcement[];
+  isLoading?: boolean;
   onAddAnnouncement: (input: { title: string; content: string }) => Promise<void>;
   onDeleteAnnouncement: (announcementId: string) => Promise<void>;
 }
 
 export default function AnnouncementsSection({
   announcements,
+  isLoading = false,
   onAddAnnouncement,
   onDeleteAnnouncement,
 }: AnnouncementsSectionProps) {
@@ -62,36 +65,47 @@ export default function AnnouncementsSection({
         ) : null}
       </div>
       <div className="md:col-span-2 space-y-4">
-        <AnnouncementFeedSection
-          announcements={announcements}
-          title="Past Announcements"
-          compact
-          actions={(announcement) => (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:bg-red-50"
-              disabled={deletingAnnouncementId === announcement.id}
-              onClick={async () => {
-                setErrorMessage(null);
-                setDeletingAnnouncementId(announcement.id);
-                try {
-                  await onDeleteAnnouncement(announcement.id);
-                } catch (error) {
-                  setErrorMessage(
-                    error instanceof Error ? error.message : 'Unable to delete announcement right now.',
-                  );
-                } finally {
-                  setDeletingAnnouncementId((current) =>
-                    current === announcement.id ? null : current,
-                  );
-                }
-              }}
-            >
-              {deletingAnnouncementId === announcement.id ? 'Deleting...' : 'Delete'}
-            </Button>
-          )}
-        />
+        {isLoading ? (
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <Skeleton className="h-6 w-48" />
+            <div className="mt-6 space-y-4">
+              <Skeleton className="h-28" />
+              <Skeleton className="h-28" />
+              <Skeleton className="h-28" />
+            </div>
+          </div>
+        ) : (
+          <AnnouncementFeedSection
+            announcements={announcements}
+            title="Past Announcements"
+            compact
+            actions={(announcement) => (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-600 hover:bg-red-50"
+                disabled={deletingAnnouncementId === announcement.id}
+                onClick={async () => {
+                  setErrorMessage(null);
+                  setDeletingAnnouncementId(announcement.id);
+                  try {
+                    await onDeleteAnnouncement(announcement.id);
+                  } catch (error) {
+                    setErrorMessage(
+                      error instanceof Error ? error.message : 'Unable to delete announcement right now.',
+                    );
+                  } finally {
+                    setDeletingAnnouncementId((current) =>
+                      current === announcement.id ? null : current,
+                    );
+                  }
+                }}
+              >
+                {deletingAnnouncementId === announcement.id ? 'Deleting...' : 'Delete'}
+              </Button>
+            )}
+          />
+        )}
       </div>
     </div>
   );

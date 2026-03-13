@@ -22,8 +22,10 @@ function upsertStudent(students: StudentProfile[], nextStudent: StudentProfile):
 export function useStudents(user: User | null) {
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [hydratedKey, setHydratedKey] = useState<string | null>(null);
   const [mockDatabase, setMockDatabase] = useState<PrototypeDatabase | null>(null);
+  const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
+  const isHydrated = hydratedKey === userKey;
 
   function syncMockState(database: PrototypeDatabase, nextUser: User | null) {
     const nextStudents = services.students.getProfiles(database);
@@ -62,12 +64,10 @@ export function useStudents(user: User | null) {
             setMockDatabase(null);
             setStudents([]);
             setCurrentStudent(null);
-            setIsHydrated(true);
+            setHydratedKey(userKey);
           }
           return;
         }
-
-        setIsHydrated(false);
 
         try {
           const database = services.students.loadDatabase();
@@ -85,7 +85,7 @@ export function useStudents(user: User | null) {
           }
         } finally {
           if (!isCancelled) {
-            setIsHydrated(true);
+            setHydratedKey(userKey);
           }
         }
 
@@ -96,12 +96,10 @@ export function useStudents(user: User | null) {
         if (!isCancelled) {
           setStudents([]);
           setCurrentStudent(null);
-          setIsHydrated(true);
+          setHydratedKey(userKey);
         }
         return;
       }
-
-      setIsHydrated(false);
 
       try {
         const response = await fetch(
@@ -145,7 +143,7 @@ export function useStudents(user: User | null) {
         }
       } finally {
         if (!isCancelled) {
-          setIsHydrated(true);
+          setHydratedKey(userKey);
         }
       }
     }
@@ -156,7 +154,7 @@ export function useStudents(user: User | null) {
       isCancelled = true;
       controller.abort();
     };
-  }, [user]);
+  }, [user, userKey]);
 
   async function updateStudent(id: string, profile: Partial<StudentProfile>) {
     if (isMockDbEnabled()) {
