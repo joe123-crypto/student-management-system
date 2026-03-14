@@ -15,7 +15,10 @@ interface SegmentedControlProps<T extends string> {
 
 export default function SegmentedControl<T extends string>({ value, options, onChange, className }: SegmentedControlProps<T>) {
   return (
-    <div className={cn('grid gap-1 rounded-xl bg-slate-100 p-1', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+    <div
+      className={cn('theme-card-muted grid gap-1 rounded-2xl border p-1', className)}
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -24,8 +27,10 @@ export default function SegmentedControl<T extends string>({ value, options, onC
             type="button"
             onClick={() => onChange(option.value)}
             className={cn(
-              'rounded-lg px-3 py-2 text-sm font-semibold transition-all',
-              active ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700',
+              'rounded-xl px-3 py-2.5 text-sm font-semibold transition-all',
+              active
+                ? 'theme-card text-[color:var(--theme-primary)]'
+                : 'text-[color:var(--theme-text-muted)] hover:text-[color:var(--theme-primary-soft)]',
             )}
           >
             {option.label}

@@ -8,15 +8,15 @@ interface AcademicHistoryItemProps {
 
 export default function AcademicHistoryItem({ entry }: AcademicHistoryItemProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+    <div className="theme-card-muted flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
       <div>
-        <p className="text-sm font-bold text-slate-800">
+        <p className="theme-heading text-sm font-bold">
           {entry.year} - {entry.level}
         </p>
-        <p className="text-xs text-slate-400 font-medium">Submitted on {entry.date}</p>
+        <p className="theme-text-muted text-xs font-medium">Submitted on {entry.date}</p>
       </div>
       <div className="space-y-1 text-left sm:text-right">
-        <p className="text-xl font-black text-indigo-600 sm:text-lg">{entry.grade}/20</p>
+        <p className="theme-accent text-xl font-black sm:text-lg">{entry.grade}/20</p>
         <StatusBadge status={entry.status} />
       </div>
     </div>

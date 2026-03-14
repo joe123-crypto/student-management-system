@@ -8,16 +8,16 @@ interface SectionHeaderProps {
 }
 
 const accentClass = {
-  indigo: 'bg-indigo-600',
-  emerald: 'bg-emerald-600',
-  amber: 'bg-amber-600',
+  indigo: 'bg-[color:var(--theme-primary)]',
+  emerald: 'bg-[color:var(--theme-primary-soft)]',
+  amber: 'bg-[color:var(--theme-secondary)]',
 };
 
 export default function SectionHeader({ title, accent = 'indigo', className }: SectionHeaderProps) {
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <div className={cn('w-1.5 h-6 rounded-full', accentClass[accent])} />
-      <h5 className="text-xs font-black text-slate-400 uppercase tracking-widest">{title}</h5>
+      <h5 className="theme-text-muted text-xs font-black uppercase tracking-widest">{title}</h5>
     </div>
   );
 }

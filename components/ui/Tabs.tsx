@@ -25,11 +25,15 @@ export default function Tabs<T extends string>({ items, activeTab, onChange, cla
             onClick={() => onChange(item.id)}
             className={cn(
               'relative whitespace-nowrap px-1.5 pb-3 text-sm font-bold transition-all sm:px-2 sm:pb-5',
-              active ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600',
+              active
+                ? 'text-[color:var(--theme-primary)]'
+                : 'text-[color:var(--theme-text-muted)] hover:text-[color:var(--theme-primary-soft)]',
             )}
           >
             {item.label}
-            {active && <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-full" />}
+            {active ? (
+              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-[color:var(--theme-primary-soft)]" />
+            ) : null}
           </button>
         );
       })}

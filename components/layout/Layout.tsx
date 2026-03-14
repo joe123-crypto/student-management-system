@@ -42,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({
 
   return (
     <div
-      className="flex bg-slate-50 font-['Inter']"
+      className="theme-shell flex min-h-screen font-['Inter'] text-[color:var(--theme-text)]"
       style={
         {
           '--sidebar-width': sidebarWidth,
@@ -51,22 +51,22 @@ const Layout: React.FC<LayoutProps> = ({
       }
     >
       <aside
-        className="bg-white border-r border-slate-100 flex flex-col fixed top-0 left-0 h-screen hidden md:flex z-20 transition-all duration-300 w-[var(--sidebar-width)]"
+        className="theme-sidebar fixed left-0 top-0 z-20 hidden h-screen w-[var(--sidebar-width)] flex-col border-r transition-all duration-300 md:flex"
       >
-        <div className={`${isSidebarExpanded ? 'p-8' : 'p-2'} border-b border-slate-100/80`}>
+        <div className={`${isSidebarExpanded ? 'p-8' : 'p-2'} border-b border-[rgba(220,205,166,0.7)]`}>
           <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : 'justify-center'}`}>
-            <div className={`${isSidebarExpanded ? 'w-10 h-10 rounded-xl' : 'w-9 h-9 rounded-lg'} bg-indigo-600 flex items-center justify-center shadow-[0_8px_16px_-4px_rgba(79,70,229,0.4)]`}>
+            <div className={`${isSidebarExpanded ? 'h-10 w-10 rounded-xl' : 'h-9 w-9 rounded-lg'} flex items-center justify-center bg-[color:var(--theme-primary)] shadow-[0_12px_24px_-10px_rgba(37,79,34,0.45)]`}>
               <span className={`${isSidebarExpanded ? 'text-xl' : 'text-lg'} text-white font-bold`}>S</span>
             </div>
             {isSidebarExpanded ? (
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight font-rounded">ScholarsAlger</h1>
+              <h1 className="theme-heading font-rounded text-xl font-bold tracking-tight">ScholarsAlger</h1>
             ) : null}
           </div>
           {isSidebarExpanded ? (
             <Button
               variant="ghost"
               size="sm"
-              className="mt-3 w-full justify-start text-slate-500"
+              className="theme-text-muted mt-3 w-full justify-start"
               onClick={() => setIsSidebarExpanded((prev) => !prev)}
               title="Collapse menu"
             >
@@ -77,7 +77,7 @@ const Layout: React.FC<LayoutProps> = ({
             <button
               onClick={() => setIsSidebarExpanded(true)}
               title="Expand menu"
-              className="mt-3 w-9 h-9 mx-auto inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+              className="theme-nav-inactive mx-auto mt-3 inline-flex h-9 w-9 items-center justify-center rounded-lg"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -86,7 +86,7 @@ const Layout: React.FC<LayoutProps> = ({
 
         <div className={`${isSidebarExpanded ? 'mt-4 px-4' : 'mt-4 px-1'}`}>
           {isSidebarExpanded ? (
-            <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-2">Main Menu</div>
+            <div className="theme-text-muted mb-2 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em]">Main Menu</div>
           ) : null}
         </div>
 
@@ -94,10 +94,7 @@ const Layout: React.FC<LayoutProps> = ({
           <button
             onClick={() => setActiveTab?.(dashboardHomeTab)}
             title="Dashboard Home"
-            className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-4 py-3.5' : 'justify-center px-2 py-2.5'} text-sm font-semibold transition-all rounded-xl ${isDashboardHomeActive
-                ? 'text-indigo-600 bg-indigo-50/50 border-r-4 border-indigo-600'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-              }`}
+            className={`w-full rounded-xl text-sm font-semibold transition-all ${isSidebarExpanded ? 'flex items-center justify-between px-4 py-3.5' : 'flex items-center justify-center px-2 py-2.5'} ${isDashboardHomeActive ? 'theme-nav-active' : 'theme-nav-inactive'}`}
           >
             <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : ''}`}>
               <Home className="w-5 h-5" />
@@ -109,10 +106,7 @@ const Layout: React.FC<LayoutProps> = ({
             <button
               onClick={() => setActiveTab?.('settings')}
               title="Settings"
-              className={`w-full flex items-center ${isSidebarExpanded ? 'justify-between px-4 py-3.5' : 'justify-center px-2 py-2.5'} text-sm font-semibold transition-all rounded-xl ${activeTab === 'settings'
-                  ? 'text-indigo-600 bg-indigo-50/50 border-r-4 border-indigo-600'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                }`}
+              className={`w-full rounded-xl text-sm font-semibold transition-all ${isSidebarExpanded ? 'flex items-center justify-between px-4 py-3.5' : 'flex items-center justify-center px-2 py-2.5'} ${activeTab === 'settings' ? 'theme-nav-active' : 'theme-nav-inactive'}`}
             >
               <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : ''}`}>
                 <Settings className="w-5 h-5" />
@@ -124,23 +118,18 @@ const Layout: React.FC<LayoutProps> = ({
 
         {isSidebarExpanded ? (
           <div className="p-6">
-            <div className="p-5 space-y-4 rounded-3xl bg-slate-50/50 border border-slate-100">
+            <div className="theme-card-muted space-y-4 rounded-3xl border p-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600 shadow-lg shadow-indigo-100 flex items-center justify-center overflow-hidden">
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--theme-primary)] shadow-lg shadow-[rgba(37,79,34,0.16)]">
                   {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Role</p>
-                  <p className="text-sm font-bold text-slate-700 uppercase">{role}</p>
+                  <p className="theme-text-muted mb-1 text-[10px] font-black uppercase tracking-widest leading-none">Role</p>
+                  <p className="theme-heading text-sm font-bold uppercase">{role}</p>
                 </div>
               </div>
 
-              <Button
-                onClick={onLogout}
-                variant="ghost"
-                title="Logout"
-                className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-red-50 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all shadow-sm"
-              >
+              <Button onClick={onLogout} variant="danger" title="Logout" className="w-full rounded-2xl py-3">
                 <LogOut className="w-4 h-4" />
                 Logout
               </Button>
@@ -150,14 +139,14 @@ const Layout: React.FC<LayoutProps> = ({
           <div className="p-2 space-y-2">
             <div
               title={role}
-              className="w-10 h-10 mx-auto rounded-xl bg-indigo-600 shadow-lg shadow-indigo-100 flex items-center justify-center overflow-hidden"
+              className="mx-auto flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--theme-primary)] shadow-lg shadow-[rgba(37,79,34,0.16)]"
             >
               {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
             </div>
             <button
               onClick={onLogout}
               title="Logout"
-              className="w-10 h-10 mx-auto inline-flex items-center justify-center rounded-xl bg-white border border-red-100 text-red-500 hover:bg-red-50"
+              className="theme-danger mx-auto inline-flex h-10 w-10 items-center justify-center rounded-xl border"
             >
               <LogOut className="w-4 h-4 shrink-0" />
             </button>
@@ -166,15 +155,15 @@ const Layout: React.FC<LayoutProps> = ({
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 md:pl-[var(--collapsed-sidebar-width)]">
-        <header className="bg-white border-b border-slate-100 sticky top-0 z-10 md:hidden">
+        <header className="theme-header sticky top-0 z-10 border-b md:hidden">
           <div className="px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--theme-primary)]">
                 <span className="text-white font-bold">S</span>
               </div>
-              <h1 className="text-lg font-bold text-slate-900 tracking-tight font-rounded">ScholarsAlger</h1>
+              <h1 className="theme-heading font-rounded text-lg font-bold tracking-tight">ScholarsAlger</h1>
             </div>
-            <Button onClick={onLogout} variant="ghost" className="p-2 text-red-500">
+            <Button onClick={onLogout} variant="ghost" className="p-2 text-[color:var(--theme-danger)] hover:bg-[rgba(183,76,45,0.08)] hover:text-[color:var(--theme-danger-strong)]">
               <LogOut className="w-6 h-6" />
             </Button>
           </div>
@@ -184,12 +173,12 @@ const Layout: React.FC<LayoutProps> = ({
           <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-12">
             <div className="mb-8 sm:mb-10">
               <div>
-                <nav className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <nav className="theme-text-muted mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
                   <span>{breadcrumbLeft}</span>
                   <ChevronRight className="w-3 h-3" />
-                  <span className="text-indigo-600">{breadcrumbRight}</span>
+                  <span className="theme-accent-soft">{breadcrumbRight}</span>
                 </nav>
-                <h2 className="break-words text-4xl font-black tracking-tight text-[#1a1b3a] font-rounded sm:text-5xl">
+                <h2 className="theme-heading font-rounded break-words text-4xl font-black tracking-tight sm:text-5xl">
                   {title}
                 </h2>
               </div>
@@ -199,7 +188,7 @@ const Layout: React.FC<LayoutProps> = ({
         </main>
 
         <footer className="py-10 text-center">
-          <p className="text-sm text-slate-400 font-medium">&copy; {new Date().getFullYear()} ScholarsAlger. All rights reserved.</p>
+          <p className="theme-text-muted text-sm font-medium">&copy; {new Date().getFullYear()} ScholarsAlger. All rights reserved.</p>
         </footer>
       </div>
     </div>

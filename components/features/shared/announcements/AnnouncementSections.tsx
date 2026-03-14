@@ -40,13 +40,13 @@ export function AnnouncementFeedSection({
   return (
     <div className={className}>
       {titleVariant === 'headline' ? (
-        <h4 className="text-2xl font-black text-slate-900 mb-8 font-rounded">{title}</h4>
+        <h4 className="theme-heading mb-8 font-rounded text-2xl font-black">{title}</h4>
       ) : (
         <SectionHeader title={title} className="mb-4" />
       )}
       <div className={listClassName}>
         {announcements.length === 0 ? (
-          <p className="text-sm text-slate-500">{emptyMessage}</p>
+          <p className="theme-text-muted text-sm">{emptyMessage}</p>
         ) : (
           announcements.map((announcement) => (
             <AnnouncementCard
@@ -73,13 +73,13 @@ export function AnnouncementComposerCard({
   className,
 }: AnnouncementComposerCardProps) {
   return (
-    <div className={className ?? 'bg-white p-6 rounded-2xl border border-slate-200 shadow-sm sticky top-24'}>
+    <div className={className ?? 'theme-card sticky top-24 rounded-2xl border p-6'}>
       <SectionHeader title={title} className="mb-6" />
       <form onSubmit={onSubmit} className="space-y-4">
         <FormField label="Title">
           <input
             type="text"
-            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+            className="theme-input w-full rounded-lg border px-4 py-2 outline-none"
             value={announcementTitle}
             onChange={(e) => onAnnouncementTitleChange(e.target.value)}
           />
@@ -87,7 +87,7 @@ export function AnnouncementComposerCard({
         <FormField label="Content">
           <textarea
             rows={4}
-            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+            className="theme-input w-full rounded-lg border px-4 py-2 outline-none"
             value={announcementContent}
             onChange={(e) => onAnnouncementContentChange(e.target.value)}
           />

@@ -59,13 +59,13 @@ export default function AcademicStatusCard({
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:rounded-[2.5rem] sm:p-10',
+        'theme-card relative overflow-hidden rounded-[2rem] border p-5 sm:rounded-[2.5rem] sm:p-10',
         className,
       )}
     >
       <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4 sm:gap-6">
-          <h4 className="font-rounded text-2xl font-black text-[#1a1b3a]">{title}</h4>
+          <h4 className="theme-heading font-rounded text-2xl font-black">{title}</h4>
           {actionLabel && onAction ? (
             <Button size="sm" className="text-[10px] uppercase tracking-widest" onClick={onAction}>
               {actionLabel}
@@ -73,8 +73,8 @@ export default function AcademicStatusCard({
           ) : null}
         </div>
         {showRealtimeBadge ? (
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-600">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-indigo-600" />
+          <div className="theme-accent-subtle inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-[var(--theme-primary)]" />
             Real-time Data
           </div>
         ) : null}
@@ -82,13 +82,13 @@ export default function AcademicStatusCard({
 
       <div className="space-y-8 sm:space-y-12">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
-            <p className="mb-1 text-xs font-bold uppercase text-slate-400">{metricLabel}</p>
-            <p className="text-3xl font-black tracking-tight text-slate-900">{metricValue}</p>
+          <div className="theme-card-muted rounded-2xl border p-6">
+            <p className="theme-text-muted mb-1 text-xs font-bold uppercase">{metricLabel}</p>
+            <p className="theme-heading text-3xl font-black tracking-tight">{metricValue}</p>
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl border border-indigo-400 bg-indigo-600 p-6 text-white shadow-[0_0_40px_rgba(79,70,229,0.2)]">
-            <p className="mb-1 text-xs font-bold uppercase text-indigo-200">Status</p>
+          <div className="relative overflow-hidden rounded-2xl border border-[color:var(--theme-primary-soft)] bg-[var(--theme-primary)] p-6 text-white shadow-[0_0_40px_rgba(0,95,2,0.2)]">
+            <p className="mb-1 text-xs font-bold uppercase text-[rgba(255,255,255,0.7)]">Status</p>
             <p className="text-3xl font-black tracking-tight">{formatStatusLabel(status)}</p>
           </div>
         </div>
@@ -98,15 +98,15 @@ export default function AcademicStatusCard({
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--theme-primary-soft)" stopOpacity={0.22} />
+                  <stop offset="95%" stopColor="var(--theme-primary-soft)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(192, 184, 122, 0.45)" />
               {showAxes ? (
                 <XAxis
                   dataKey={chartLabelKey}
-                  stroke="#94a3b8"
+                  stroke="var(--theme-text-muted)"
                   fontSize={10}
                   fontWeight="bold"
                   axisLine={false}
@@ -116,7 +116,7 @@ export default function AcademicStatusCard({
               ) : null}
               {showAxes ? (
                 <YAxis
-                  stroke="#94a3b8"
+                  stroke="var(--theme-text-muted)"
                   domain={yDomain}
                   fontSize={10}
                   fontWeight="bold"
@@ -138,7 +138,7 @@ export default function AcademicStatusCard({
               <Area
                 type="monotone"
                 dataKey={chartDataKey}
-                stroke="#4f46e5"
+                stroke="var(--theme-primary)"
                 strokeWidth={4}
                 fillOpacity={1}
                 fill={`url(#${gradientId})`}
@@ -150,7 +150,7 @@ export default function AcademicStatusCard({
 
         {history && history.length > 0 ? (
           <div className="space-y-4">
-            <h5 className="px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <h5 className="theme-text-muted px-1 text-[10px] font-black uppercase tracking-widest">
               {historyTitle}
             </h5>
             <div className="grid gap-4">

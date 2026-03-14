@@ -15,7 +15,7 @@ const StudentMissingInfoSidebar: React.FC<StudentMissingInfoSidebarProps> = ({
     <aside className="relative self-start">
       <div className="md:sticky top-6 z-10 max-h-[calc(100vh-3rem)] space-y-8 overflow-y-auto rounded-[2rem] transition-all">
         {loading ? (
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="theme-card rounded-[2rem] border p-6">
             <Skeleton className="h-5 w-40" />
             <div className="mt-6 space-y-4">
               <Skeleton className="h-16" />

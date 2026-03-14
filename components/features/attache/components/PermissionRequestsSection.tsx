@@ -13,14 +13,14 @@ interface PermissionRequestsSectionProps {
 
 function statusTone(status: PermissionRequest['status']): string {
   if (status === 'APPROVED') {
-    return 'bg-emerald-100 text-emerald-700';
+    return 'theme-success border';
   }
 
   if (status === 'REJECTED') {
-    return 'bg-rose-100 text-rose-700';
+    return 'theme-danger border';
   }
 
-  return 'bg-amber-100 text-amber-700';
+  return 'theme-warning border';
 }
 
 export default function PermissionRequestsSection({
@@ -33,12 +33,12 @@ export default function PermissionRequestsSection({
 
   if (isLoading) {
     return (
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="theme-card rounded-2xl border p-6">
         <Skeleton className="h-7 w-52" />
         <Skeleton className="mt-2 h-4 w-72 rounded-md" />
         <div className="mt-6 space-y-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="grid gap-4 rounded-xl border border-slate-100 p-4 md:grid-cols-6">
+            <div key={index} className="theme-card-muted grid gap-4 rounded-xl border p-4 md:grid-cols-6">
               <Skeleton className="h-4 w-full rounded-md" />
               <Skeleton className="h-4 w-full rounded-md" />
               <Skeleton className="h-4 w-full rounded-md" />
@@ -53,20 +53,20 @@ export default function PermissionRequestsSection({
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-slate-800">Permission Requests</h2>
-      <p className="mt-1 text-sm text-slate-500">Student requests submitted from the login page.</p>
-      {errorMessage ? <p className="mt-4 text-sm text-rose-600">{errorMessage}</p> : null}
+    <section className="theme-card rounded-2xl border p-6">
+      <h2 className="theme-heading text-lg font-bold">Permission Requests</h2>
+      <p className="theme-text-muted mt-1 text-sm">Student requests submitted from the login page.</p>
+      {errorMessage ? <p className="mt-4 text-sm text-[color:var(--theme-danger)]">{errorMessage}</p> : null}
 
       {requests.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+        <p className="theme-card-muted theme-text-muted mt-6 rounded-xl border border-dashed p-4 text-sm">
           No permission requests yet.
         </p>
       ) : (
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+              <tr className="theme-text-muted border-b border-[rgba(220,205,166,0.55)] text-xs uppercase tracking-wider">
                 <th className="py-3 pr-4">Full Name</th>
                 <th className="py-3 pr-4">Passport</th>
                 <th className="py-3 pr-4">Inscription</th>
@@ -77,10 +77,12 @@ export default function PermissionRequestsSection({
             </thead>
             <tbody>
               {requests.map((request) => (
-                <tr key={request.id} className="border-b border-slate-100 text-slate-700">
+                <tr key={request.id} className="border-b border-[rgba(220,205,166,0.42)] text-[color:var(--theme-text)]">
                   <td className="py-3 pr-4 font-semibold">{request.fullName || '-'}</td>
                   <td className="py-3 pr-4 font-mono">{request.passportNumber || '-'}</td>
-                  <td className="py-3 pr-4 font-mono font-semibold text-indigo-600">{request.inscriptionNumber}</td>
+                  <td className="py-3 pr-4 font-mono font-semibold text-[color:var(--theme-primary-soft)]">
+                    {request.inscriptionNumber}
+                  </td>
                   <td className="py-3 pr-4">{new Date(request.submittedAt).toLocaleString()}</td>
                   <td className="py-3 pr-4">
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone(request.status)}`}>
@@ -108,7 +110,7 @@ export default function PermissionRequestsSection({
                               setActiveRequestId((current) => (current === request.id ? null : current));
                             }
                           }}
-                          className="rounded-full border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="theme-success rounded-full border px-3 py-1 text-xs font-semibold transition hover:bg-[rgba(37,79,34,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Approve
                         </button>
@@ -130,13 +132,13 @@ export default function PermissionRequestsSection({
                               setActiveRequestId((current) => (current === request.id ? null : current));
                             }
                           }}
-                          className="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="theme-danger rounded-full border px-3 py-1 text-xs font-semibold transition hover:bg-[rgba(183,76,45,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Reject
                         </button>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-400">No action needed</span>
+                      <span className="theme-text-muted text-xs">No action needed</span>
                     )}
                   </td>
                 </tr>
