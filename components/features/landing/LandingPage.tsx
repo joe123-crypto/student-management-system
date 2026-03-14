@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import React, { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PROGRESS_DATA } from '@/constants';
@@ -9,6 +10,27 @@ import { ArrowRight, BarChart3, Bell, CalendarDays, DollarSign, FolderOpen, Glob
 
 interface LandingPageProps {
   latestAnnouncement?: Announcement | null;
+}
+
+function HeroStudentImage({ className, sizes }: { className?: string; sizes: string }) {
+  return (
+    <div aria-hidden="true" className={`pointer-events-none absolute isolate ${className ?? ''}`}>
+      <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(245,130,74,0.16),rgba(237,228,194,0.08)_58%,transparent_82%)] blur-3xl" />
+      <div className="relative h-full w-full opacity-100 saturate-[0.9]">
+        <Image
+          src="/student-background-cutout.png"
+          alt=""
+          fill
+          sizes={sizes}
+          className="object-contain object-center drop-shadow-[0_24px_48px_rgba(37,79,34,0.08)]"
+          style={{
+            WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+            maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+      </div>
+    </div>
+  );
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) => {
@@ -79,64 +101,73 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
 
       <main className="relative z-10 pt-44 pb-32 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-20 items-center mb-24">
-            <div className="space-y-8">
-              <div className="theme-accent-subtle inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
-                <Globe2 className="h-3.5 w-3.5" />
-                <span className="text-xs font-bold uppercase tracking-widest">trusted by 400+ students</span>
-              </div>
+          <div className="relative mb-24">
+            <HeroStudentImage
+              className="left-[47%] top-20 hidden h-[22rem] w-[13rem] -translate-x-1/2 lg:block xl:left-[46%] xl:top-16 xl:h-[29rem] xl:w-[18rem]"
+              sizes="(max-width: 1279px) 208px, 288px"
+            />
 
-              <h1 className="theme-heading font-quicksand text-4xl font-bold leading-[1.2] tracking-tight md:text-6xl">
-                The <span className="inline-block rounded-2xl bg-[var(--theme-primary)] px-4 py-1 text-white shadow-sm">Central</span> support platform for students in Algeria
-              </h1>
-
-              <p className="theme-text-muted max-w-lg text-lg font-medium leading-relaxed">
-                The fastest way to manage your academic profile, banking details, and university progress in one unified stack.
-              </p>
-
-              <div className="flex gap-4">
-                <Button onClick={() => router.push('/login')} className="font-bold py-4 px-10 rounded-full shadow-xl shadow-indigo-100 flex items-center gap-2 group hover:scale-105">
-                  Get Started for Free
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="relative">
-              <AcademicStatusCard
-                title="Academic Status"
-                status="ACTIVE"
-                metricLabel="Moyenne"
-                metricValue="3.92"
-                chartData={PROGRESS_DATA}
-                chartDataKey="Moyenne"
-                yDomain={[0, 4]}
-                className="shadow-[0_32px_120px_-20px_rgba(79,70,229,0.12)] transform transition-transform duration-700 hover:scale-[1.02]"
-                chartHeightClassName="h-48"
-              />
-
-              <div className="absolute top-12 -right-16 bg-white p-6 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-slate-50 hidden md:block animate-bounce-slow z-20">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
-                    <DollarSign className="w-6 h-6" />
+            <div className="grid items-center gap-20 lg:grid-cols-2">
+              <div className="relative z-10 lg:pr-10 xl:pr-16">
+                <div className="relative z-10 space-y-8">
+                  <div className="theme-accent-subtle inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
+                    <Globe2 className="h-3.5 w-3.5" />
+                    <span className="text-xs font-bold uppercase tracking-widest">trusted by 400+ students</span>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Deposit Status</p>
-                    <p className="text-2xl font-black text-slate-900 tracking-tight">+$2,450.00</p>
+
+                  <h1 className="theme-heading font-quicksand text-4xl font-bold leading-[1.2] tracking-tight md:text-6xl">
+                    The <span className="inline-block rounded-2xl bg-[var(--theme-primary)] px-4 py-1 text-white shadow-sm">Central</span> support platform for students in Algeria
+                  </h1>
+
+                  <p className="theme-text-muted max-w-lg text-lg font-medium leading-relaxed">
+                    The fastest way to manage your academic profile, banking details, and university progress in one unified stack.
+                  </p>
+
+                  <div className="flex gap-4">
+                    <Button onClick={() => router.push('/login')} className="font-bold py-4 px-10 rounded-full shadow-xl shadow-indigo-100 flex items-center gap-2 group hover:scale-105">
+                      Get Started for Free
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute -bottom-8 -left-12 bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-white/50 hidden md:block animate-float z-20">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-slate-100" />
-                  <div className="space-y-1">
-                    <div className="w-20 h-2 bg-slate-200 rounded-full" />
-                    <div className="w-12 h-2 bg-slate-100 rounded-full" />
+              <div className="relative z-10 xl:pl-8">
+                <AcademicStatusCard
+                  title="Academic Status"
+                  status="ACTIVE"
+                  metricLabel="Moyenne"
+                  metricValue="3.92"
+                  chartData={PROGRESS_DATA}
+                  chartDataKey="Moyenne"
+                  yDomain={[0, 4]}
+                  className="shadow-[0_32px_120px_-20px_rgba(79,70,229,0.12)] transform transition-transform duration-700 hover:scale-[1.02]"
+                  chartHeightClassName="h-48"
+                />
+
+                <div className="absolute top-12 -right-16 bg-white p-6 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-slate-50 hidden md:block animate-bounce-slow z-20">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+                      <DollarSign className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Deposit Status</p>
+                      <p className="text-2xl font-black text-slate-900 tracking-tight">+$2,450.00</p>
+                    </div>
                   </div>
                 </div>
-                <div className="w-full h-1 bg-indigo-600 rounded-full mb-2" />
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress to Degree</p>
+
+                <div className="absolute -bottom-8 -left-12 bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-white/50 hidden md:block animate-float z-20">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-slate-100" />
+                    <div className="space-y-1">
+                      <div className="w-20 h-2 bg-slate-200 rounded-full" />
+                      <div className="w-12 h-2 bg-slate-100 rounded-full" />
+                    </div>
+                  </div>
+                  <div className="w-full h-1 bg-indigo-600 rounded-full mb-2" />
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress to Degree</p>
+                </div>
               </div>
             </div>
           </div>
