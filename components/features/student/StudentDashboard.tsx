@@ -255,6 +255,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 ) : (
                   <StudentAcademicProgressPanel
                     academicHistory={student.academicHistory}
+                    status={student.status}
                     onStartUpdate={() => setIsUpdatingAcademic(true)}
                   />
                 )

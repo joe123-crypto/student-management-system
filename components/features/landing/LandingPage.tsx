@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { AreaChart, Area, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { PROGRESS_DATA } from '@/constants';
 import Footer from '@/components/layout/Footer';
+import AcademicStatusCard from '@/components/ui/AcademicStatusCard';
 import Button from '@/components/ui/Button';
 import type { Announcement } from '@/types';
 import { ArrowRight, BarChart3, Bell, CalendarDays, DollarSign, FolderOpen, Globe2, MessageSquare, Search, User } from 'lucide-react';
@@ -103,45 +103,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
             </div>
 
             <div className="relative">
-              <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_32px_120px_-20px_rgba(79,70,229,0.12)] border border-slate-100 relative overflow-hidden transform hover:scale-[1.02] transition-transform duration-700">
-                <div className="mb-8 pb-4 border-b-2 border-slate-50">
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">Academic Status</h3>
-                  <div className="flex gap-2">
-                    <div className="w-16 h-1 bg-indigo-600 rounded-full" />
-                    <div className="w-8 h-1 bg-indigo-100 rounded-full" />
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6 items-center">
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-xs font-bold text-slate-400 uppercase mb-1">Current GPA</p>
-                      <p className="text-3xl font-black text-slate-900 tracking-tight">3.92</p>
-                    </div>
-
-                    <div className="p-6 bg-indigo-600 rounded-2xl text-white shadow-[0_0_40px_rgba(79,70,229,0.5)] border border-indigo-400 relative overflow-hidden group">
-                      <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <p className="text-xs font-bold text-indigo-200 uppercase mb-1 relative z-10">Status</p>
-                      <p className="text-3xl font-black tracking-tight relative z-10">Active</p>
-                    </div>
-                  </div>
-
-                  <div className="h-48 w-full mt-8">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={1}>
-                      <AreaChart data={PROGRESS_DATA}>
-                        <defs>
-                          <linearGradient id="colorHero" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1} />
-                            <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <Area type="monotone" dataKey="gpa" stroke="#4f46e5" strokeWidth={4} fill="url(#colorHero)" animationDuration={3000} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
+              <AcademicStatusCard
+                title="Academic Status"
+                status="ACTIVE"
+                metricLabel="Moyenne"
+                metricValue="3.92"
+                chartData={PROGRESS_DATA}
+                chartDataKey="Moyenne"
+                yDomain={[0, 4]}
+                className="shadow-[0_32px_120px_-20px_rgba(79,70,229,0.12)] transform transition-transform duration-700 hover:scale-[1.02]"
+                chartHeightClassName="h-48"
+              />
 
               <div className="absolute top-12 -right-16 bg-white p-6 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-slate-50 hidden md:block animate-bounce-slow z-20">
                 <div className="flex items-center gap-4">
