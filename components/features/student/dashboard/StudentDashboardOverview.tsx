@@ -26,12 +26,12 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({
         ) : (
           <>
             <StatCard label="Niveau" value="L1" suffix="/ L2" />
-            <StatCard label="Grade" value="17.2" suffix="/ 20" valueClassName="text-indigo-600" />
+            <StatCard label="Grade" value="17.2" suffix="/ 20" valueClassName="text-[color:var(--theme-primary-soft)]" />
           </>
         )}
       </div>
 
-      <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:rounded-[2.5rem] sm:p-10">
+      <div className="theme-card rounded-[2rem] border p-5 sm:rounded-[2.5rem] sm:p-10">
         {isAnnouncementsLoading ? (
           <div className="space-y-6">
             <Skeleton className="h-8 w-56" />

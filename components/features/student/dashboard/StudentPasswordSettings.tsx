@@ -56,10 +56,10 @@ export default function StudentPasswordSettings({
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
+      <div className="theme-card rounded-3xl border p-8 md:p-10">
         <div className="mb-8 space-y-2">
-          <h3 className="text-2xl font-black text-slate-900">Change Password</h3>
-          <p className="text-sm text-slate-500">Update the password associated with your student account.</p>
+          <h3 className="theme-heading text-2xl font-black">Change Password</h3>
+          <p className="theme-text-muted text-sm">Update the password associated with your student account.</p>
         </div>
 
         <form onSubmit={handlePasswordSubmit} className="space-y-5">
@@ -97,8 +97,8 @@ export default function StudentPasswordSettings({
             <div
               className={`rounded-xl border px-4 py-3 text-sm ${
                 passwordStatus.type === 'success'
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                  : 'border-rose-200 bg-rose-50 text-rose-700'
+                  ? 'theme-success'
+                  : 'theme-danger'
               }`}
             >
               {passwordStatus.message}

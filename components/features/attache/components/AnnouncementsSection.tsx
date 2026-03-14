@@ -61,12 +61,12 @@ export default function AnnouncementsSection({
           submitLabel={isSubmitting ? 'Posting...' : 'Post Announcement'}
         />
         {errorMessage ? (
-          <p className="mt-3 text-sm text-rose-600">{errorMessage}</p>
+          <p className="mt-3 text-sm text-[color:var(--theme-danger)]">{errorMessage}</p>
         ) : null}
       </div>
       <div className="md:col-span-2 space-y-4">
         {isLoading ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="theme-card rounded-2xl border p-6">
             <Skeleton className="h-6 w-48" />
             <div className="mt-6 space-y-4">
               <Skeleton className="h-28" />
@@ -83,7 +83,7 @@ export default function AnnouncementsSection({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-600 hover:bg-red-50"
+                className="text-[color:var(--theme-danger)] hover:bg-[rgba(183,76,45,0.08)] hover:text-[color:var(--theme-danger-strong)]"
                 disabled={deletingAnnouncementId === announcement.id}
                 onClick={async () => {
                   setErrorMessage(null);

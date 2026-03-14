@@ -11,7 +11,7 @@ import {
   MOCK_STUDENT_LOGIN_ID,
 } from '@/test/mock/auth';
 import { isMockDbEnabled } from '@/test/mock/config';
-import { Hash, HelpCircle, Lock, LogIn, Mail } from 'lucide-react';
+import { Hash, HelpCircle, Lock, LogIn, Mail, ShieldCheck } from 'lucide-react';
 
 const roleOptions = [
   { value: UserRole.STUDENT, label: 'Student' },
@@ -20,6 +20,10 @@ const roleOptions = [
 
 const studentLoginPlaceholder = isMockDbEnabled() ? MOCK_STUDENT_LOGIN_ID : 'STUDENT123';
 const passwordPlaceholder = isMockDbEnabled() ? MOCK_PASSWORD_PLACEHOLDER : 'password123';
+const fieldLabelClass = 'theme-text-muted mb-2 text-xs font-black uppercase tracking-[0.18em]';
+const fieldRowClass = 'theme-input flex items-center gap-3 rounded-2xl border px-4 py-3';
+const inputClass =
+  'w-full bg-transparent text-sm font-medium text-[color:var(--theme-text)] outline-none placeholder:text-[color:var(--theme-text-muted)]';
 
 const LoginPage: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
@@ -65,11 +69,20 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4  py-10 flex items-center justify-center">
-      <div className="w-full max-w-lg rounded-[1.65rem] border border-slate-200 bg-white shadow-sm">
-        <div className="mx-auto w-full max-w-md px-8 py-10 md:py-12">
-          <h1 className="text-center text-4xl font-black tracking-tight text-indigo-600">Sign in</h1>
-          <p className="mt-2 text-center text-sm text-slate-400">Join the community today!</p>
+    <div className="theme-shell relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
+      <div className="pointer-events-none absolute left-[-5%] top-16 h-56 w-56 rounded-full bg-[rgba(245,130,74,0.16)] blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-[-4%] h-64 w-64 rounded-full bg-[rgba(37,79,34,0.08)] blur-3xl" />
+
+      <div className="theme-card relative z-10 w-full max-w-xl rounded-[2rem] border p-8 shadow-[0_28px_90px_-36px_rgba(37,79,34,0.32)] md:p-10">
+        <div className="mx-auto w-full max-w-md">
+          <div className="mb-8 flex flex-col items-center text-center">
+            <div className="theme-accent-subtle mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em]">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Secure access
+            </div>
+            <h1 className="theme-heading font-rounded text-4xl font-black tracking-tight">Sign in</h1>
+            <p className="theme-text-muted mt-2 text-sm">Continue into the ScholarsAlger workspace with the new unified palette.</p>
+          </div>
 
           <SegmentedControl
             className="mt-6"
@@ -78,71 +91,61 @@ const LoginPage: React.FC = () => {
             onChange={(next) => setRole(next as UserRole)}
           />
 
-          {role !== UserRole.STUDENT && (
+          {role !== UserRole.STUDENT ? (
             <>
-              <Button type="button" variant="secondary" fullWidth className="mt-5 rounded-full bg-slate-50 text-slate-600 border border-slate-100 hover:bg-slate-100">
-                <LogIn className="w-4 h-4 text-slate-400" />
+              <Button type="button" variant="secondary" fullWidth className="mt-5 rounded-full">
+                <LogIn className="w-4 h-4" />
                 Use Google account
               </Button>
-
-              <div className="my-5 text-center text-xs text-slate-300">or</div>
+              <div className="theme-text-muted my-5 text-center text-xs uppercase tracking-[0.16em]">or continue with credentials</div>
             </>
-          )}
+          ) : null}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <FormField
               label={role === UserRole.STUDENT ? 'Inscription Number' : 'Email'}
-              labelClassName="mb-1 text-xs font-medium text-slate-400"
+              labelClassName={fieldLabelClass}
             >
-              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
+              <div className={fieldRowClass}>
                 {role === UserRole.STUDENT ? (
-                  <Hash className="w-4 h-4 text-slate-400" />
+                  <Hash className="h-4 w-4 text-[color:var(--theme-text-muted)]" />
                 ) : (
-                  <Mail className="w-4 h-4 text-slate-400" />
+                  <Mail className="h-4 w-4 text-[color:var(--theme-text-muted)]" />
                 )}
                 <input
                   type="text"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
                   placeholder={role === UserRole.STUDENT ? studentLoginPlaceholder : MOCK_ATTACHE_LOGIN_ID}
-                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
+                  className={inputClass}
                 />
-                <HelpCircle className="w-4 h-4 text-indigo-500" />
+                <HelpCircle className="h-4 w-4 text-[color:var(--theme-primary-soft)]" />
               </div>
             </FormField>
 
-            <FormField label="Password" labelClassName="mb-1 text-xs font-medium text-slate-400">
-              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
-                <Lock className="w-4 h-4 text-slate-400" />
+            <FormField label="Password" labelClassName={fieldLabelClass}>
+              <div className={fieldRowClass}>
+                <Lock className="h-4 w-4 text-[color:var(--theme-text-muted)]" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={passwordPlaceholder}
-                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
+                  className={inputClass}
                 />
-                <HelpCircle className="w-4 h-4 text-indigo-500" />
+                <HelpCircle className="h-4 w-4 text-[color:var(--theme-primary-soft)]" />
               </div>
             </FormField>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              fullWidth
-              className="mt-5 rounded-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700"
-            >
+            <Button type="submit" disabled={isSubmitting} fullWidth className="mt-6 rounded-full py-3.5">
               <LogIn className="w-4 h-4" />
               {isSubmitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
 
-          <p className="mt-5 text-center text-sm text-slate-400">
+          <p className="theme-text-muted mt-6 text-center text-sm">
             Need access?{' '}
-            <button
-              type="button"
-              onClick={() => router.push('/request-permission')}
-              className="font-semibold text-indigo-600 hover:text-indigo-700"
-            >
+            <button type="button" onClick={() => router.push('/request-permission')} className="theme-link font-semibold">
               Request permission
             </button>
           </p>

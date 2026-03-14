@@ -20,7 +20,12 @@ interface CommunicationCenterProps {
   logs: CommunicationLogEntry[];
 }
 
-export default function CommunicationCenter({ selectedCount, filteredCount, onSend, logs }: CommunicationCenterProps) {
+export default function CommunicationCenter({
+  selectedCount,
+  filteredCount,
+  onSend,
+  logs,
+}: CommunicationCenterProps) {
   const [channel, setChannel] = useState<'EMAIL' | 'SMS'>('EMAIL');
   const [template, setTemplate] = useState<string>('MISSING_DOCS');
   const [scope, setScope] = useState<'SELECTED' | 'FILTERED'>('SELECTED');
@@ -29,13 +34,17 @@ export default function CommunicationCenter({ selectedCount, filteredCount, onSe
   const recipientCount = scope === 'SELECTED' ? selectedCount : filteredCount;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Communication Center</p>
+    <div className="theme-card space-y-4 rounded-2xl border p-5">
+      <p className="theme-text-muted text-[10px] font-black uppercase tracking-widest">
+        Communication Center
+      </p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Channel</label>
+          <label className="theme-text-muted mb-1 block text-[10px] font-black uppercase tracking-widest">
+            Channel
+          </label>
           <select
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            className="theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none"
             value={channel}
             onChange={(e) => setChannel(e.target.value as 'EMAIL' | 'SMS')}
           >
@@ -44,9 +53,11 @@ export default function CommunicationCenter({ selectedCount, filteredCount, onSe
           </select>
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Recipients</label>
+          <label className="theme-text-muted mb-1 block text-[10px] font-black uppercase tracking-widest">
+            Recipients
+          </label>
           <select
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            className="theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none"
             value={scope}
             onChange={(e) => setScope(e.target.value as 'SELECTED' | 'FILTERED')}
           >
@@ -56,9 +67,11 @@ export default function CommunicationCenter({ selectedCount, filteredCount, onSe
         </div>
       </div>
       <div>
-        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Template</label>
+        <label className="theme-text-muted mb-1 block text-[10px] font-black uppercase tracking-widest">
+          Template
+        </label>
         <select
-          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+          className="theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none"
           value={template}
           onChange={(e) => setTemplate(e.target.value)}
         >
@@ -70,17 +83,19 @@ export default function CommunicationCenter({ selectedCount, filteredCount, onSe
         </select>
       </div>
       <div>
-        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Extra Message (optional)</label>
+        <label className="theme-text-muted mb-1 block text-[10px] font-black uppercase tracking-widest">
+          Extra Message (optional)
+        </label>
         <textarea
           rows={3}
           value={customMessage}
           onChange={(e) => setCustomMessage(e.target.value)}
-          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+          className="theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none"
           placeholder="Add context for this communication..."
         />
       </div>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-slate-500">{recipientCount} recipient(s)</p>
+        <p className="theme-text-muted text-xs">{recipientCount} recipient(s)</p>
         <Button
           size="sm"
           onClick={() => onSend({ channel, template, scope, customMessage })}
@@ -90,15 +105,17 @@ export default function CommunicationCenter({ selectedCount, filteredCount, onSe
         </Button>
       </div>
       {logs.length > 0 ? (
-        <div className="pt-3 border-t border-slate-100 space-y-2">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Dispatches</p>
+        <div className="space-y-2 border-t border-[rgba(220,205,166,0.55)] pt-3">
+          <p className="theme-text-muted text-[10px] font-black uppercase tracking-widest">
+            Recent Dispatches
+          </p>
           {logs.slice(0, 3).map((entry) => (
-            <div key={entry.id} className="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
-              <p className="text-xs font-bold text-slate-700">
+            <div key={entry.id} className="theme-card-muted rounded-xl border p-2.5">
+              <p className="theme-heading text-xs font-bold">
                 {entry.template} via {entry.channel}
               </p>
-              <p className="text-xs text-slate-500">
-                {entry.recipientCount} recipients • {entry.sentAt}
+              <p className="theme-text-muted text-xs">
+                {entry.recipientCount} recipients - {entry.sentAt}
               </p>
             </div>
           ))}

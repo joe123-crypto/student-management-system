@@ -5,5 +5,10 @@ interface SkeletonProps {
 }
 
 export default function Skeleton({ className }: SkeletonProps) {
-  return <div aria-hidden="true" className={cn('animate-pulse rounded-2xl bg-slate-200/80', className)} />;
+  return (
+    <div
+      aria-hidden="true"
+      className={cn('animate-pulse rounded-2xl bg-[rgba(220,205,166,0.58)]', className)}
+    />
+  );
 }

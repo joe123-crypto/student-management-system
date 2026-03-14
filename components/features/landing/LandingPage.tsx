@@ -45,29 +45,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden font-['Inter']">
+    <div className="theme-page min-h-screen overflow-x-hidden font-['Inter'] text-[color:var(--theme-text)]">
 
       <div className="fixed top-6 left-0 right-0 z-50 px-6">
-        <nav className="max-w-5xl mx-auto h-16 px-6 bg-white border border-slate-200 rounded-full flex items-center justify-between shadow-sm">
+        <nav className="theme-card mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full border px-6">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">S</div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--theme-primary)] text-lg font-bold text-white">S</div>
             <span className="text-xl font-bold tracking-tight">ScholarsAlger</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
-            <a href="#how-it-works" onClick={(e) => scrollToSection(howItWorksRef, e)} className="hover:text-indigo-600 transition-colors">
+          <div className="theme-text-muted hidden items-center gap-8 text-sm font-medium md:flex">
+            <a href="#how-it-works" onClick={(e) => scrollToSection(howItWorksRef, e)} className="theme-link">
               How it works
             </a>
-            <a href="#tools" onClick={(e) => scrollToSection(toolsRef, e)} className="hover:text-indigo-600 transition-colors">
+            <a href="#tools" onClick={(e) => scrollToSection(toolsRef, e)} className="theme-link">
               Tools
             </a>
-            <a href="#announcements" onClick={(e) => scrollToSection(announcementsRef, e)} className="hover:text-indigo-600 transition-colors">
+            <a href="#announcements" onClick={(e) => scrollToSection(announcementsRef, e)} className="theme-link">
               Announcements
             </a>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button onClick={() => router.push('/login')} variant="ghost" size="sm" className="text-sm font-semibold text-slate-600 px-4 py-2 hover:text-slate-900">
+            <Button onClick={() => router.push('/login')} variant="ghost" size="sm" className="px-4 py-2 text-sm font-semibold">
               Login
             </Button>
             <Button onClick={() => router.push('/login')} size="sm" className="text-sm py-2.5 px-6 rounded-full hover:scale-105">
@@ -81,16 +81,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-20 items-center mb-24">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full">
-                <Globe2 className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">trusted by 400+ students</span>
+              <div className="theme-accent-subtle inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
+                <Globe2 className="h-3.5 w-3.5" />
+                <span className="text-xs font-bold uppercase tracking-widest">trusted by 400+ students</span>
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-bold text-[#1a1b3a] leading-[1.2] tracking-tight font-quicksand">
-                The <span className="inline-block px-4 py-1 bg-indigo-600 text-white rounded-2xl shadow-sm">Central</span> support platform for students in Algeria
+              <h1 className="theme-heading font-quicksand text-4xl font-bold leading-[1.2] tracking-tight md:text-6xl">
+                The <span className="inline-block rounded-2xl bg-[var(--theme-primary)] px-4 py-1 text-white shadow-sm">Central</span> support platform for students in Algeria
               </h1>
 
-              <p className="text-lg text-slate-500 max-w-lg leading-relaxed font-medium">
+              <p className="theme-text-muted max-w-lg text-lg font-medium leading-relaxed">
                 The fastest way to manage your academic profile, banking details, and university progress in one unified stack.
               </p>
 

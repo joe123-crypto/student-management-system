@@ -3,24 +3,24 @@ import Link from 'next/link';
 export default function NotFound() {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-12">
-      <section className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/60 md:p-12">
-        <p className="font-rounded text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">404 Error</p>
-        <h1 className="mt-3 font-rounded text-4xl font-extrabold text-slate-900 md:text-5xl">
+      <section className="theme-card w-full max-w-2xl rounded-3xl border p-8 text-center md:p-12">
+        <p className="theme-accent font-rounded text-sm font-semibold uppercase tracking-[0.2em]">404 Error</p>
+        <h1 className="theme-heading mt-3 font-rounded text-4xl font-extrabold md:text-5xl">
           Page Not Found
         </h1>
-        <p className="mt-4 text-base text-slate-600 md:text-lg">
+        <p className="theme-text-muted mt-4 text-base md:text-lg">
           The page you are looking for does not exist or may have been moved.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             href="/"
-            className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-indigo-700"
+            className="inline-flex items-center justify-center rounded-xl bg-[var(--theme-primary)] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[var(--theme-primary-strong)]"
           >
             Go To Home
           </Link>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center rounded-xl bg-slate-100 px-6 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200"
+            className="inline-flex items-center justify-center rounded-xl border border-[color:var(--theme-border)] bg-[var(--theme-surface)] px-6 py-3 text-sm font-bold text-[color:var(--theme-text)] transition-colors hover:bg-[var(--theme-surface-strong)]"
           >
             Go To Login
           </Link>

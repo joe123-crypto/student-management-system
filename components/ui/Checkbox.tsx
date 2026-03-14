@@ -8,8 +8,15 @@ interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export default function Checkbox({ label, className, containerClassName, ...props }: CheckboxProps) {
   return (
-    <label className={cn('inline-flex items-center gap-2 text-sm text-slate-700', containerClassName)}>
-      <input type="checkbox" className={cn('w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500', className)} {...props} />
+    <label className={cn('inline-flex items-center gap-2 text-sm text-[color:var(--theme-text)]', containerClassName)}>
+      <input
+        type="checkbox"
+        className={cn(
+          'h-4 w-4 rounded border-[color:var(--theme-border)] bg-[color:var(--theme-card)] text-[color:var(--theme-primary)] focus:ring-2 focus:ring-[color:rgba(160,58,19,0.18)]',
+          className,
+        )}
+        {...props}
+      />
       {label ? <span>{label}</span> : null}
     </label>
   );

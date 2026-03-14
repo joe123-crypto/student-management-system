@@ -19,7 +19,7 @@ const StudentAcademicProgressPanel: React.FC<StudentAcademicProgressPanelProps> 
 }) => {
   if (loading) {
     return (
-      <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:rounded-[2.5rem] sm:p-10">
+      <div className="theme-card rounded-[2rem] border p-5 sm:rounded-[2.5rem] sm:p-10">
         <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4 sm:gap-6">
             <Skeleton className="h-8 w-32" />

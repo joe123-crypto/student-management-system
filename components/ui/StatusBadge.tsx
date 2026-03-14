@@ -7,9 +7,9 @@ interface StatusBadgeProps {
 }
 
 const statusClassMap: Record<string, string> = {
-  ACTIVE: 'bg-emerald-100 text-emerald-700',
-  PENDING: 'bg-amber-100 text-amber-700',
-  COMPLETED: 'bg-blue-100 text-blue-700',
+  ACTIVE: 'theme-success',
+  PENDING: 'theme-warning',
+  COMPLETED: 'theme-info',
 };
 
 export default function StatusBadge({ status, className }: StatusBadgeProps) {
@@ -17,7 +17,7 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
     <span
       className={cn(
         'px-2 py-1 text-xs font-bold rounded-full uppercase tracking-wide',
-        statusClassMap[status] || 'bg-slate-100 text-slate-700',
+        statusClassMap[status] || 'theme-card-muted theme-text-muted',
         className,
       )}
     >

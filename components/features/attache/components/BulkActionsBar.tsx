@@ -22,8 +22,10 @@ export default function BulkActionsBar({
   const hasSelection = selectedCount > 0;
 
   return (
-    <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-      <p className="text-sm font-bold text-indigo-700">{selectedCount} student{selectedCount !== 1 ? 's' : ''} selected</p>
+    <div className="theme-accent-subtle flex flex-col gap-3 rounded-2xl border p-4 md:flex-row md:items-center md:justify-between">
+      <p className="theme-accent text-sm font-bold">
+        {selectedCount} student{selectedCount !== 1 ? 's' : ''} selected
+      </p>
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="secondary" onClick={onMarkReviewed} disabled={!hasSelection}>
           Mark Reviewed

@@ -14,7 +14,7 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="text-slate-600 hover:bg-slate-100">
+        <Button variant="ghost" onClick={onBack} className="theme-text-muted hover:bg-[rgba(237,228,194,0.24)]">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
@@ -23,94 +23,103 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
         <StatusBadge status={student.status} />
       </div>
 
-      <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-8">
-        <div className="w-28 h-28 rounded-3xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+      <div className="theme-card flex flex-col items-center gap-8 rounded-[2rem] border p-8 md:flex-row">
+        <div className="theme-card-muted flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl border">
           {student.student.profilePicture ? (
-            <img src={student.student.profilePicture} alt={`${student.student.fullName} profile`} className="w-full h-full object-cover" />
+            <img
+              src={student.student.profilePicture}
+              alt={`${student.student.fullName} profile`}
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <span className="text-3xl font-black text-slate-400">{student.student.fullName.charAt(0)}</span>
+            <span className="theme-text-muted text-3xl font-black">
+              {student.student.fullName.charAt(0)}
+            </span>
           )}
         </div>
-        <div className="text-center md:text-left space-y-2">
-          <h4 className="text-3xl font-black text-[#1a1b3a] font-rounded">{student.student.fullName}</h4>
-          <p className="text-slate-500 font-medium">
-            Inscription Number: <span className="font-mono font-bold text-indigo-600">{student.student.inscriptionNumber}</span>
+        <div className="space-y-2 text-center md:text-left">
+          <h4 className="theme-heading font-rounded text-3xl font-black">{student.student.fullName}</h4>
+          <p className="theme-text-muted font-medium">
+            Inscription Number:{' '}
+            <span className="font-mono font-bold text-[color:var(--theme-primary-soft)]">
+              {student.student.inscriptionNumber}
+            </span>
           </p>
-          <p className="text-slate-500 font-medium">{student.contact.email}</p>
+          <p className="theme-text-muted font-medium">{student.contact.email}</p>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8 space-y-6">
+        <div className="theme-card space-y-6 rounded-[2rem] border p-8">
           <SectionHeader title="Personal Identity" accent="indigo" />
           <div className="grid grid-cols-2 gap-6 text-sm">
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Given Name</p>
-              <p className="font-bold text-slate-800">{student.student.givenName || '---'}</p>
+              <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Given Name</p>
+              <p className="theme-heading font-bold">{student.student.givenName || '---'}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Family Name</p>
-              <p className="font-bold text-slate-800">{student.student.familyName || '---'}</p>
+              <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Family Name</p>
+              <p className="theme-heading font-bold">{student.student.familyName || '---'}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Date of Birth</p>
-              <p className="font-bold text-slate-800">{student.student.dateOfBirth || '---'}</p>
+              <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Date of Birth</p>
+              <p className="theme-heading font-bold">{student.student.dateOfBirth || '---'}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Nationality</p>
-              <p className="font-bold text-slate-800">{student.student.nationality || '---'}</p>
+              <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Nationality</p>
+              <p className="theme-heading font-bold">{student.student.nationality || '---'}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8 space-y-6">
+        <div className="theme-card space-y-6 rounded-[2rem] border p-8">
           <SectionHeader title="University & Program" accent="emerald" />
           <div className="space-y-4 text-sm">
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">University</p>
-              <p className="font-bold text-slate-800">{student.university.universityName}</p>
+              <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">University</p>
+              <p className="theme-heading font-bold">{student.university.universityName}</p>
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Program</p>
-              <p className="font-bold text-slate-800">{student.program.major}</p>
+              <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Program</p>
+              <p className="theme-heading font-bold">{student.program.major}</p>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Level</p>
-                <p className="font-bold text-slate-800">{student.program.degreeLevel || '---'}</p>
+                <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Level</p>
+                <p className="theme-heading font-bold">{student.program.degreeLevel || '---'}</p>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Campus</p>
-                <p className="font-bold text-slate-800">{student.university.campus || '---'}</p>
+                <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Campus</p>
+                <p className="theme-heading font-bold">{student.university.campus || '---'}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8 space-y-6">
+      <div className="theme-card space-y-6 rounded-[2rem] border p-8">
         <SectionHeader title="Contact & Banking" accent="amber" />
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+        <div className="grid gap-6 text-sm md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Phone</p>
-            <p className="font-bold text-slate-800">{student.contact.phone || '---'}</p>
+            <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Phone</p>
+            <p className="theme-heading font-bold">{student.contact.phone || '---'}</p>
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Emergency Contact</p>
-            <p className="font-bold text-slate-800">{student.contact.emergencyContactName || '---'}</p>
+            <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Emergency Contact</p>
+            <p className="theme-heading font-bold">{student.contact.emergencyContactName || '---'}</p>
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Bank</p>
-            <p className="font-bold text-slate-800">{student.bank.bankName || '---'}</p>
+            <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">Bank</p>
+            <p className="theme-heading font-bold">{student.bank.bankName || '---'}</p>
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">RIB / IBAN</p>
-            <p className="font-mono font-bold text-slate-800 break-all">{student.bankAccount.iban || '---'}</p>
+            <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.2em]">RIB / IBAN</p>
+            <p className="theme-heading break-all font-mono font-bold">{student.bankAccount.iban || '---'}</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8 space-y-6">
+      <div className="theme-card space-y-6 rounded-[2rem] border p-8">
         <SectionHeader title="Academic Progress" accent="indigo" />
         {student.academicHistory && student.academicHistory.length > 0 ? (
           <div className="space-y-4">
@@ -119,10 +128,9 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
             ))}
           </div>
         ) : (
-          <p className="text-slate-500 text-sm">No academic submissions found for this student.</p>
+          <p className="theme-text-muted text-sm">No academic submissions found for this student.</p>
         )}
       </div>
     </div>
   );
 }
-

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
-import { Hash, ShieldCheck } from 'lucide-react';
+import { Hash, ShieldCheck, UserRound } from 'lucide-react';
 
 interface PermissionRequestPageProps {
   existingRequests: string[];
@@ -12,6 +12,11 @@ interface PermissionRequestPageProps {
     passportNumber: string,
   ) => Promise<void>;
 }
+
+const fieldLabelClass = 'theme-text-muted mb-2 text-xs font-black uppercase tracking-[0.18em]';
+const fieldRowClass = 'theme-input flex items-center gap-3 rounded-2xl border px-4 py-3';
+const inputClass =
+  'w-full bg-transparent text-sm font-medium text-[color:var(--theme-text)] outline-none placeholder:text-[color:var(--theme-text-muted)]';
 
 export default function PermissionRequestPage({
   existingRequests,
@@ -99,71 +104,73 @@ export default function PermissionRequestPage({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10 flex items-center justify-center">
-      <div className="w-full max-w-lg rounded-[1.65rem] border border-slate-200 bg-white shadow-sm">
-        <div className="mx-auto w-full max-w-md px-8 py-10 md:py-12">
-          <h1 className="text-center text-4xl font-black tracking-tight text-indigo-600">Request permission</h1>
-          <p className="mt-2 text-center text-sm text-slate-400">Send an access request to the student attache.</p>
+    <div className="theme-shell relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
+      <div className="pointer-events-none absolute left-[-6%] top-20 h-60 w-60 rounded-full bg-[rgba(245,130,74,0.16)] blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-[-5%] h-64 w-64 rounded-full bg-[rgba(37,79,34,0.08)] blur-3xl" />
+
+      <div className="theme-card relative z-10 w-full max-w-xl rounded-[2rem] border p-8 shadow-[0_28px_90px_-36px_rgba(37,79,34,0.32)] md:p-10">
+        <div className="mx-auto w-full max-w-md">
+          <div className="mb-8 flex flex-col items-center text-center">
+            <div className="theme-accent-subtle mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em]">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Access request
+            </div>
+            <h1 className="theme-heading font-rounded text-4xl font-black tracking-tight">Request permission</h1>
+            <p className="theme-text-muted mt-2 text-sm">Send your details to the student attache for account approval.</p>
+          </div>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-            <FormField label="Full Name" labelClassName="mb-1 text-xs font-medium text-slate-400">
-              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
+            <FormField label="Full Name" labelClassName={fieldLabelClass}>
+              <div className={fieldRowClass}>
+                <UserRound className="h-4 w-4 text-[color:var(--theme-text-muted)]" />
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="John Doe"
-                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
+                  className={inputClass}
                 />
               </div>
             </FormField>
 
-            <FormField label="Passport Number" labelClassName="mb-1 text-xs font-medium text-slate-400">
-              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
+            <FormField label="Passport Number" labelClassName={fieldLabelClass}>
+              <div className={fieldRowClass}>
+                <ShieldCheck className="h-4 w-4 text-[color:var(--theme-text-muted)]" />
                 <input
                   type="text"
                   value={passportNumber}
                   onChange={(e) => setPassportNumber(e.target.value)}
                   placeholder="AA1234567"
-                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
+                  className={inputClass}
                 />
               </div>
             </FormField>
 
-            <FormField label="Inscription Number" labelClassName="mb-1 text-xs font-medium text-slate-400">
-              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
-                <Hash className="w-4 h-4 text-slate-400" />
+            <FormField label="Inscription Number" labelClassName={fieldLabelClass}>
+              <div className={fieldRowClass}>
+                <Hash className="h-4 w-4 text-[color:var(--theme-text-muted)]" />
                 <input
                   type="text"
                   value={inscriptionNumber}
                   onChange={(e) => setInscriptionNumber(e.target.value)}
                   placeholder="INS-2023-001"
-                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300"
+                  className={inputClass}
                 />
               </div>
             </FormField>
 
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            {message ? <p className="text-sm text-emerald-600">{message}</p> : null}
+            {error ? <p className="text-sm text-[color:var(--theme-danger)]">{error}</p> : null}
+            {message ? <p className="text-sm text-[color:var(--theme-primary)]">{message}</p> : null}
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              fullWidth
-              className="rounded-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700"
-            >
+            <Button type="submit" disabled={isSubmitting} fullWidth className="rounded-full py-3.5">
               <ShieldCheck className="w-4 h-4" />
               {isSubmitting ? 'Sending...' : 'Send request'}
             </Button>
           </form>
 
-          <p className="mt-5 text-center text-sm text-slate-400">
+          <p className="theme-text-muted mt-6 text-center text-sm">
             Back to{' '}
-            <button
-              type="button"
-              onClick={() => router.push('/login')}
-              className="font-semibold text-indigo-600 hover:text-indigo-700"
-            >
+            <button type="button" onClick={() => router.push('/login')} className="theme-link font-semibold">
               Sign in
             </button>
           </p>

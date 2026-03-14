@@ -61,28 +61,28 @@ export default function FileUploadDropzone({
       onDragLeave={() => setDragActive(false)}
       onDrop={handleDrop}
       className={cn(
-        'w-full h-48 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center cursor-pointer transition-all',
+        'flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-[2rem] border-2 border-dashed transition-all',
         value
-          ? 'border-emerald-200 bg-emerald-50/30'
+          ? 'theme-success border-[color:var(--theme-primary)]'
           : dragActive
-            ? 'border-indigo-300 bg-indigo-50/40'
-            : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-indigo-200',
+            ? 'border-[color:var(--theme-primary-soft)] bg-[rgba(245,130,74,0.12)]'
+            : 'theme-card-muted border hover:border-[color:var(--theme-primary-soft)]',
         className,
       )}
     >
       {value ? (
         <div className="flex flex-col items-center gap-2">
-          <svg className="w-12 h-12 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-12 w-12 text-[color:var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm font-bold text-emerald-600 uppercase tracking-widest">{uploadedLabel}</span>
+          <span className="text-sm font-bold uppercase tracking-widest text-[color:var(--theme-primary)]">{uploadedLabel}</span>
           {onClear && (
             <button
               onClick={(event) => {
                 event.stopPropagation();
                 onClear();
               }}
-              className="text-[10px] font-black text-slate-400 hover:text-red-500 uppercase mt-2"
+              className="mt-2 text-[10px] font-black uppercase text-[color:var(--theme-text-muted)] hover:text-[color:var(--theme-danger)]"
             >
               Replace
             </button>
@@ -90,13 +90,13 @@ export default function FileUploadDropzone({
         </div>
       ) : (
         <>
-          <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
-            <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="theme-card mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border">
+            <svg className="h-6 w-6 text-[color:var(--theme-primary-soft)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
-          <span className="text-sm font-bold text-slate-600">{emptyTitle}</span>
-          <span className="text-xs text-slate-400 mt-1 font-medium">{emptySubtitle}</span>
+          <span className="theme-heading text-sm font-bold">{emptyTitle}</span>
+          <span className="theme-text-muted mt-1 text-xs font-medium">{emptySubtitle}</span>
         </>
       )}
       <input type="file" ref={inputRef} className="hidden" accept={accept} onChange={handleInput} />

@@ -24,10 +24,10 @@ export default function StudentAdvancedFilters({
 }: StudentAdvancedFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperClass = compact
-    ? 'bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 relative z-30'
-    : 'bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4';
+    ? 'theme-card relative z-30 space-y-4 rounded-2xl border p-5'
+    : 'theme-card space-y-4 rounded-2xl border p-5';
   const contentClass = compact
-    ? 'absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl p-5 space-y-4 max-h-[70vh] overflow-y-auto'
+    ? 'theme-card absolute left-0 right-0 top-full mt-2 max-h-[70vh] space-y-4 overflow-y-auto rounded-2xl border p-5 shadow-xl'
     : 'space-y-4';
 
   return (
@@ -36,14 +36,14 @@ export default function StudentAdvancedFilters({
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="inline-flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600"
+          className="theme-text-muted inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:text-[color:var(--theme-primary-soft)]"
           aria-expanded={isOpen}
         >
           Advanced Filtering
           <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
         {isOpen ? (
-          <button type="button" onClick={onReset} className="text-xs font-bold text-indigo-600 hover:text-indigo-700">
+          <button type="button" onClick={onReset} className="theme-link text-xs font-bold">
             Reset
           </button>
         ) : null}
@@ -53,9 +53,9 @@ export default function StudentAdvancedFilters({
         <div className={contentClass}>
           <div className={`grid gap-4 ${compact ? 'grid-cols-1' : 'md:grid-cols-2 xl:grid-cols-3'}`}>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">University</label>
+              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">University</label>
               <select
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.university}
                 onChange={(e) => onQueryChange({ university: e.target.value })}
               >
@@ -69,9 +69,9 @@ export default function StudentAdvancedFilters({
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Program</label>
+              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Program</label>
               <select
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.program}
                 onChange={(e) => onQueryChange({ program: e.target.value })}
               >
@@ -85,9 +85,9 @@ export default function StudentAdvancedFilters({
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Academic Year</label>
+              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Academic Year</label>
               <select
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.academicYear}
                 onChange={(e) => onQueryChange({ academicYear: e.target.value })}
               >
@@ -101,9 +101,9 @@ export default function StudentAdvancedFilters({
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Missing Data</label>
+              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Missing Data</label>
               <select
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.missingData}
                 onChange={(e) => onQueryChange({ missingData: e.target.value as StudentQueryState['missingData'] })}
               >
@@ -116,9 +116,9 @@ export default function StudentAdvancedFilters({
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Document Status</label>
+              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Document Status</label>
               <select
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.documentStatus}
                 onChange={(e) => onQueryChange({ documentStatus: e.target.value as StudentQueryState['documentStatus'] })}
               >
@@ -141,19 +141,19 @@ export default function StudentAdvancedFilters({
 
           <div className={`grid gap-4 ${compact ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Program Start Date From</label>
+              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Program Start Date From</label>
               <input
                 type="date"
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.startDateFrom}
                 onChange={(e) => onQueryChange({ startDateFrom: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Program Start Date To</label>
+              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Program Start Date To</label>
               <input
                 type="date"
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.startDateTo}
                 onChange={(e) => onQueryChange({ startDateTo: e.target.value })}
               />
@@ -161,7 +161,7 @@ export default function StudentAdvancedFilters({
           </div>
         </div>
       ) : (
-        <p className="text-xs text-slate-500">Collapsed. Click Advanced Filtering to show filters.</p>
+        <p className="theme-text-muted text-xs">Collapsed. Click Advanced Filtering to show filters.</p>
       )}
     </div>
   );

@@ -11,11 +11,15 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100',
-  secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-  ghost: 'bg-transparent text-slate-600 hover:bg-slate-100',
-  danger: 'bg-red-600 text-white hover:bg-red-700',
-  success: 'bg-emerald-600 text-white hover:bg-emerald-700',
+  primary:
+    'bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-strong)] shadow-lg shadow-[rgba(0,95,2,0.16)]',
+  secondary:
+    'border border-[color:var(--theme-border)] bg-[color:var(--theme-surface)] text-[color:var(--theme-text)] hover:bg-[color:var(--theme-surface-strong)]',
+  ghost:
+    'bg-transparent text-[color:var(--theme-primary-soft)] hover:bg-[rgba(192,184,122,0.14)] hover:text-[color:var(--theme-primary)]',
+  danger:
+    'bg-[color:var(--theme-danger)] text-white hover:bg-[color:var(--theme-danger-strong)] shadow-lg shadow-[rgba(183,76,45,0.2)]',
+  success: 'bg-[color:var(--theme-primary-soft)] text-white hover:bg-[color:var(--theme-primary)]',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

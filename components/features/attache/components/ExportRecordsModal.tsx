@@ -28,30 +28,30 @@ export default function ExportRecordsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/40" onClick={onClose} />
-      <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <h3 className="text-lg font-bold text-slate-900">Export Records</h3>
-        <p className="mt-1 text-sm text-slate-500">Select scope, columns, and format.</p>
+      <div className="theme-overlay absolute inset-0" onClick={onClose} />
+      <div className="theme-card relative w-full max-w-xl rounded-2xl border p-6 shadow-xl">
+        <h3 className="theme-heading text-lg font-bold">Export Records</h3>
+        <p className="theme-text-muted mt-1 text-sm">Select scope, columns, and format.</p>
 
         <div className="mt-5 space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => onReportScopeChange('FILTERED')}
-              className={`text-xs font-bold px-3 py-2 rounded-xl border transition-colors ${reportScope === 'FILTERED' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
+              className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${reportScope === 'FILTERED' ? 'theme-accent-subtle text-[color:var(--theme-primary)]' : 'theme-card-muted text-[color:var(--theme-text-muted)]'}`}
             >
               Filtered
             </button>
             <button
               type="button"
               onClick={() => onReportScopeChange('SELECTED')}
-              className={`text-xs font-bold px-3 py-2 rounded-xl border transition-colors ${reportScope === 'SELECTED' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
+              className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${reportScope === 'SELECTED' ? 'theme-accent-subtle text-[color:var(--theme-primary)]' : 'theme-card-muted text-[color:var(--theme-text-muted)]'}`}
             >
               Selected
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-1 border border-slate-200 rounded-xl p-3">
+          <div className="theme-card-muted grid max-h-48 grid-cols-1 gap-2 overflow-y-auto rounded-xl border p-3 pr-1">
             {REPORT_COLUMNS.map((column) => (
               <Checkbox
                 key={column.key}
@@ -62,7 +62,7 @@ export default function ExportRecordsModal({
             ))}
           </div>
 
-          <p className="text-xs text-slate-500">
+          <p className="theme-text-muted text-xs">
             {reportColumnKeys.length} columns - {exportCount} rows
           </p>
 

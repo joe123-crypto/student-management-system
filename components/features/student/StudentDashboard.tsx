@@ -35,7 +35,7 @@ const tabItems = [
 type ActiveTab = (typeof tabItems)[number]['id'];
 
 const inputClass =
-  'w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all';
+  'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none transition-all';
 
 const StudentDashboard: React.FC<StudentDashboardProps> = ({
   student,

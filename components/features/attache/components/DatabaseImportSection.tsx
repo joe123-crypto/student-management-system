@@ -105,53 +105,53 @@ export default function DatabaseImportSection({
 
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 md:p-10 shadow-sm">
+      <div className="theme-card rounded-3xl border p-8 md:p-10">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <div className="theme-accent-subtle flex h-11 w-11 items-center justify-center rounded-xl border">
             <Database className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-slate-800">Database Import</h3>
-            <p className="text-sm text-slate-500">Upload students to your records using CSV.</p>
+            <h3 className="theme-heading text-xl font-bold">Database Import</h3>
+            <p className="theme-text-muted text-sm">Upload students to your records using CSV.</p>
           </div>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">
+            <label className="theme-text-muted block text-xs font-black uppercase tracking-widest">
               Import File
             </label>
-            <div className="rounded-2xl border border-dashed border-slate-300 p-5 bg-slate-50/70">
-              <label className="inline-flex items-center gap-2 cursor-pointer">
+            <div className="theme-card-muted rounded-2xl border border-dashed p-5">
+              <label className="inline-flex cursor-pointer items-center gap-2">
                 <input
                   type="file"
                   accept=".csv,text/csv"
                   className="hidden"
                   onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
                 />
-                <span className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                <span className="theme-card theme-heading inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold">
                   <Upload className="w-4 h-4" />
                   Choose CSV
                 </span>
               </label>
-              <p className="mt-3 text-sm text-slate-600 flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4 text-slate-400" />
+              <p className="theme-text-muted mt-3 flex items-center gap-2 text-sm">
+                <FileSpreadsheet className="w-4 h-4" />
                 {csvFile ? csvFile.name : 'No file selected'}
               </p>
             </div>
           </div>
 
           <div className="space-y-4">
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">
+            <label className="theme-text-muted block text-xs font-black uppercase tracking-widest">
               CSV Options
             </label>
-            <div className="space-y-4 rounded-2xl border border-slate-200 p-5">
+            <div className="theme-card-muted space-y-4 rounded-2xl border p-5">
               <div className="grid gap-2">
-                <label className="text-sm font-semibold text-slate-700">Delimiter</label>
+                <label className="theme-heading text-sm font-semibold">Delimiter</label>
                 <select
                   value={csvDelimiter}
                   onChange={(e) => setCsvDelimiter(e.target.value as CsvDelimiterOption)}
-                  className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                  className="theme-input rounded-xl border px-3 py-2 text-sm outline-none"
                 >
                   <option value="auto">Auto detect</option>
                   <option value=",">Comma (,)</option>
@@ -161,11 +161,11 @@ export default function DatabaseImportSection({
               </div>
 
               <div className="grid gap-2">
-                <label className="text-sm font-semibold text-slate-700">Import Mode</label>
+                <label className="theme-heading text-sm font-semibold">Import Mode</label>
                 <select
                   value={importMode}
                   onChange={(e) => setImportMode(e.target.value as 'append' | 'replace')}
-                  className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                  className="theme-input rounded-xl border px-3 py-2 text-sm outline-none"
                 >
                   <option value="append">Append to existing records</option>
                   <option value="replace">Replace all existing records</option>
@@ -181,9 +181,9 @@ export default function DatabaseImportSection({
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
-          <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Supported CSV Columns</p>
-          <p className="mt-2 text-sm text-slate-600">
+        <div className="theme-card-muted mt-6 rounded-2xl border p-4">
+          <p className="theme-text-muted text-xs font-black uppercase tracking-widest">Supported CSV Columns</p>
+          <p className="theme-text-muted mt-2 text-sm">
             Required: <span className="font-semibold">fullName</span>, <span className="font-semibold">email</span>.
             Recommended: inscriptionNumber, universityName, major, degreeLevel, status, phone, nationality, gender.
           </p>
@@ -202,16 +202,14 @@ export default function DatabaseImportSection({
 
         {importStatus ? (
           <div
-            className={`mt-5 rounded-xl border px-4 py-3 text-sm flex items-start gap-2 ${
-              importStatus.type === 'success'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : 'border-rose-200 bg-rose-50 text-rose-700'
+            className={`mt-5 flex items-start gap-2 rounded-xl border px-4 py-3 text-sm ${
+              importStatus.type === 'success' ? 'theme-success' : 'theme-danger'
             }`}
           >
             {importStatus.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 mt-0.5" />
+              <CheckCircle2 className="mt-0.5 h-4 w-4" />
             ) : (
-              <AlertCircle className="w-4 h-4 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-4 w-4" />
             )}
             <span>{importStatus.message}</span>
           </div>

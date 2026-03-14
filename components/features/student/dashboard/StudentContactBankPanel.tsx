@@ -15,7 +15,7 @@ interface StudentContactBankPanelProps {
   loading?: boolean;
 }
 
-const tinyLabelClass = 'mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400';
+const tinyLabelClass = 'theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-[0.2em]';
 
 const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
   student,
@@ -30,10 +30,10 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
 }) => {
   if (loading || !student || !editData || !inputClassName || !onToggleEdit || !onDiscard || !onSave || !onUpdateField) {
     return (
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm md:p-8">
+      <div className="theme-card rounded-[2rem] border p-7 md:p-8">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="h-8 w-2 rounded-full bg-amber-200" />
+            <span className="h-8 w-2 rounded-full bg-[color:rgba(245,130,74,0.35)]" />
             <Skeleton className="h-5 w-40" />
           </div>
           <Skeleton className="h-10 w-36 rounded-full" />
@@ -52,16 +52,16 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
   }
 
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm md:p-8">
+    <div className="theme-card rounded-[2rem] border p-7 md:p-8">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="h-8 w-2 rounded-full bg-amber-500" />
-          <h5 className="text-base font-black uppercase tracking-[0.16em] text-slate-500">Contact & Banking</h5>
+          <span className="h-8 w-2 rounded-full bg-[color:var(--theme-secondary)]" />
+          <h5 className="theme-text-muted text-base font-black uppercase tracking-[0.16em]">Contact & Banking</h5>
         </div>
         <Button
           onClick={onToggleEdit}
           variant={isEditing ? 'secondary' : 'primary'}
-          className={isEditing ? 'bg-slate-200 text-slate-700' : 'rounded-full'}
+          className="rounded-full"
         >
           {isEditing ? 'Cancel' : 'Edit Bank Details'}
         </Button>
@@ -70,11 +70,11 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         <div>
           <p className={tinyLabelClass}>Phone</p>
-          <p className="text-xl font-black text-slate-900">{student.contact.phone || '---'}</p>
+          <p className="theme-heading text-xl font-black">{student.contact.phone || '---'}</p>
         </div>
         <div>
           <p className={tinyLabelClass}>Emergency Contact</p>
-          <p className="text-xl font-black text-slate-900">{student.contact.emergencyContactName || '---'}</p>
+          <p className="theme-heading text-xl font-black">{student.contact.emergencyContactName || '---'}</p>
         </div>
         <div>
           <p className={tinyLabelClass}>Bank</p>
@@ -85,7 +85,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
               className={inputClassName}
             />
           ) : (
-            <p className="text-xl font-black text-slate-900">{student.bank.bankName || '---'}</p>
+            <p className="theme-heading text-xl font-black">{student.bank.bankName || '---'}</p>
           )}
         </div>
         <div>
@@ -97,7 +97,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
               className={inputClassName}
             />
           ) : (
-            <p className="text-xl font-black text-indigo-600">{student.bankAccount.iban || '---'}</p>
+            <p className="text-xl font-black text-[color:var(--theme-primary-soft)]">{student.bankAccount.iban || '---'}</p>
           )}
         </div>
         <div>
@@ -109,7 +109,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
               className={inputClassName}
             />
           ) : (
-            <p className="text-xl font-black text-slate-900">{student.bankAccount.accountNumber || '---'}</p>
+            <p className="theme-heading text-xl font-black">{student.bankAccount.accountNumber || '---'}</p>
           )}
         </div>
         <div>
@@ -121,17 +121,17 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
               className={inputClassName}
             />
           ) : (
-            <p className="text-xl font-black text-slate-900">{student.bank.branchCode || '---'}</p>
+            <p className="theme-heading text-xl font-black">{student.bank.branchCode || '---'}</p>
           )}
         </div>
       </div>
 
-      <p className="mt-5 text-sm font-semibold text-slate-500">
+      <p className="theme-text-muted mt-5 text-sm font-semibold">
         Personal and academic details are managed by administration.
       </p>
 
       {isEditing ? (
-        <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-6">
+        <div className="mt-6 flex items-center justify-end gap-3 border-t border-[rgba(220,205,166,0.55)] pt-6">
           <Button variant="ghost" onClick={onDiscard}>
             Discard
           </Button>
