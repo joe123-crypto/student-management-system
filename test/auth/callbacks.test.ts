@@ -60,7 +60,7 @@ test('session callback exposes auth claims on session.user', async () => {
   });
 });
 
-test('session callback falls back to safe defaults when claims are missing', async () => {
+test('session callback leaves auth claims undefined when token claims are missing', async () => {
   assert.ok(authCallbacks?.session);
 
   const session = await authCallbacks.session({
@@ -72,10 +72,10 @@ test('session callback falls back to safe defaults when claims are missing', asy
   } as unknown as Parameters<NonNullable<typeof authCallbacks.session>>[0]);
 
   assert.deepEqual(session.user, {
-    id: '',
-    role: UserRole.STUDENT,
-    loginId: '',
-    subject: '',
-    authProvider: 'student_inscription',
+    id: undefined,
+    role: undefined,
+    loginId: undefined,
+    subject: undefined,
+    authProvider: undefined,
   });
 });

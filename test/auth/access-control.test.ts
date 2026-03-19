@@ -58,6 +58,20 @@ test('signed-in users are redirected away from the login page', () => {
   assert.deepEqual(attacheDecision, { action: 'redirect', target: '/attache/dashboard' });
 });
 
+test('signed-in users without a role are sent back to the login page', () => {
+  const loginDecision = evaluateAccess({
+    pathname: '/login',
+    isLoggedIn: true,
+  });
+  const protectedDecision = evaluateAccess({
+    pathname: '/student/dashboard',
+    isLoggedIn: true,
+  });
+
+  assert.deepEqual(loginDecision, { action: 'redirect', target: '/login' });
+  assert.deepEqual(protectedDecision, { action: 'redirect', target: '/login' });
+});
+
 test('onboarding remains student-only', () => {
   const anonymousDecision = evaluateAccess({
     pathname: '/onboarding',
