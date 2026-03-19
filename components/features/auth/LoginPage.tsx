@@ -19,7 +19,7 @@ const roleOptions = [
 ] as const;
 
 const studentLoginPlaceholder = isMockDbEnabled() ? MOCK_STUDENT_LOGIN_ID : 'STUDENT123';
-const passwordPlaceholder = isMockDbEnabled() ? MOCK_PASSWORD_PLACEHOLDER : 'password123';
+const passwordPlaceholder = isMockDbEnabled() ? MOCK_PASSWORD_PLACEHOLDER : 'Enter your password';
 const fieldLabelClass = 'theme-text-muted mb-2 text-xs font-black uppercase tracking-[0.18em]';
 const fieldRowClass = 'theme-input flex items-center gap-3 rounded-2xl border px-4 py-3';
 const inputClass =
@@ -101,7 +101,7 @@ const LoginPage: React.FC = () => {
             </>
           ) : null}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" autoComplete="on">
             <FormField
               label={role === UserRole.STUDENT ? 'Inscription Number' : 'Email'}
               labelClassName={fieldLabelClass}
@@ -114,9 +114,12 @@ const LoginPage: React.FC = () => {
                 )}
                 <input
                   type="text"
+                  name="loginId"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
                   placeholder={role === UserRole.STUDENT ? studentLoginPlaceholder : MOCK_ATTACHE_LOGIN_ID}
+                  autoComplete={role === UserRole.STUDENT ? 'username' : 'email'}
+                  spellCheck={false}
                   className={inputClass}
                 />
                 <HelpCircle className="h-4 w-4 text-[color:var(--theme-primary-soft)]" />
@@ -128,9 +131,11 @@ const LoginPage: React.FC = () => {
                 <Lock className="h-4 w-4 text-[color:var(--theme-text-muted)]" />
                 <input
                   type="password"
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={passwordPlaceholder}
+                  autoComplete="current-password"
                   className={inputClass}
                 />
                 <HelpCircle className="h-4 w-4 text-[color:var(--theme-primary-soft)]" />

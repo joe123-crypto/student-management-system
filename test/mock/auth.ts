@@ -3,7 +3,7 @@ import { UserRole } from '@/types';
 
 export const MOCK_ATTACHE_LOGIN_ID = 'admin@scholarsalger.dz';
 export const MOCK_STUDENT_LOGIN_ID = INITIAL_PROTOTYPE_DATABASE.STUDENT[0]?.inscription_no ?? 'INS-2023-001';
-export const MOCK_PASSWORD_PLACEHOLDER = 'password';
+export const MOCK_PASSWORD_PLACEHOLDER = 'ScholarsDemo!2026';
 
 type MockAuthorizedUser = {
   id: string;

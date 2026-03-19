@@ -1,6 +1,19 @@
 import { hashPassword, verifyPassword } from '@/lib/auth/passwords';
 import { findAuthUserById, recordAuditLog, updatePasswordHash } from '@/lib/auth/store';
 
+const PASSWORD_REQUIREMENTS_MESSAGE =
+  'New password must be at least 12 characters long and include uppercase, lowercase, a number, and a symbol.';
+
+function isStrongPassword(password: string) {
+  return (
+    password.length >= 12 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+}
+
 export class ChangePasswordValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -22,8 +35,8 @@ export async function changePassword(params: {
     throw new ChangePasswordValidationError('Current password and new password are required.');
   }
 
-  if (newPassword.length < 6) {
-    throw new ChangePasswordValidationError('New password must be at least 6 characters long.');
+  if (!isStrongPassword(newPassword)) {
+    throw new ChangePasswordValidationError(PASSWORD_REQUIREMENTS_MESSAGE);
   }
 
   const authUser = await findAuthUserById(params.userId);
