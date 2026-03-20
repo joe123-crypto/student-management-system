@@ -1,5 +1,5 @@
 export const inputClass =
-  'w-full px-5 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all';
+  'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none';
 
 export const readOnlyInputClass =
-  'w-full px-5 py-3.5 bg-slate-100/70 border border-slate-200 rounded-2xl text-slate-700';
+  'w-full rounded-2xl border px-5 py-3.5 text-[color:var(--theme-text)] bg-[color:color-mix(in_srgb,var(--theme-surface)_42%,white)] border-[color:color-mix(in_srgb,var(--theme-border)_72%,white)]';

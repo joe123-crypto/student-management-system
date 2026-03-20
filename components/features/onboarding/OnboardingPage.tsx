@@ -89,8 +89,8 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, student, onComple
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="theme-shell min-h-screen px-4 py-12">
+      <div className="mx-auto max-w-3xl">
         <OnboardingProgress step={step} totalSteps={totalSteps} />
         {submitError ? (
           <div className="mb-6 rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
@@ -98,7 +98,11 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, student, onComple
           </div>
         ) : null}
 
-        <div className={`bg-white rounded-[2.5rem] shadow-sm border border-slate-200 transition-all ${step === 1 ? 'p-8 md:p-10' : 'p-8 md:p-12'}`}>
+        <div
+          className={`theme-card rounded-[2.5rem] border transition-all ${
+            step === 1 ? 'p-8 md:p-10' : 'p-8 md:p-12'
+          }`}
+        >
           {step === 1 && <PersonalDetailsStep student={student} readOnlyInputClass={readOnlyInputClass} onNext={nextStep} />}
           {step === 2 && (
             <AcademicInfoStep
