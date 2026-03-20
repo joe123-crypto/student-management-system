@@ -2,6 +2,19 @@ import React, { useState } from 'react';
 import FormField from '@/components/ui/FormField';
 import Button from '@/components/ui/Button';
 
+const PASSWORD_REQUIREMENTS_MESSAGE =
+  'Use at least 12 characters with uppercase, lowercase, a number, and a symbol.';
+
+function isStrongPassword(password: string) {
+  return (
+    password.length >= 12 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+}
+
 interface StudentPasswordSettingsProps {
   onChangePassword: (
     currentPassword: string,
@@ -29,8 +42,8 @@ export default function StudentPasswordSettings({
       return;
     }
 
-    if (newPassword.length < 6) {
-      setPasswordStatus({ type: 'error', message: 'New password must be at least 6 characters long.' });
+    if (!isStrongPassword(newPassword)) {
+      setPasswordStatus({ type: 'error', message: PASSWORD_REQUIREMENTS_MESSAGE });
       return;
     }
 
@@ -66,6 +79,7 @@ export default function StudentPasswordSettings({
           <FormField label="Current Password">
             <input
               type="password"
+              autoComplete="current-password"
               className={inputClassName}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
@@ -76,6 +90,7 @@ export default function StudentPasswordSettings({
           <FormField label="New Password">
             <input
               type="password"
+              autoComplete="new-password"
               className={inputClassName}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -86,12 +101,15 @@ export default function StudentPasswordSettings({
           <FormField label="Confirm New Password">
             <input
               type="password"
+              autoComplete="new-password"
               className={inputClassName}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter new password"
             />
           </FormField>
+
+          <p className="theme-text-muted text-xs">{PASSWORD_REQUIREMENTS_MESSAGE}</p>
 
           {passwordStatus ? (
             <div
