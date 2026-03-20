@@ -165,8 +165,12 @@ async function getOrCreateBranch(name: string, code: number, addressId: number, 
 async function main() {
   console.log('Seeding database...');
 
-  const seedPassword = (process.env.SEED_AUTH_PASSWORD ?? 'ScholarsDemo!2026').trim();
-  const testPasswordHash = await hash(seedPassword);
+  const seedAuthPassword = process.env.SEED_AUTH_PASSWORD?.trim();
+  if (!seedAuthPassword) {
+    throw new Error('SEED_AUTH_PASSWORD is required to seed auth users.');
+  }
+
+  const testPasswordHash = await hash(seedAuthPassword);
 
   const studentAuthUser = await prisma.authUser.upsert({
     where: {
@@ -439,7 +443,7 @@ async function main() {
 
   console.log('Created Student:', studentAuthUser.loginId);
   console.log('Created Attache:', attacheAuthUser.loginId);
-  console.log('Seed auth password:', seedPassword);
+  console.log('Seed auth password:', seedAuthPassword);
 }
 
 main()

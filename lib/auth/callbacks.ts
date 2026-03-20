@@ -21,12 +21,11 @@ export const authCallbacks: NextAuthOptions['callbacks'] = {
       session.user = {};
     }
 
-    session.user.id = token.sub ?? '';
-    session.user.role = (token.role as UserRole | undefined) ?? UserRole.STUDENT;
-    session.user.loginId = (token.loginId as string | undefined) ?? '';
-    session.user.subject = (token.subject as string | undefined) ?? '';
-    session.user.authProvider =
-      ((token.authProvider as AppAuthProvider | undefined) ?? 'student_inscription');
+    session.user.id = typeof token.sub === 'string' ? token.sub : undefined;
+    session.user.role = token.role as UserRole | undefined;
+    session.user.loginId = typeof token.loginId === 'string' ? token.loginId : undefined;
+    session.user.subject = typeof token.subject === 'string' ? token.subject : undefined;
+    session.user.authProvider = token.authProvider as AppAuthProvider | undefined;
 
     return session;
   },

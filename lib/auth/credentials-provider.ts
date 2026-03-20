@@ -3,8 +3,6 @@ import { UserRole as PrismaUserRole } from '@prisma/client';
 import { deriveAuthSubject, findAuthUser, onFailedSignIn, onSuccessfulSignIn, recordAuditLog } from '@/lib/auth/store';
 import { verifyPassword } from '@/lib/auth/passwords';
 import { getSigninLimits, normalizeLoginId, normalizeRole, RawCredentials, toPrismaRole } from '@/lib/auth/shared';
-import { authorizeMockUser } from '@/test/mock/auth';
-import { isMockDbEnabled } from '@/test/mock/config';
 import { UserRole } from '@/types';
 
 export const credentialsProvider = Credentials({
@@ -25,10 +23,6 @@ export const credentialsProvider = Credentials({
 
     if (!password || !loginId) {
       return null;
-    }
-
-    if (isMockDbEnabled()) {
-      return authorizeMockUser(role, loginId, password);
     }
 
     let authUser;

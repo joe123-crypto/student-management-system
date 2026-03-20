@@ -5,12 +5,6 @@ import { UserRole } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import SegmentedControl from '@/components/ui/SegmentedControl';
-import {
-  MOCK_ATTACHE_LOGIN_ID,
-  MOCK_PASSWORD_PLACEHOLDER,
-  MOCK_STUDENT_LOGIN_ID,
-} from '@/test/mock/auth';
-import { isMockDbEnabled } from '@/test/mock/config';
 import { Hash, HelpCircle, Lock, LogIn, Mail, ShieldCheck } from 'lucide-react';
 
 const roleOptions = [
@@ -18,8 +12,9 @@ const roleOptions = [
   { value: UserRole.ATTACHE, label: 'Attache' },
 ] as const;
 
-const studentLoginPlaceholder = isMockDbEnabled() ? MOCK_STUDENT_LOGIN_ID : 'STUDENT123';
-const passwordPlaceholder = isMockDbEnabled() ? MOCK_PASSWORD_PLACEHOLDER : 'Enter your password';
+const studentLoginPlaceholder = 'STUDENT123';
+const attacheLoginPlaceholder = 'admin@scholarsalger.dz';
+const passwordPlaceholder = 'Enter your password';
 const fieldLabelClass = 'theme-text-muted mb-2 text-xs font-black uppercase tracking-[0.18em]';
 const fieldRowClass = 'theme-input flex items-center gap-3 rounded-2xl border px-4 py-3';
 const inputClass =
@@ -117,7 +112,7 @@ const LoginPage: React.FC = () => {
                   name="loginId"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  placeholder={role === UserRole.STUDENT ? studentLoginPlaceholder : MOCK_ATTACHE_LOGIN_ID}
+                  placeholder={role === UserRole.STUDENT ? studentLoginPlaceholder : attacheLoginPlaceholder}
                   autoComplete={role === UserRole.STUDENT ? 'username' : 'email'}
                   spellCheck={false}
                   className={inputClass}

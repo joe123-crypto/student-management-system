@@ -14,9 +14,13 @@ export function getDefaultSignedInRoute(role: UserRole): string {
   return role === UserRole.ATTACHE ? '/attache/dashboard' : '/onboarding';
 }
 
+function getRedirectTargetForRole(role?: UserRole): string {
+  return role ? getDefaultSignedInRoute(role) : '/login';
+}
+
 export function evaluateAccess({ pathname, isLoggedIn, role }: AccessControlContext): AccessDecision {
   if (pathname === '/login' && isLoggedIn) {
-    return { action: 'redirect', target: getDefaultSignedInRoute(role ?? UserRole.STUDENT) };
+    return { action: 'redirect', target: getRedirectTargetForRole(role) };
   }
 
   if (pathname.startsWith('/student') || pathname === '/onboarding') {
@@ -25,7 +29,7 @@ export function evaluateAccess({ pathname, isLoggedIn, role }: AccessControlCont
     }
 
     if (role !== UserRole.STUDENT) {
-      return { action: 'redirect', target: getDefaultSignedInRoute(role ?? UserRole.STUDENT) };
+      return { action: 'redirect', target: getRedirectTargetForRole(role) };
     }
   }
 
@@ -35,7 +39,7 @@ export function evaluateAccess({ pathname, isLoggedIn, role }: AccessControlCont
     }
 
     if (role !== UserRole.ATTACHE) {
-      return { action: 'redirect', target: getDefaultSignedInRoute(role ?? UserRole.STUDENT) };
+      return { action: 'redirect', target: getRedirectTargetForRole(role) };
     }
   }
 
