@@ -26,7 +26,7 @@ export default function StudentRecordsTable({
   return (
     <div className="theme-card overflow-hidden rounded-2xl border">
       {isLoading ? (
-        <div className="max-h-[400px] overflow-auto animate-pulse">
+        <div className="h-[400px] overflow-auto animate-pulse">
           <div className="theme-card-muted sticky top-0 z-10 border-b">
             <div className="grid grid-cols-[56px_1.3fr_1fr_1.2fr] gap-4 px-4 py-4">
               <div className="h-4 w-4 rounded bg-[rgba(220,205,166,0.6)]" />
@@ -53,7 +53,7 @@ export default function StudentRecordsTable({
           </div>
         </div>
       ) : (
-        <div className="max-h-[400px] overflow-auto">
+        <div className="h-[400px] overflow-auto">
           <div className="theme-card-muted border-b px-4 py-3 md:hidden">
             <label className="theme-text-muted inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
               <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
