@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import authConfig from '@/auth.config';
 import { ensureStudentProfileForIdentity, findStudentProfileById, updateStudentProfile } from '@/lib/students/store';
+import { sanitizeStudentSelfServicePatch, StudentSelfServicePatchError } from '@/lib/students/profile';
 import type { StudentProfile } from '@/types';
 import { UserRole } from '@/types';
 
@@ -47,9 +48,18 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: 'Invalid student patch.' }, { status: 400 });
     }
 
-    const student = await updateStudentProfile(id, body.patch as Partial<StudentProfile>);
+    const patch =
+      session.user.role === UserRole.STUDENT
+        ? sanitizeStudentSelfServicePatch(existing, body.patch)
+        : (body.patch as Partial<StudentProfile>);
+
+    const student = await updateStudentProfile(id, patch);
     return NextResponse.json({ student });
   } catch (error) {
+    if (error instanceof StudentSelfServicePatchError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     console.error('[STUDENTS] Failed to update student profile:', error);
     return NextResponse.json({ error: 'Failed to update student profile.' }, { status: 500 });
   }

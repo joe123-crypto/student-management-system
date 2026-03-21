@@ -78,7 +78,6 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, student, onComple
       await onComplete({
         bank: formData.bank,
         bankAccount: formData.bankAccount,
-        status: 'ACTIVE',
       });
       router.replace('/student/dashboard');
     } catch (error) {

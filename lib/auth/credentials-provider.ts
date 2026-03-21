@@ -3,6 +3,8 @@ import { UserRole as PrismaUserRole } from '@prisma/client';
 import { deriveAuthSubject, findAuthUser, onFailedSignIn, onSuccessfulSignIn, recordAuditLog } from '@/lib/auth/store';
 import { verifyPassword } from '@/lib/auth/passwords';
 import { getSigninLimits, normalizeLoginId, normalizeRole, RawCredentials, toPrismaRole } from '@/lib/auth/shared';
+import { takeRateLimitToken } from '@/lib/security/rate-limit';
+import { getClientIp } from '@/lib/security/request';
 import { UserRole } from '@/types';
 
 export const credentialsProvider = Credentials({
@@ -17,11 +19,22 @@ export const credentialsProvider = Credentials({
     const role = normalizeRole(credentials.role);
     const password = credentials.password?.trim() ?? '';
     const loginId = normalizeLoginId(role, credentials.loginId);
-    const ip = (req.headers?.['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim();
+    const ip = getClientIp(req.headers ?? {}) ?? undefined;
     const userAgent = req.headers?.['user-agent'] as string | undefined;
     const { maxAttempts, lockMinutes } = getSigninLimits();
 
     if (!password || !loginId) {
+      return null;
+    }
+
+    const rateLimit = takeRateLimitToken({
+      bucket: 'signin',
+      key: ip || loginId,
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
       return null;
     }
 
