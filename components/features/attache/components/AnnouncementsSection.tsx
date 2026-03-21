@@ -50,8 +50,8 @@ export default function AnnouncementsSection({
   };
 
   return (
-    <div className="grid md:grid-cols-3 gap-8">
-      <div className="md:col-span-1">
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)]">
+      <div>
         <AnnouncementComposerCard
           announcementTitle={newTitle}
           announcementContent={newContent}
@@ -59,14 +59,15 @@ export default function AnnouncementsSection({
           onAnnouncementContentChange={setNewContent}
           onSubmit={handlePostAnnouncement}
           submitLabel={isSubmitting ? 'Posting...' : 'Post Announcement'}
+          className="theme-card sticky top-24 rounded-3xl border p-6 shadow-sm"
         />
         {errorMessage ? (
           <p className="mt-3 text-sm text-[color:var(--theme-danger)]">{errorMessage}</p>
         ) : null}
       </div>
-      <div className="md:col-span-2 space-y-4">
+      <div className="space-y-4">
         {isLoading ? (
-          <div className="theme-card rounded-2xl border p-6">
+          <div className="theme-card min-h-[420px] rounded-3xl border p-6">
             <Skeleton className="h-6 w-48" />
             <div className="mt-6 space-y-4">
               <Skeleton className="h-28" />
@@ -79,6 +80,8 @@ export default function AnnouncementsSection({
             announcements={announcements}
             title="Past Announcements"
             compact
+            className="theme-card min-h-[420px] rounded-3xl border p-6"
+            emptyMessage="No announcements yet. Published updates will appear here."
             actions={(announcement) => (
               <Button
                 variant="ghost"

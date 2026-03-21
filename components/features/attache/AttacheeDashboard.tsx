@@ -4,8 +4,10 @@ import Layout from '@/components/layout/Layout';
 import Tabs from '@/components/ui/Tabs';
 import StudentsSection from '@/components/features/attache/components/StudentsSection';
 import AnnouncementsSection from '@/components/features/attache/components/AnnouncementsSection';
+import CommunicationCenter from '@/components/features/attache/components/CommunicationCenter';
 import DatabaseImportSection from '@/components/features/attache/components/DatabaseImportSection';
 import PermissionRequestsSection from '@/components/features/attache/components/PermissionRequestsSection';
+import type { CommunicationLogEntry } from '@/components/features/attache/types';
 
 interface AttacheDashboardProps {
   students: StudentProfile[];
@@ -29,11 +31,19 @@ interface AttacheDashboardProps {
 
 const tabItems = [
   { id: 'students', label: 'Student Records' },
-  { id: 'announcements', label: 'Announcements' },
+  { id: 'announcements', label: 'Communication Center' },
   { id: 'permission-requests', label: 'Permission Requests' },
 ] as const;
 
+const communicationTabItems = [
+  { id: 'announcements', label: 'Announcements' },
+  { id: 'messaging', label: 'Direct Messaging' },
+] as const;
+
+const makeId = () => Math.random().toString(36).slice(2, 11);
+
 type ActiveView = (typeof tabItems)[number]['id'];
+type ActiveCommunicationView = (typeof communicationTabItems)[number]['id'];
 
 const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   students,
@@ -52,6 +62,30 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   onLogout,
 }) => {
   const [activeView, setActiveView] = useState<ActiveView>('students');
+  const [activeCommunicationView, setActiveCommunicationView] = useState<ActiveCommunicationView>('announcements');
+  const [communicationLogs, setCommunicationLogs] = useState<CommunicationLogEntry[]>([]);
+
+  const appendCommunicationLog = ({
+    channel,
+    template,
+    recipientCount,
+  }: {
+    channel: 'EMAIL' | 'SMS';
+    template: string;
+    recipientCount: number;
+  }) => {
+    if (recipientCount === 0) return;
+
+    const entry: CommunicationLogEntry = {
+      id: makeId(),
+      sentAt: new Date().toLocaleString(),
+      recipientCount,
+      channel,
+      template,
+    };
+
+    setCommunicationLogs((prev) => [entry, ...prev]);
+  };
 
   return (
     <Layout
@@ -70,15 +104,65 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
               students={students}
               isLoading={isStudentsLoading}
               onDeleteStudents={onDeleteStudents}
+              onLogCommunication={appendCommunicationLog}
             />
           ) : null}
           {activeView === 'announcements' ? (
-            <AnnouncementsSection
-              announcements={announcements}
-              isLoading={isAnnouncementsLoading}
-              onAddAnnouncement={onAddAnnouncement}
-              onDeleteAnnouncement={onDeleteAnnouncement}
-            />
+            <section className="space-y-6">
+              <div className="flex justify-start sm:justify-end">
+                <div className="inline-flex w-full max-w-fit rounded-2xl border border-[rgba(220,205,166,0.7)] bg-white/80 p-1 shadow-sm">
+                  {communicationTabItems.map((item) => {
+                    const active = item.id === activeCommunicationView;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setActiveCommunicationView(item.id)}
+                        className={
+                          active
+                            ? 'rounded-xl bg-[color:var(--theme-primary)] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition'
+                            : 'rounded-xl px-4 py-2.5 text-sm font-bold text-[color:var(--theme-text-muted)] transition hover:text-[color:var(--theme-primary)]'
+                        }
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {activeCommunicationView === 'announcements' ? (
+                <AnnouncementsSection
+                  announcements={announcements}
+                  isLoading={isAnnouncementsLoading}
+                  onAddAnnouncement={onAddAnnouncement}
+                  onDeleteAnnouncement={onDeleteAnnouncement}
+                />
+              ) : null}
+              {activeCommunicationView === 'messaging' ? (
+                <div className="space-y-4">
+                  <div className="theme-card-muted max-w-3xl rounded-2xl border p-4">
+                    <p className="theme-text-muted text-sm">
+                      Use <span className="font-bold text-[color:var(--theme-primary)]">All Filtered</span> to broadcast to the current student directory from this view.
+                    </p>
+                  </div>
+                  <div className="max-w-3xl">
+                  <CommunicationCenter
+                    selectedCount={0}
+                    filteredCount={students.length}
+                    onSend={({ channel, template, scope }) =>
+                      appendCommunicationLog({
+                        channel,
+                        template,
+                        recipientCount: scope === 'SELECTED' ? 0 : students.length,
+                      })
+                    }
+                    logs={communicationLogs}
+                  />
+                  </div>
+                </div>
+              ) : null}
+            </section>
           ) : null}
           {activeView === 'permission-requests' ? (
             <PermissionRequestsSection

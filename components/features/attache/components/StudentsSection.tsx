@@ -6,10 +6,8 @@ import BulkActionsBar from '@/components/features/attache/components/BulkActions
 import StudentRecordsTable from '@/components/features/attache/components/StudentRecordsTable';
 import StudentTablePagination from '@/components/features/attache/components/StudentTablePagination';
 import DataInsightsPanel from '@/components/features/attache/components/DataInsightsPanel';
-import CommunicationCenter from '@/components/features/attache/components/CommunicationCenter';
 import StudentDetailView from '@/components/features/attache/components/StudentDetailView';
 import ExportRecordsModal from '@/components/features/attache/components/ExportRecordsModal';
-import type { CommunicationLogEntry } from '@/components/features/attache/types';
 import useStudentFilters from '@/components/features/attache/hooks/useStudentFilters';
 import useStudentSelection from '@/components/features/attache/hooks/useStudentSelection';
 import useStudentTable from '@/components/features/attache/hooks/useStudentTable';
@@ -27,20 +25,24 @@ interface StudentsSectionProps {
   students: StudentProfile[];
   isLoading?: boolean;
   onDeleteStudents: (studentIds: string[]) => void;
+  onLogCommunication?: (payload: {
+    channel: 'EMAIL' | 'SMS';
+    template: string;
+    recipientCount: number;
+  }) => void;
 }
 
 const DEFAULT_REPORT_COLUMNS = ['fullName', 'email', 'inscriptionNumber', 'status', 'university', 'program'];
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 const DEFAULT_PAGE_SIZE = 50;
-const makeId = () => Math.random().toString(36).slice(2, 11);
 
 export default function StudentsSection({
   students,
   isLoading = false,
   onDeleteStudents,
+  onLogCommunication,
 }: StudentsSectionProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  const [communicationLogs, setCommunicationLogs] = useState<CommunicationLogEntry[]>([]);
   const [exportPopupOpen, setExportPopupOpen] = useState(false);
 
   const {
@@ -137,14 +139,11 @@ export default function StudentsSection({
 
   const appendCommunicationLog = (channel: 'EMAIL' | 'SMS', template: string, recipientCount: number) => {
     if (recipientCount === 0) return;
-    const entry: CommunicationLogEntry = {
-      id: makeId(),
-      sentAt: new Date().toLocaleString(),
+    onLogCommunication?.({
       recipientCount,
       channel,
       template,
-    };
-    setCommunicationLogs((prev) => [entry, ...prev]);
+    });
   };
 
   const handleRequestMissingDocsBulk = () => {
@@ -153,20 +152,6 @@ export default function StudentsSection({
 
   const handleExportSelected = () => {
     exportDataset(selectedStudents, DEFAULT_REPORT_COLUMNS, 'student_records_selected.csv');
-  };
-
-  const handleSendCommunication = ({
-    channel,
-    template,
-    scope,
-  }: {
-    channel: 'EMAIL' | 'SMS';
-    template: string;
-    scope: 'SELECTED' | 'FILTERED';
-    customMessage: string;
-  }) => {
-    const recipients = scope === 'SELECTED' ? selectedStudents.length : filteredStudents.length;
-    appendCommunicationLog(channel, template, recipients);
   };
 
   if (selectedStudent) {
@@ -215,15 +200,6 @@ export default function StudentsSection({
               }}
             />
           ) : null}
-
-          <div className="hidden md:block">
-            <CommunicationCenter
-              selectedCount={selectedStudents.length}
-              filteredCount={filteredStudents.length}
-              onSend={handleSendCommunication}
-              logs={communicationLogs}
-            />
-          </div>
         </div>
 
         <aside className="hidden md:block xl:sticky xl:top-24 space-y-4">
