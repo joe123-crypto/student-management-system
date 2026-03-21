@@ -6,6 +6,13 @@ function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+export class StudentSelfServicePatchError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StudentSelfServicePatchError';
+  }
+}
+
 function stringValue(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
@@ -273,6 +280,133 @@ export function normalizeStudentProfile(
   normalized.status = normalizeStatus(normalized.status);
 
   return normalized;
+}
+
+function sanitizeStringFields<T extends string>(
+  value: unknown,
+  allowedFields: readonly T[],
+): Partial<Record<T, string>> {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  const next: Partial<Record<T, string>> = {};
+
+  for (const field of allowedFields) {
+    const candidate = value[field];
+    if (typeof candidate === 'string') {
+      next[field] = candidate;
+    }
+  }
+
+  return next;
+}
+
+function academicHistoryMatches(
+  left: ProgressDetails | undefined,
+  right: ProgressDetails | undefined,
+): boolean {
+  return (
+    left?.id === right?.id &&
+    left?.date === right?.date &&
+    left?.year === right?.year &&
+    left?.level === right?.level &&
+    left?.grade === right?.grade &&
+    left?.status === right?.status
+  );
+}
+
+export function sanitizeStudentSelfServicePatch(
+  existing: StudentProfile,
+  patch: unknown,
+): Partial<StudentProfile> {
+  if (!isRecord(patch)) {
+    throw new StudentSelfServicePatchError('Invalid student patch.');
+  }
+
+  const sanitized: Partial<StudentProfile> = {};
+
+  const studentFields = sanitizeStringFields(patch.student, ['profilePicture'] as const);
+  if (Object.keys(studentFields).length > 0) {
+    sanitized.student = {
+      profilePicture: studentFields.profilePicture,
+    } as StudentProfile['student'];
+  }
+
+  const bankFields = sanitizeStringFields(
+    patch.bank,
+    ['bankName', 'branchName', 'branchAddress', 'branchCode'] as const,
+  );
+  if (Object.keys(bankFields).length > 0) {
+    sanitized.bank = {
+      bankName: bankFields.bankName ?? existing.bank.bankName,
+      branchName: bankFields.branchName ?? existing.bank.branchName,
+      branchAddress: bankFields.branchAddress ?? existing.bank.branchAddress,
+      branchCode: bankFields.branchCode ?? existing.bank.branchCode,
+    };
+  }
+
+  const bankAccountFields = sanitizeStringFields(
+    patch.bankAccount,
+    ['accountHolderName', 'accountNumber', 'iban', 'swiftCode', 'dateCreated'] as const,
+  );
+  if (Object.keys(bankAccountFields).length > 0) {
+    sanitized.bankAccount = {
+      accountHolderName:
+        bankAccountFields.accountHolderName ?? existing.bankAccount.accountHolderName,
+      accountNumber: bankAccountFields.accountNumber ?? existing.bankAccount.accountNumber,
+      iban: bankAccountFields.iban ?? existing.bankAccount.iban,
+      swiftCode: bankAccountFields.swiftCode ?? existing.bankAccount.swiftCode,
+      dateCreated: bankAccountFields.dateCreated ?? existing.bankAccount.dateCreated,
+    };
+  }
+
+  if (Array.isArray(patch.academicHistory)) {
+    const existingHistory = existing.academicHistory ?? [];
+    const normalizedIncoming = normalizeAcademicHistory(patch.academicHistory, existingHistory);
+
+    if (normalizedIncoming.length < existingHistory.length) {
+      throw new StudentSelfServicePatchError('Existing academic records cannot be removed.');
+    }
+
+    for (let index = 0; index < existingHistory.length; index += 1) {
+      if (!academicHistoryMatches(normalizedIncoming[index], existingHistory[index])) {
+        throw new StudentSelfServicePatchError('Existing academic records cannot be edited directly.');
+      }
+    }
+
+    const appendedHistory = normalizedIncoming.slice(existingHistory.length).map((entry, index) => {
+      const year = entry.year.trim();
+      const level = entry.level.trim();
+      const grade = entry.grade.trim();
+
+      if (!year || !level || !grade) {
+        throw new StudentSelfServicePatchError(
+          'New academic submissions must include year, level, and grade.',
+        );
+      }
+
+      return {
+        id: entry.id || `submission-${existingHistory.length + index + 1}`,
+        date: entry.date || new Date().toISOString().slice(0, 10),
+        year,
+        level,
+        grade,
+        status: 'PENDING',
+        proofDocument: entry.proofDocument,
+      };
+    });
+
+    if (appendedHistory.length > 0) {
+      sanitized.academicHistory = [...existingHistory, ...appendedHistory];
+    }
+  }
+
+  if (Object.keys(sanitized).length === 0) {
+    throw new StudentSelfServicePatchError('No allowed student profile changes were provided.');
+  }
+
+  return sanitized;
 }
 
 export function getMissingStudentOnboardingFields(student: StudentProfile | null): string[] {

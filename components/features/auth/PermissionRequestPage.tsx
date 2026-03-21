@@ -5,7 +5,6 @@ import FormField from '@/components/ui/FormField';
 import { Hash, ShieldCheck, UserRound } from 'lucide-react';
 
 interface PermissionRequestPageProps {
-  existingRequests: string[];
   onSubmitRequest: (
     inscriptionNumber: string,
     fullName: string,
@@ -19,7 +18,6 @@ const inputClass =
   'w-full bg-transparent text-sm font-medium text-[color:var(--theme-text)] outline-none placeholder:text-[color:var(--theme-text-muted)]';
 
 export default function PermissionRequestPage({
-  existingRequests,
   onSubmitRequest,
 }: PermissionRequestPageProps) {
   const [fullName, setFullName] = useState('');
@@ -60,43 +58,20 @@ export default function PermissionRequestPage({
       return;
     }
 
-    if (existingRequests.includes(normalizedInscription)) {
-      setError('A request for this inscription number is already pending.');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(
-        `/api/students/lookup?inscriptionNumber=${encodeURIComponent(normalizedInscription)}`,
-        {
-          method: 'GET',
-          cache: 'no-store',
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Lookup failed with status ${response.status}.`);
-      }
-
-      const payload = (await response.json()) as { exists?: boolean };
-      if (!payload.exists) {
-        setError('No student record found for this inscription number.');
-        return;
-      }
-
       await onSubmitRequest(normalizedInscription, normalizedFullName, normalizedPassportNumber);
-      setMessage('Request sent to the student attache.');
+      setMessage('Your request has been received and will be reviewed if the details match an eligible record.');
       setFullName('');
       setPassportNumber('');
       setInscriptionNumber('');
-    } catch (lookupError) {
-      console.error('[PERMISSION_REQUEST] Failed to submit permission request:', lookupError);
+    } catch (submitError) {
+      console.error('[PERMISSION_REQUEST] Failed to submit permission request:', submitError);
       setError(
-        lookupError instanceof Error
-          ? lookupError.message
-          : 'Unable to verify this inscription number right now. Please try again.',
+        submitError instanceof Error
+          ? submitError.message
+          : 'Unable to submit your request right now. Please try again.',
       );
     } finally {
       setIsSubmitting(false);

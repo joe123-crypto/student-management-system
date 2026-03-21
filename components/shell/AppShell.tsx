@@ -40,7 +40,6 @@ export default function AppShell({
   } = useAnnouncements(user);
   const {
     permissionRequests,
-    existingPendingRequests,
     submitPermissionRequest,
     updatePermissionRequestStatus,
     isHydrated: isPermissionRequestsHydrated,
@@ -78,7 +77,6 @@ export default function AppShell({
         <PublicAppRouter
           route={route}
           latestAnnouncement={latestAnnouncement}
-          existingPendingRequests={existingPendingRequests}
           onSubmitPermissionRequest={submitPermissionRequest}
         />
       );
