@@ -2,11 +2,12 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import authConfig from '@/auth.config';
 import {
-  PermissionRequestConflictError,
-  PermissionRequestValidationError,
-  createPermissionRequest,
+  GENERIC_PERMISSION_REQUEST_MESSAGE,
   listPermissionRequests,
+  submitPermissionRequest,
 } from '@/lib/permission-requests/store';
+import { takeRateLimitToken } from '@/lib/security/rate-limit';
+import { getClientIp } from '@/lib/security/request';
 import { UserRole } from '@/types';
 
 export async function GET() {
@@ -30,6 +31,26 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request.headers) ?? 'unknown';
+  const rateLimit = takeRateLimitToken({
+    bucket: 'permission-request',
+    key: clientIp,
+    limit: 5,
+    windowMs: 60 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many permission requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(rateLimit.retryAfterSeconds),
+        },
+      },
+    );
+  }
+
   try {
     const body = (await request.json()) as {
       inscriptionNumber?: unknown;
@@ -47,22 +68,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Full name, passport number, and inscription number are required.' }, { status: 400 });
     }
 
-    const permissionRequest = await createPermissionRequest({
+    await submitPermissionRequest({
       inscriptionNumber,
       fullName,
       passportNumber,
     });
 
-    return NextResponse.json({ permissionRequest }, { status: 201 });
+    return NextResponse.json(
+      { message: GENERIC_PERMISSION_REQUEST_MESSAGE },
+      { status: 202 },
+    );
   } catch (error) {
-    if (error instanceof PermissionRequestValidationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    if (error instanceof PermissionRequestConflictError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
     console.error('[PERMISSION_REQUESTS] Failed to create permission request:', error);
     return NextResponse.json({ error: 'Failed to submit permission request.' }, { status: 500 });
   }

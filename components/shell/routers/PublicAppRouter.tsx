@@ -10,7 +10,6 @@ type PublicRoute = '/' | '/login' | '/request-permission';
 interface PublicAppRouterProps {
   route: PublicRoute;
   latestAnnouncement?: Announcement | null;
-  existingPendingRequests: string[];
   onSubmitPermissionRequest: (
     inscriptionNumber: string,
     fullName: string,
@@ -21,7 +20,6 @@ interface PublicAppRouterProps {
 export default function PublicAppRouter({
   route,
   latestAnnouncement = null,
-  existingPendingRequests,
   onSubmitPermissionRequest,
 }: PublicAppRouterProps) {
   switch (route) {
@@ -32,7 +30,6 @@ export default function PublicAppRouter({
     case '/request-permission':
       return (
         <PermissionRequestPage
-          existingRequests={existingPendingRequests}
           onSubmitRequest={onSubmitPermissionRequest}
         />
       );

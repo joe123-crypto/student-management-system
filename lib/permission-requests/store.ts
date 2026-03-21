@@ -22,6 +22,9 @@ export class PermissionRequestValidationError extends Error {
   }
 }
 
+export const GENERIC_PERMISSION_REQUEST_MESSAGE =
+  'If the details match an eligible student record, the request will be reviewed.';
+
 export async function listPermissionRequests(): Promise<PermissionRequest[]> {
   const requests = await prisma.permissionRequest.findMany({
     orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }],
@@ -64,6 +67,42 @@ export async function createPermissionRequest(input: {
   });
 
   return toPermissionRequest(created);
+}
+
+export async function submitPermissionRequest(input: {
+  inscriptionNumber: string;
+  fullName: string;
+  passportNumber: string;
+}): Promise<boolean> {
+  const normalized = normalizePermissionRequestInput(input);
+
+  const studentExists = await lookupStudentInscription(normalized.inscriptionNumber);
+  if (!studentExists) {
+    return false;
+  }
+
+  const existingPendingRequest = await prisma.permissionRequest.findFirst({
+    where: {
+      inscriptionNumber: normalized.inscriptionNumber,
+      status: PermissionRequestStatus.PENDING,
+    },
+    orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }],
+  });
+
+  if (existingPendingRequest) {
+    return false;
+  }
+
+  await prisma.permissionRequest.create({
+    data: {
+      inscriptionNumber: normalized.inscriptionNumber,
+      fullName: normalized.fullName,
+      passportNumber: normalized.passportNumber,
+      status: PermissionRequestStatus.PENDING,
+    },
+  });
+
+  return true;
 }
 
 export async function updatePermissionRequestStatus(params: {

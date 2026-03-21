@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isMockDbEnabled } from '@/test/mock/config';
 import { mockPermissionsService } from '@/test/mock/services/permissionsService';
 import type { PermissionRequest, User } from '@/types';
@@ -124,15 +124,13 @@ export function usePermissionRequests(user: User | null) {
     });
 
     const payload = (await response.json()) as {
-      permissionRequest?: PermissionRequest;
+      message?: string;
       error?: string;
     };
 
-    if (!response.ok || !payload.permissionRequest) {
+    if (!response.ok) {
       throw new Error(payload.error || `Failed to submit permission request (${response.status}).`);
     }
-
-    setPermissionRequests((current) => upsertPermissionRequest(current, payload.permissionRequest!));
   }
 
   async function updatePermissionRequestStatus(
@@ -172,17 +170,8 @@ export function usePermissionRequests(user: User | null) {
     setPermissionRequests((current) => upsertPermissionRequest(current, payload.permissionRequest!));
   }
 
-  const existingPendingRequests = useMemo(
-    () =>
-      permissionRequests
-        .filter((request) => request.status === 'PENDING')
-        .map((request) => request.inscriptionNumber.toUpperCase()),
-    [permissionRequests],
-  );
-
   return {
     permissionRequests,
-    existingPendingRequests,
     submitPermissionRequest,
     updatePermissionRequestStatus,
     isHydrated,
