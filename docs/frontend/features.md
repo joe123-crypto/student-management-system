@@ -19,6 +19,7 @@
 
 ## Shared UI
 - Authenticated shell: `components/layout/Layout.tsx`
+- Floating authenticated chat shell: `components/layout/FloatingChatWidget.tsx`
 - Public footer: `components/layout/Footer.tsx`
 - UI primitives: `components/ui/*`
 - Shared announcements widgets: `components/features/shared/announcements/AnnouncementSections.tsx`
