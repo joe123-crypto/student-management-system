@@ -42,5 +42,10 @@
     "tailwindcss": "^4.2.0",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2"
+  },
+  "overrides": {
+    "@prisma/config": {
+      "effect": "3.21.0"
+    }
   }
 }

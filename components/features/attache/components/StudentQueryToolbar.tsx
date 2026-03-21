@@ -6,12 +6,14 @@ interface StudentQueryToolbarProps {
   query: StudentQueryState;
   onQueryChange: (patch: Partial<StudentQueryState>) => void;
   onOpenExportOptions: () => void;
+  isExportDisabled?: boolean;
 }
 
 export default function StudentQueryToolbar({
   query,
   onQueryChange,
   onOpenExportOptions,
+  isExportDisabled = false,
 }: StudentQueryToolbarProps) {
   return (
     <div className="space-y-4">
@@ -29,7 +31,12 @@ export default function StudentQueryToolbar({
           </svg>
         </div>
         <div className="flex w-full gap-2 md:w-auto">
-          <Button onClick={onOpenExportOptions} variant="success" className="w-full rounded-2xl md:w-auto">
+          <Button
+            onClick={onOpenExportOptions}
+            variant="success"
+            className="w-full rounded-2xl md:w-auto"
+            disabled={isExportDisabled}
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
