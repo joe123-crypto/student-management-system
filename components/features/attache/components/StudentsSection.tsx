@@ -173,25 +173,6 @@ export default function StudentsSection({
     return <StudentDetailView student={selectedStudent} onBack={() => setSelectedStudentId(null)} />;
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-6">
-            <Skeleton className="h-24" />
-            <Skeleton className="h-20" />
-            <Skeleton className="h-[420px]" />
-            <Skeleton className="hidden h-52 md:block" />
-          </div>
-          <aside className="hidden space-y-4 md:block xl:sticky xl:top-24">
-            <Skeleton className="h-72" />
-            <Skeleton className="h-48" />
-          </aside>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] items-start">
@@ -200,6 +181,7 @@ export default function StudentsSection({
             query={query}
             onQueryChange={updateQuery}
             onOpenExportOptions={() => setExportPopupOpen(true)}
+            isExportDisabled={isLoading}
           />
 
           <BulkActionsBar
@@ -213,14 +195,14 @@ export default function StudentsSection({
 
           <StudentRecordsTable
             students={paginatedTableStudents}
-            isLoading={isStudentTableLoading}
+            isLoading={isLoading || isStudentTableLoading}
             selectedStudentIds={selectedStudentIds}
             reviewedStudentIds={reviewedStudentIds}
             onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
             onToggleSelectOne={handleToggleSelectOne}
             onManage={setSelectedStudentId}
           />
-          {!isStudentTableLoading ? (
+          {!isLoading && !isStudentTableLoading ? (
             <StudentTablePagination
               totalItems={tableStudents.length}
               currentPage={currentPage}
@@ -254,13 +236,20 @@ export default function StudentsSection({
             onReset={resetAdvancedFilters}
             compact
           />
-          <DataInsightsPanel
-            totalCount={students.length}
-            filteredStudents={filteredStudents}
-            searchQuery={query.searchQuery}
-            duplicateGroups={duplicateGroups}
-            qualityIssueCount={qualityIssueCount}
-          />
+          {isLoading ? (
+            <>
+              <Skeleton className="h-72" />
+              <Skeleton className="h-48" />
+            </>
+          ) : (
+            <DataInsightsPanel
+              totalCount={students.length}
+              filteredStudents={filteredStudents}
+              searchQuery={query.searchQuery}
+              duplicateGroups={duplicateGroups}
+              qualityIssueCount={qualityIssueCount}
+            />
+          )}
         </aside>
       </div>
 
