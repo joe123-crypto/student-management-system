@@ -32,3 +32,6 @@ memory
 .env*
 test/test-db-output.txt
 test/test-db-output-2.txt
+
+.playwright-cli
+security_best_practices_report.md

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { UserRole } from '../../types';
 import Button from '@/components/ui/Button';
+import FloatingChatWidget from '@/components/layout/FloatingChatWidget';
 import { ChevronRight, Home, LogOut, Menu, PanelLeftClose, Settings } from 'lucide-react';
 
 interface LayoutProps {
@@ -191,6 +192,8 @@ const Layout: React.FC<LayoutProps> = ({
           <p className="theme-text-muted text-sm font-medium">&copy; {new Date().getFullYear()} ScholarsAlger. All rights reserved.</p>
         </footer>
       </div>
+
+      {role === UserRole.ATTACHE ? <FloatingChatWidget role={role} /> : null}
     </div>
   );
 };
