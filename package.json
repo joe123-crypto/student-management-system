@@ -20,6 +20,8 @@
     "audit:high": "npm audit --audit-level=high"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1014.0",
+    "@aws-sdk/s3-request-presigner": "^3.1014.0",
     "@node-rs/argon2": "^2.0.2",
     "@prisma/client": "^6.19.2",
     "lucide-react": "^0.575.0",

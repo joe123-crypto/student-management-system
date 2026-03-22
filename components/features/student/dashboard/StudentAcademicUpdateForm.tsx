@@ -8,16 +8,20 @@ interface StudentAcademicUpdateFormProps {
   newProgress: Partial<ProgressDetails>;
   inputClassName: string;
   onFieldChange: (field: 'year' | 'level' | 'grade' | 'proofDocument', value: string) => void;
+  onProofDocumentUpload: (file: File) => void | Promise<void>;
   onBack: () => void;
   onSubmit: () => void;
+  isUploadingProofDocument?: boolean;
 }
 
 const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
   newProgress,
   inputClassName,
   onFieldChange,
+  onProofDocumentUpload,
   onBack,
   onSubmit,
+  isUploadingProofDocument = false,
 }) => {
   return (
     <div className="theme-card relative min-h-[500px] overflow-hidden rounded-[2.5rem] border p-10 transition-all">
@@ -75,10 +79,12 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
         >
           <FileUploadDropzone
             value={newProgress.proofDocument}
-            onChange={(base64) => onFieldChange('proofDocument', base64)}
+            onChange={onProofDocumentUpload}
             onClear={() => onFieldChange('proofDocument', '')}
             emptyTitle="Drop your transcript here"
-            emptySubtitle="Or click to browse (PDF, PNG, JPG)"
+            emptySubtitle="Or click to browse (PDF only)"
+            accept=".pdf,application/pdf"
+            isUploading={isUploadingProofDocument}
           />
         </FormField>
 

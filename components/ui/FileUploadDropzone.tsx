@@ -3,13 +3,14 @@ import { cn } from './cn';
 
 interface FileUploadDropzoneProps {
   value?: string;
-  onChange: (base64: string) => void;
+  onChange: (file: File) => void | Promise<void>;
   onClear?: () => void;
   accept?: string;
   className?: string;
   emptyTitle?: string;
   emptySubtitle?: string;
   uploadedLabel?: string;
+  isUploading?: boolean;
 }
 
 export default function FileUploadDropzone({
@@ -21,18 +22,13 @@ export default function FileUploadDropzone({
   emptyTitle = 'Drop file here',
   emptySubtitle = 'Or click to browse',
   uploadedLabel = 'Document Uploaded',
+  isUploading = false,
 }: FileUploadDropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
   const readFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        onChange(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    void onChange(file);
   };
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +74,7 @@ export default function FileUploadDropzone({
           <span className="text-sm font-bold uppercase tracking-widest text-[color:var(--theme-primary)]">{uploadedLabel}</span>
           {onClear && (
             <button
+              disabled={isUploading}
               onClick={(event) => {
                 event.stopPropagation();
                 onClear();
@@ -96,10 +93,12 @@ export default function FileUploadDropzone({
             </svg>
           </div>
           <span className="theme-heading text-sm font-bold">{emptyTitle}</span>
-          <span className="theme-text-muted mt-1 text-xs font-medium">{emptySubtitle}</span>
+          <span className="theme-text-muted mt-1 text-xs font-medium">
+            {isUploading ? 'Uploading...' : emptySubtitle}
+          </span>
         </>
       )}
-      <input type="file" ref={inputRef} className="hidden" accept={accept} onChange={handleInput} />
+      <input type="file" ref={inputRef} className="hidden" accept={accept} onChange={handleInput} disabled={isUploading} />
     </div>
   );
 }

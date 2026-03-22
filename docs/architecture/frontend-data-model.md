@@ -30,12 +30,14 @@ This document is the complete reference for frontend data contracts used by the 
 | Normalized student domain tables | PostgreSQL via Prisma | `PERSON`/`STUDENT`/`ENROLLMENT` and related tables mapped through `lib/students/store.ts` |
 | `Announcement` | PostgreSQL via Prisma | Served through `lib/announcements/store.ts` and `/api/announcements*` |
 | `PermissionRequest` | PostgreSQL via Prisma | Served through `lib/permission-requests/store.ts` and `/api/permission-requests*` |
+| `FileAsset` | PostgreSQL via Prisma + private object storage | File metadata in Postgres, file bytes in Cloudflare R2 via `/api/files*` |
 
 ### Storage Ownership
 - Student records are persisted server-side in normalized Prisma tables.
 - Announcements and permission requests are persisted server-side when `NEXT_PUBLIC_USE_MOCK_DB=false`.
 - Runtime announcements may be cached client-side in IndexedDB for faster warm loads.
 - Auth session state is handled by Auth.js cookies rather than frontend storage keys.
+- Profile pictures and academic proof documents are now file-backed URLs resolved through authenticated `/api/files/{id}/content` routes.
 - The legacy normalized prototype database remains only for mock/reference tooling.
 - Some fields are frontend-only or derived and are not first-class query columns.
 
@@ -145,7 +147,7 @@ This document is the complete reference for frontend data contracts used by the 
 | `student.dateOfBirth` | `PERSON.dob` | |
 | `student.gender` | `PERSON.gender` | Normalized in mapper |
 | `student.nationality` | Derived from `PASSPORT.passport_no` prefix | Derived |
-| `student.profilePicture` | Not in normalized DB | Frontend-only |
+| `student.profilePicture` | `FileAsset` (`purpose=PROFILE_IMAGE`) | Exposed as an authenticated file-content URL |
 | `passport.passportNumber` | `PASSPORT.passport_no` | |
 | `passport.issueDate` | `PASSPORT.issue_date` | |
 | `passport.expiryDate` | `PASSPORT.expiry` | |
@@ -184,7 +186,7 @@ This document is the complete reference for frontend data contracts used by the 
 | `academicHistory[].level` | `PROGRESS.level` | |
 | `academicHistory[].grade` | `PROGRESS.grade` | |
 | `academicHistory[].status` | `PROGRESS.status` | |
-| `academicHistory[].proofDocument` | Not in normalized DB | Frontend-only |
+| `academicHistory[].proofDocument` | `FileAsset` (`purpose=RESULT_SLIP`) | Exposed as an authenticated file-content URL |
 
 ## Coverage Rules
 - New exported data type aliases, enums, or interfaces in `types.ts`, `services/contracts.ts`, or `components/features/attache/types.ts` must be added as sections in this document.

@@ -1,6 +1,13 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import {
+  attachProfileImageToStudentTx,
+  attachResultSlipToProgressTx,
+  clearStudentProfileImageTx,
+  extractFileIdFromReference,
+  listStudentFileLinks,
+} from '@/lib/files/store';
+import {
   createEmptyStudentProfile,
   mergeStudentProfile,
   normalizeStudentProfile,
@@ -14,6 +21,11 @@ type StudentIdentity = {
 };
 
 type DbTx = Prisma.TransactionClient;
+
+const STUDENT_WRITE_TRANSACTION_OPTIONS = {
+  maxWait: 10_000,
+  timeout: 30_000,
+};
 
 const studentInclude = Prisma.validator<Prisma.StudentInclude>()({
   person: {
@@ -92,6 +104,7 @@ const universityInclude = Prisma.validator<Prisma.UniversityInclude>()({
 
 type StudentRow = Prisma.StudentGetPayload<{ include: typeof studentInclude }>;
 type UniversityRow = Prisma.UniversityGetPayload<{ include: typeof universityInclude }>;
+type StudentFileLinks = Awaited<ReturnType<typeof listStudentFileLinks>>;
 
 function buildStudentProfileId(studentId: number): string {
   return `student-${studentId}`;
@@ -197,7 +210,11 @@ function selectUniversity(student: StudentRow, universities: UniversityRow[]): U
   );
 }
 
-function mapStudentRow(student: StudentRow, universities: UniversityRow[]): StudentProfile {
+function mapStudentRow(
+  student: StudentRow,
+  universities: UniversityRow[],
+  fileLinks?: StudentFileLinks,
+): StudentProfile {
   const person = student.person;
   const passport = person.passports[0];
   const account = person.accounts[0];
@@ -226,6 +243,7 @@ function mapStudentRow(student: StudentRow, universities: UniversityRow[]): Stud
       dateOfBirth: person.dob,
       nationality: passport?.passportNo ? passport.passportNo.slice(0, 2) : '',
       gender: person.gender === 'F' ? 'F' : person.gender === 'Other' ? 'Other' : 'M',
+      profilePicture: fileLinks?.profilePictureUrl,
     },
     passport: {
       passportNumber: passport?.passportNo || '',
@@ -283,6 +301,7 @@ function mapStudentRow(student: StudentRow, universities: UniversityRow[]): Stud
       level: entry.level,
       grade: entry.grade,
       status: entry.status,
+      proofDocument: fileLinks?.proofDocumentsByProgressId.get(entry.id),
     })),
   });
 }
@@ -317,8 +336,21 @@ async function hydrateStudentRow(student: StudentRow | null, db: typeof prisma |
   }
 
   const universities = await loadUniversities(db);
-  return mapStudentRow(student, universities);
+  const latestEnrollment = student.enrollments[0];
+  const progressIds = latestEnrollment?.progressRows.map((entry) => entry.id) || [];
+  const fileLinks = await listStudentFileLinks(student.id, progressIds, db);
+  return mapStudentRow(student, universities, fileLinks);
 }
+
+type SyncedProgressRow = {
+  progressId: number;
+  proofDocument?: string;
+};
+
+type SyncedEnrollmentResult = {
+  enrollmentId: number;
+  progressRows: SyncedProgressRow[];
+} | null;
 
 async function getOrCreateProvince(tx: DbTx, provinceName: string): Promise<number | null> {
   const normalized = provinceName.trim();
@@ -709,14 +741,18 @@ function hasEnrollmentData(profile: StudentProfile, existingEnrollment: { id: nu
   );
 }
 
-async function syncLatestEnrollment(tx: DbTx, studentId: number, profile: StudentProfile): Promise<void> {
+async function syncLatestEnrollment(
+  tx: DbTx,
+  studentId: number,
+  profile: StudentProfile,
+): Promise<SyncedEnrollmentResult> {
   const latestEnrollment = await tx.enrollment.findFirst({
     where: { studentId },
     orderBy: [{ dateEnrolled: 'desc' }, { id: 'desc' }],
   });
 
   if (!hasEnrollmentData(profile, latestEnrollment)) {
-    return;
+    return null;
   }
 
   const departmentId = await getOrCreateDepartment(tx, profile.university.department || '');
@@ -751,27 +787,59 @@ async function syncLatestEnrollment(tx: DbTx, studentId: number, profile: Studen
       });
 
   if (profile.academicHistory === undefined) {
-    return;
+    return {
+      enrollmentId: enrollment.id,
+      progressRows: [],
+    };
   }
 
-  await tx.progress.deleteMany({
+  const existingProgressRows = await tx.progress.findMany({
     where: {
       enrollmentId: enrollment.id,
     },
+    orderBy: [{ date: 'asc' }, { id: 'asc' }],
   });
 
-  for (const item of profile.academicHistory) {
-    await tx.progress.create({
-      data: {
-        date: item.date,
-        semester: item.year,
-        level: item.level,
-        grade: item.grade,
-        status: item.status || 'PENDING',
-        enrollmentId: enrollment.id,
-      },
+  const syncedProgressRows: SyncedProgressRow[] = [];
+
+  for (let index = 0; index < profile.academicHistory.length; index += 1) {
+    const item = profile.academicHistory[index];
+    const existingRow = existingProgressRows[index];
+    const data = {
+      date: item.date,
+      semester: item.year,
+      level: item.level,
+      grade: item.grade,
+      status: item.status || 'PENDING',
+      enrollmentId: enrollment.id,
+    };
+
+    const progress = existingRow
+      ? await tx.progress.update({
+          where: { id: existingRow.id },
+          data,
+        })
+      : await tx.progress.create({
+          data,
+        });
+
+    syncedProgressRows.push({
+      progressId: progress.id,
+      proofDocument: item.proofDocument,
     });
   }
+
+  const extraProgressRows = existingProgressRows.slice(profile.academicHistory.length);
+  for (const progress of extraProgressRows) {
+    await tx.progress.delete({
+      where: { id: progress.id },
+    });
+  }
+
+  return {
+    enrollmentId: enrollment.id,
+    progressRows: syncedProgressRows,
+  };
 }
 
 function hasBankingData(profile: StudentProfile, existingAccount: { id: number } | null): boolean {
@@ -892,13 +960,69 @@ async function createStudentProfileTx(tx: DbTx, profile: StudentProfile): Promis
   await syncPassport(tx, person.id, normalizedProfile);
   await syncContacts(tx, person.id, normalizedProfile);
   await ensureUniversityReference(tx, normalizedProfile);
-  await syncLatestEnrollment(tx, student.id, normalizedProfile);
+  const syncedEnrollment = await syncLatestEnrollment(tx, student.id, normalizedProfile);
   await syncBanking(tx, person.id, normalizedProfile);
+  await syncManagedFilesTx({
+    tx,
+    studentId: student.id,
+    personId: person.id,
+    profile: normalizedProfile,
+    syncedEnrollment,
+    clearProfilePicture: false,
+  });
 
   return student.id;
 }
 
-async function updateStudentProfileTx(tx: DbTx, studentId: number, profile: StudentProfile): Promise<void> {
+async function syncManagedFilesTx(params: {
+  tx: DbTx;
+  studentId: number;
+  personId: number;
+  profile: StudentProfile;
+  syncedEnrollment: SyncedEnrollmentResult;
+  clearProfilePicture: boolean;
+}): Promise<void> {
+  if (params.clearProfilePicture) {
+    await clearStudentProfileImageTx(params.tx, params.studentId);
+  } else {
+    const profileImageFileId = extractFileIdFromReference(params.profile.student.profilePicture);
+    if (profileImageFileId) {
+      await attachProfileImageToStudentTx({
+        tx: params.tx,
+        studentId: params.studentId,
+        personId: params.personId,
+        fileId: profileImageFileId,
+      });
+    }
+  }
+
+  if (!params.syncedEnrollment) {
+    return;
+  }
+
+  for (const row of params.syncedEnrollment.progressRows) {
+    const proofFileId = extractFileIdFromReference(row.proofDocument);
+    if (!proofFileId) {
+      continue;
+    }
+
+    await attachResultSlipToProgressTx({
+      tx: params.tx,
+      studentId: params.studentId,
+      personId: params.personId,
+      enrollmentId: params.syncedEnrollment.enrollmentId,
+      progressId: row.progressId,
+      fileId: proofFileId,
+    });
+  }
+}
+
+async function updateStudentProfileTx(
+  tx: DbTx,
+  studentId: number,
+  profile: StudentProfile,
+  options: { clearProfilePicture: boolean },
+): Promise<void> {
   const student = await tx.student.findUnique({
     where: { id: studentId },
     include: {
@@ -941,8 +1065,16 @@ async function updateStudentProfileTx(tx: DbTx, studentId: number, profile: Stud
   await syncPassport(tx, student.personId, normalizedProfile);
   await syncContacts(tx, student.personId, normalizedProfile);
   await ensureUniversityReference(tx, normalizedProfile);
-  await syncLatestEnrollment(tx, student.id, normalizedProfile);
+  const syncedEnrollment = await syncLatestEnrollment(tx, student.id, normalizedProfile);
   await syncBanking(tx, student.personId, normalizedProfile);
+  await syncManagedFilesTx({
+    tx,
+    studentId: student.id,
+    personId: student.personId,
+    profile: normalizedProfile,
+    syncedEnrollment,
+    clearProfilePicture: options.clearProfilePicture,
+  });
 }
 
 async function clearNormalizedStudentData(tx: DbTx): Promise<void> {
@@ -1050,7 +1182,10 @@ export async function ensureStudentProfileForIdentity(
     status: 'PENDING',
   });
 
-  const studentId = await prisma.$transaction((tx) => createStudentProfileTx(tx, profile));
+  const studentId = await prisma.$transaction(
+    (tx) => createStudentProfileTx(tx, profile),
+    STUDENT_WRITE_TRANSACTION_OPTIONS,
+  );
   const created = await getStudentRowById(studentId);
   return hydrateStudentRow(created);
 }
@@ -1080,7 +1215,15 @@ export async function updateStudentProfile(
     throw new Error('Student profile not found.');
   }
 
-  await prisma.$transaction((tx) => updateStudentProfileTx(tx, studentId, nextProfile));
+  const clearProfilePicture = patch.student?.profilePicture === '';
+
+  await prisma.$transaction(
+    (tx) =>
+      updateStudentProfileTx(tx, studentId, nextProfile, {
+        clearProfilePicture,
+      }),
+    STUDENT_WRITE_TRANSACTION_OPTIONS,
+  );
   const updated = await findStudentProfileById(existing.id);
 
   if (!updated) {
@@ -1128,60 +1271,63 @@ export async function deleteStudentProfiles(ids: string[]): Promise<void> {
   });
   const enrollmentIds = enrollments.map((entry) => entry.id);
 
-  await prisma.$transaction(async (tx) => {
-    if (enrollmentIds.length > 0) {
-      await tx.progress.deleteMany({
+  await prisma.$transaction(
+    async (tx) => {
+      if (enrollmentIds.length > 0) {
+        await tx.progress.deleteMany({
+          where: {
+            enrollmentId: {
+              in: enrollmentIds,
+            },
+          },
+        });
+      }
+
+      await tx.enrollment.deleteMany({
         where: {
-          enrollmentId: {
-            in: enrollmentIds,
+          studentId: {
+            in: studentIds,
           },
         },
       });
-    }
-
-    await tx.enrollment.deleteMany({
-      where: {
-        studentId: {
-          in: studentIds,
+      await tx.account.deleteMany({
+        where: {
+          personId: {
+            in: personIds,
+          },
         },
-      },
-    });
-    await tx.account.deleteMany({
-      where: {
-        personId: {
-          in: personIds,
+      });
+      await tx.contact.deleteMany({
+        where: {
+          ownerId: {
+            in: personIds,
+          },
         },
-      },
-    });
-    await tx.contact.deleteMany({
-      where: {
-        ownerId: {
-          in: personIds,
+      });
+      await tx.passport.deleteMany({
+        where: {
+          personId: {
+            in: personIds,
+          },
         },
-      },
-    });
-    await tx.passport.deleteMany({
-      where: {
-        personId: {
-          in: personIds,
+      });
+      await tx.student.deleteMany({
+        where: {
+          id: {
+            in: studentIds,
+          },
         },
-      },
-    });
-    await tx.student.deleteMany({
-      where: {
-        id: {
-          in: studentIds,
+      });
+      await tx.person.deleteMany({
+        where: {
+          id: {
+            in: personIds,
+          },
         },
-      },
-    });
-    await tx.person.deleteMany({
-      where: {
-        id: {
-          in: personIds,
-        },
-      },
-    });
-  });
+      });
+    },
+    STUDENT_WRITE_TRANSACTION_OPTIONS,
+  );
 }
 
 export async function importStudentProfiles(
@@ -1191,13 +1337,16 @@ export async function importStudentProfiles(
   const dedupedProfiles = dedupeProfiles(records);
 
   if (mode === 'replace') {
-    await prisma.$transaction(async (tx) => {
-      await clearNormalizedStudentData(tx);
+    await prisma.$transaction(
+      async (tx) => {
+        await clearNormalizedStudentData(tx);
 
-      for (const profile of dedupedProfiles) {
-        await createStudentProfileTx(tx, normalizeStudentProfile(profile));
-      }
-    });
+        for (const profile of dedupedProfiles) {
+          await createStudentProfileTx(tx, normalizeStudentProfile(profile));
+        }
+      },
+      STUDENT_WRITE_TRANSACTION_OPTIONS,
+    );
 
     return listStudentProfiles();
   }
@@ -1212,7 +1361,10 @@ export async function importStudentProfiles(
     });
 
     if (!existing) {
-      await prisma.$transaction((tx) => createStudentProfileTx(tx, normalized));
+      await prisma.$transaction(
+        (tx) => createStudentProfileTx(tx, normalized),
+        STUDENT_WRITE_TRANSACTION_OPTIONS,
+      );
       continue;
     }
 
@@ -1231,7 +1383,13 @@ export async function importStudentProfiles(
     });
     merged.student.inscriptionNumber = currentProfile.student.inscriptionNumber;
 
-    await prisma.$transaction((tx) => updateStudentProfileTx(tx, existing.id, merged));
+    await prisma.$transaction(
+      (tx) =>
+        updateStudentProfileTx(tx, existing.id, merged, {
+          clearProfilePicture: false,
+        }),
+      STUDENT_WRITE_TRANSACTION_OPTIONS,
+    );
   }
 
   return listStudentProfiles();
