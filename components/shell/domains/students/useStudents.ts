@@ -19,6 +19,11 @@ function upsertStudent(students: StudentProfile[], nextStudent: StudentProfile):
   return next;
 }
 
+async function readStudentError(response: Response): Promise<string> {
+  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+  return payload?.error || `Failed to update student (${response.status}).`;
+}
+
 export function useStudents(user: User | null) {
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(null);
@@ -174,7 +179,7 @@ export function useStudents(user: User | null) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update student (${response.status}).`);
+      throw new Error(await readStudentError(response));
     }
 
     const payload = (await response.json()) as { student: StudentProfile };

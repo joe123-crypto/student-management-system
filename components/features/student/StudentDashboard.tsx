@@ -10,6 +10,7 @@ import StudentAcademicProgressPanel from '@/components/features/student/dashboar
 import StudentAcademicUpdateForm from '@/components/features/student/dashboard/StudentAcademicUpdateForm';
 import StudentMissingInfoSidebar from '@/components/features/student/dashboard/StudentMissingInfoSidebar';
 import StudentPasswordSettings from '@/components/features/student/dashboard/StudentPasswordSettings';
+import { uploadManagedFile } from '@/lib/files/client';
 
 interface StudentDashboardProps {
   student: StudentProfile | null;
@@ -53,6 +54,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [isUpdatingAcademic, setIsUpdatingAcademic] = useState(false);
   const [editData, setEditData] = useState<StudentProfile | null>(null);
   const [isProfileDataLoading, setIsProfileDataLoading] = useState(true);
+  const [isUploadingProfilePicture, setIsUploadingProfilePicture] = useState(false);
+  const [isUploadingProofDocument, setIsUploadingProofDocument] = useState(false);
   const [newProgress, setNewProgress] = useState<Partial<ProgressDetails>>({
     year: '',
     level: '',
@@ -166,6 +169,53 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     }
   };
 
+  const uploadProfilePicture = async (file: File) => {
+    if (!student) {
+      return;
+    }
+
+    setIsUploadingProfilePicture(true);
+    try {
+      const uploaded = await uploadManagedFile({
+        purpose: 'PROFILE_IMAGE',
+        studentProfileId: student.id,
+        file,
+      });
+
+      handleUpdateField('student', 'profilePicture', uploaded.contentUrl);
+      onUpdate(student.id, {
+        student: { ...student.student, profilePicture: uploaded.contentUrl },
+      });
+    } catch (error) {
+      console.error('[FILES] Failed to upload profile picture:', error);
+      alert((error as Error).message || 'Failed to upload profile picture.');
+    } finally {
+      setIsUploadingProfilePicture(false);
+    }
+  };
+
+  const uploadProofDocument = async (file: File) => {
+    if (!student) {
+      return;
+    }
+
+    setIsUploadingProofDocument(true);
+    try {
+      const uploaded = await uploadManagedFile({
+        purpose: 'RESULT_SLIP',
+        studentProfileId: student.id,
+        file,
+      });
+
+      setNewProgress((current) => ({ ...current, proofDocument: uploaded.contentUrl }));
+    } catch (error) {
+      console.error('[FILES] Failed to upload result slip:', error);
+      alert((error as Error).message || 'Failed to upload result slip.');
+    } finally {
+      setIsUploadingProofDocument(false);
+    }
+  };
+
   return (
     <Layout
       role={UserRole.STUDENT}
@@ -198,18 +248,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     student={student}
                     currentPicture={currentPicture}
                     loading={isStudentDataPending || isProfileDataLoading || !editData}
-                    onProfilePictureChange={(base64) => {
-                      if (!student) {
-                        return;
-                      }
-
-                      handleUpdateField('student', 'profilePicture', base64);
-                      if (!isEditing) {
-                        onUpdate(student.id, {
-                          student: { ...student.student, profilePicture: base64 },
-                        });
-                      }
-                    }}
+                    onProfilePictureChange={uploadProfilePicture}
                     onProfilePictureRemove={() => {
                       if (!student) {
                         return;
@@ -222,6 +261,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         });
                       }
                     }}
+                    isUploadingProfilePicture={isUploadingProfilePicture}
                   />
 
                   {!isStudentDataPending && !isProfileDataLoading && editData && student ? (
@@ -249,8 +289,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     newProgress={newProgress}
                     inputClassName={inputClass}
                     onFieldChange={(field, value) => setNewProgress((p) => ({ ...p, [field]: value }))}
+                    onProofDocumentUpload={uploadProofDocument}
                     onBack={() => setIsUpdatingAcademic(false)}
                     onSubmit={submitAcademicUpdate}
+                    isUploadingProofDocument={isUploadingProofDocument}
                   />
                 ) : (
                   <StudentAcademicProgressPanel

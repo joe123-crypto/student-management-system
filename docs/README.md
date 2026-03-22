@@ -19,6 +19,7 @@ This folder is the internal documentation hub for maintainers and agents.
 - `docs/architecture/system-overview.md`: system-level architecture narrative.
 - `docs/architecture/frontend-data-model.md`: canonical frontend data contracts.
 - `docs/architecture/app-schema.md`: normalized DB schema.
+- `docs/architecture/object-storage-design.md`: proposed object storage schema, API flow, and provider design.
 
 ### Memory
 - `docs/memory/RECENT.md`: latest implementation updates (keep to 10 lines max per update block).

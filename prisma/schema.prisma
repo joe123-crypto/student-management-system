@@ -23,6 +23,31 @@ enum PermissionRequestStatus {
   REJECTED
 }
 
+enum FilePurpose {
+  PROFILE_IMAGE
+  RESULT_SLIP
+  ATTACHE_ATTACHMENT
+  AGENT_CONTEXT
+}
+
+enum FileVisibility {
+  PRIVATE
+  INTERNAL
+}
+
+enum FileStatus {
+  PENDING_UPLOAD
+  ACTIVE
+  QUARANTINED
+  DELETED
+  EXPIRED
+}
+
+enum StorageProvider {
+  R2
+  S3
+}
+
 model AuthUser {
   id                String              @id @default(cuid())
   role              UserRole
@@ -37,6 +62,8 @@ model AuthUser {
   auditLogs         AuditLog[]
   announcements     Announcement[]
   reviewedRequests  PermissionRequest[] @relation("PermissionRequestReviewer")
+  uploadedFiles     FileAsset[]
+  agentContextFiles AgentContextFile[]
 
   @@unique([role, loginId])
   @@index([role])
@@ -96,6 +123,7 @@ model Person {
   passports     Passport[]
   contacts      Contact[]
   accounts      Account[]
+  fileAssets    FileAsset[]
 
   @@index([givenName])
   @@index([familyName])
@@ -111,6 +139,7 @@ model Student {
   person        Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
   address       Address?     @relation("StudentCurrentAddress", fields: [addressId], references: [id], onDelete: SetNull)
   enrollments   Enrollment[]
+  fileAssets    FileAsset[]
 
   @@index([addressId])
   @@map("STUDENT")
@@ -227,6 +256,7 @@ model Enrollment {
   student        Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   program        Program    @relation(fields: [programId], references: [id], onDelete: Restrict)
   progressRows   Progress[]
+  fileAssets     FileAsset[]
 
   @@index([studentId])
   @@index([programId])
@@ -243,6 +273,7 @@ model Progress {
   status       String
   enrollmentId Int        @map("enrollment_id")
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  fileAssets   FileAsset[]
 
   @@index([enrollmentId])
   @@map("PROGRESS")
@@ -292,4 +323,66 @@ model Account {
   @@index([personId])
   @@index([branchId])
   @@map("ACCOUNT")
+}
+
+model FileAsset {
+  id                String          @id @default(cuid())
+  purpose           FilePurpose
+  visibility        FileVisibility  @default(PRIVATE)
+  status            FileStatus      @default(PENDING_UPLOAD)
+  provider          StorageProvider
+  bucket            String
+  objectKey         String          @unique
+  originalFilename  String
+  sanitizedFilename String
+  mimeType          String
+  sizeBytes         Int
+  checksumSha256    String?
+  etag              String?
+  studentId         Int?
+  personId          Int?
+  enrollmentId      Int?
+  progressId        Int?
+  uploadedByUserId  String?
+  supersededById    String?
+  scanStatus        String?
+  scanDetails       Json?
+  metadata          Json?
+  expiresAt         DateTime?
+  uploadedAt        DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  student           Student?        @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  person            Person?         @relation(fields: [personId], references: [id], onDelete: SetNull)
+  enrollment        Enrollment?     @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  progress          Progress?       @relation(fields: [progressId], references: [id], onDelete: SetNull)
+  uploadedByUser    AuthUser?       @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  supersededBy      FileAsset?      @relation("SupersededFileAsset", fields: [supersededById], references: [id], onDelete: SetNull)
+  previousVersions  FileAsset[]     @relation("SupersededFileAsset")
+  agentContexts     AgentContextFile[]
+
+  @@index([purpose, status])
+  @@index([studentId, purpose])
+  @@index([personId, purpose])
+  @@index([enrollmentId, purpose])
+  @@index([progressId, purpose])
+  @@index([uploadedByUserId, createdAt])
+  @@index([expiresAt])
+}
+
+model AgentContextFile {
+  id             String    @id @default(cuid())
+  fileAssetId    String    @unique
+  ownerUserId    String?
+  sessionId      String?
+  source         String
+  purpose        String
+  isPinned       Boolean   @default(false)
+  lastAccessedAt DateTime?
+  createdAt      DateTime  @default(now())
+  fileAsset      FileAsset @relation(fields: [fileAssetId], references: [id], onDelete: Cascade)
+  ownerUser      AuthUser? @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+
+  @@index([ownerUserId, createdAt])
+  @@index([sessionId])
 }

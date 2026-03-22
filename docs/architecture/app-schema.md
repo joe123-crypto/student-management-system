@@ -24,6 +24,14 @@ For full frontend data contracts (including announcements, permission requests, 
 - Stores student access requests submitted from the public login flow and reviewed by attaches.
 - Key fields: `inscriptionNumber`, `fullName`, `passportNumber`, `status`, `submittedAt`, `reviewedById`.
 
+### `FileAsset`
+- Stores object metadata for private files whose bytes live in object storage.
+- Key fields: `purpose`, `status`, `provider`, `bucket`, `objectKey`, `studentId`, `progressId`, `uploadedByUserId`.
+
+### `AgentContextFile`
+- Stores optional agent-session linkage for file assets that should be tracked separately from user-facing documents.
+- Key fields: `fileAssetId`, `ownerUserId`, `sessionId`, `source`, `purpose`.
+
 ### Normalized Student Domain
 - Student records are persisted across the normalized tables documented below.
 - `lib/students/store.ts` maps these tables to and from the shared `StudentProfile` contract.

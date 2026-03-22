@@ -4,6 +4,7 @@
 - Next.js (App Router), React, and TypeScript.
 - Auth.js credentials auth with Prisma-backed identity records.
 - Prisma + PostgreSQL for normalized student profiles, announcements, and permission requests.
+- Cloudflare R2-backed private object storage for file bytes plus PostgreSQL metadata.
 - Tailwind CSS for styling.
 - Mock mode can still persist announcements and permission requests in `localStorage`.
 
@@ -13,11 +14,14 @@
 - `app/api/announcements/*`: announcement CRUD surface.
 - `app/api/permission-requests/*`: permission request submission and review surface.
 - `app/api/auth/*`: Auth.js session routes plus password-change endpoint.
+- `app/api/files/*`: file metadata, signed upload, and signed access routes.
 - `components/shell/`: routing shell, guards, and domain hooks orchestration.
 - `components/features/*`: feature screens and feature-specific UI logic.
 - `components/layout/`: shared page shell (sidebar, top nav, footer wrappers).
 - `components/ui/`: reusable primitives.
 - `lib/students/`: student profile normalization and Prisma store logic.
+- `lib/files/`: file metadata policies, attachment linking, and upload/access orchestration.
+- `lib/storage/`: object storage provider adapters.
 - `test/mock/`: legacy prototype data tables, seed data, and mock service adapters.
 - `services/`: shared service contracts.
 
@@ -25,9 +29,10 @@
 1. Next page entry renders `components/shell/AppShell.tsx` with a route.
 2. `AppShell` hydrates Auth.js session state plus student, announcement, and permission-request domains.
 3. Student profile reads and writes go through `components/shell/domains/students/useStudents.ts`.
-4. `/api/students*`, `/api/announcements*`, and `/api/permission-requests*` route handlers authorize the caller and delegate to their domain stores under `lib/`.
+4. `/api/students*`, `/api/announcements*`, `/api/permission-requests*`, and `/api/files*` route handlers authorize the caller and delegate to their domain stores under `lib/`.
 5. `POST /api/auth/change-password` rotates credential hashes for signed-in users.
-6. Middleware and router guards enforce role-based access before feature screens render.
+6. Signed upload intents and signed access URLs keep private files out of PostgreSQL and browser persistent storage.
+7. Middleware and router guards enforce role-based access before feature screens render.
 
 ## Route Ownership
 - Route literals: `components/shell/routes.ts`.
@@ -41,6 +46,7 @@
 - Auth/session: `components/shell/domains/auth/useAuth.ts`.
 - Announcements: `components/shell/domains/announcements/useAnnouncements.ts` + `app/api/announcements/*` + `lib/announcements/*`.
 - Permission requests: `components/shell/domains/permissions/usePermissionRequests.ts` + `app/api/permission-requests/*` + `lib/permission-requests/*`.
+- File metadata + object access: `app/api/files/*` + `lib/files/*` + `lib/storage/*`.
 - Legacy prototype helpers: `test/mock/prototypeDatabase.ts`.
 - Service contracts: `services/contracts.ts`.
 

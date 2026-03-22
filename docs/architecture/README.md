@@ -6,6 +6,7 @@ Use this section for system and data-shape references.
 - `docs/architecture/system-overview.md`: high-level architecture and ownership.
 - `docs/architecture/frontend-data-model.md`: complete frontend data contracts and mapping.
 - `docs/architecture/app-schema.md`: normalized prototype DB schema.
+- `docs/architecture/object-storage-design.md`: proposed object storage metadata schema, upload/download flow, and provider abstraction.
 - `docs/architecture/data-model-integration-diagrams.md`: diagrams showing DB-to-frontend mapping and write/read flows.
 - `docs/architecture/auth-implementation-plan.md`: phased migration plan from prototype auth to server-side auth.
 

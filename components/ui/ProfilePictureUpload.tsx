@@ -3,12 +3,19 @@ import Button from './Button';
 
 interface ProfilePictureUploadProps {
   imageSrc?: string;
-  onChange: (base64: string) => void;
+  onChange: (file: File) => void | Promise<void>;
   onRemove?: () => void;
   className?: string;
+  isUploading?: boolean;
 }
 
-export default function ProfilePictureUpload({ imageSrc, onChange, onRemove, className }: ProfilePictureUploadProps) {
+export default function ProfilePictureUpload({
+  imageSrc,
+  onChange,
+  onRemove,
+  className,
+  isUploading = false,
+}: ProfilePictureUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,13 +24,7 @@ export default function ProfilePictureUpload({ imageSrc, onChange, onRemove, cla
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        onChange(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    void onChange(file);
   };
 
   return (
@@ -39,6 +40,7 @@ export default function ProfilePictureUpload({ imageSrc, onChange, onRemove, cla
           )}
           <button
             onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
             className="absolute inset-0 flex items-center justify-center bg-[rgba(27,59,25,0.46)] text-white opacity-0 transition-opacity group-hover:opacity-100"
           >
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,11 +60,11 @@ export default function ProfilePictureUpload({ imageSrc, onChange, onRemove, cla
       </div>
 
       <div className="mt-4 flex gap-3 justify-center md:justify-start">
-        <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
-          Upload New Picture
+        <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+          {isUploading ? 'Uploading...' : 'Upload New Picture'}
         </Button>
         {imageSrc && onRemove && (
-          <Button variant="danger" size="sm" onClick={onRemove}>
+          <Button variant="danger" size="sm" onClick={onRemove} disabled={isUploading}>
             Remove
           </Button>
         )}

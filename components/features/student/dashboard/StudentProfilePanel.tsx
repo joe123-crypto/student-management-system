@@ -6,8 +6,9 @@ interface StudentProfilePanelProps {
   student: StudentProfile | null;
   currentPicture?: string;
   loading?: boolean;
-  onProfilePictureChange: (base64: string) => void;
+  onProfilePictureChange: (file: File) => void | Promise<void>;
   onProfilePictureRemove: () => void;
+  isUploadingProfilePicture?: boolean;
 }
 
 const tinyLabelClass = 'theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-[0.2em]';
@@ -19,6 +20,7 @@ const StudentProfilePanel: React.FC<StudentProfilePanelProps> = ({
   loading = false,
   onProfilePictureChange,
   onProfilePictureRemove,
+  isUploadingProfilePicture = false,
 }) => {
   if (loading || !student) {
     return (
@@ -92,6 +94,7 @@ const StudentProfilePanel: React.FC<StudentProfilePanelProps> = ({
             imageSrc={currentPicture}
             onChange={onProfilePictureChange}
             onRemove={onProfilePictureRemove}
+            isUploading={isUploadingProfilePicture}
           />
           <div className="space-y-2">
             <h4 className="theme-heading text-2xl font-bold tracking-tight">{student.student.fullName}</h4>
