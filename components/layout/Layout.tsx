@@ -14,6 +14,7 @@ interface LayoutProps {
   setActiveTab?: (tab: string) => void;
   profilePicture?: string;
   showSettingsMenu?: boolean;
+  showSidebarFooter?: boolean;
 }
 
 const Layout: React.FC<LayoutProps> = ({
@@ -25,6 +26,7 @@ const Layout: React.FC<LayoutProps> = ({
   setActiveTab,
   profilePicture,
   showSettingsMenu = false,
+  showSidebarFooter = true,
 }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const pathname = usePathname();
@@ -117,42 +119,44 @@ const Layout: React.FC<LayoutProps> = ({
           ) : null}
         </nav>
 
-        {isSidebarExpanded ? (
-          <div className="p-6">
-            <div className="theme-card-muted space-y-4 rounded-3xl border p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--theme-primary)] shadow-lg shadow-[rgba(37,79,34,0.16)]">
-                  {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
+        {showSidebarFooter ? (
+          isSidebarExpanded ? (
+            <div className="p-6">
+              <div className="theme-card-muted space-y-4 rounded-3xl border p-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--theme-primary)] shadow-lg shadow-[rgba(37,79,34,0.16)]">
+                    {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="theme-text-muted mb-1 text-[10px] font-black uppercase tracking-widest leading-none">Role</p>
+                    <p className="theme-heading text-sm font-bold uppercase">{role}</p>
+                  </div>
                 </div>
-                <div className="overflow-hidden">
-                  <p className="theme-text-muted mb-1 text-[10px] font-black uppercase tracking-widest leading-none">Role</p>
-                  <p className="theme-heading text-sm font-bold uppercase">{role}</p>
-                </div>
-              </div>
 
-              <Button onClick={onLogout} variant="danger" title="Logout" className="w-full rounded-2xl py-3">
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
+                <Button onClick={onLogout} variant="danger" title="Logout" className="w-full rounded-2xl py-3">
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="p-2 space-y-2">
-            <div
-              title={role}
-              className="mx-auto flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--theme-primary)] shadow-lg shadow-[rgba(37,79,34,0.16)]"
-            >
-              {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
+          ) : (
+            <div className="p-2 space-y-2">
+              <div
+                title={role}
+                className="mx-auto flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--theme-primary)] shadow-lg shadow-[rgba(37,79,34,0.16)]"
+              >
+                {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
+              </div>
+              <button
+                onClick={onLogout}
+                title="Logout"
+                className="theme-danger mx-auto inline-flex h-10 w-10 items-center justify-center rounded-xl border"
+              >
+                <LogOut className="w-4 h-4 shrink-0" />
+              </button>
             </div>
-            <button
-              onClick={onLogout}
-              title="Logout"
-              className="theme-danger mx-auto inline-flex h-10 w-10 items-center justify-center rounded-xl border"
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-            </button>
-          </div>
-        )}
+          )
+        ) : null}
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 md:pl-[var(--collapsed-sidebar-width)]">

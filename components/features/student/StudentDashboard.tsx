@@ -10,14 +10,16 @@ import StudentAcademicProgressPanel from '@/components/features/student/dashboar
 import StudentAcademicUpdateForm from '@/components/features/student/dashboard/StudentAcademicUpdateForm';
 import StudentMissingInfoSidebar from '@/components/features/student/dashboard/StudentMissingInfoSidebar';
 import StudentPasswordSettings from '@/components/features/student/dashboard/StudentPasswordSettings';
-import { uploadManagedFile } from '@/lib/files/client';
+import { readFileAsDataUrl, uploadManagedFile } from '@/lib/files/client';
+import { mergeStudentProfile } from '@/lib/students/profile';
+import { isMockDbEnabled } from '@/test/mock/config';
 
 interface StudentDashboardProps {
   student: StudentProfile | null;
   announcements: Announcement[];
   isStudentLoading: boolean;
   isAnnouncementsLoading: boolean;
-  onUpdate: (id: string, profile: Partial<StudentProfile>) => void;
+  onUpdate: (id: string, profile: Partial<StudentProfile>) => Promise<void>;
   section: 'dashboard' | 'settings';
   onNavigateSection: (section: 'dashboard' | 'settings') => void;
   onChangePassword: (
@@ -50,6 +52,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const [optimisticStudent, setOptimisticStudent] = useState<StudentProfile | null>(student);
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdatingAcademic, setIsUpdatingAcademic] = useState(false);
   const [editData, setEditData] = useState<StudentProfile | null>(null);
@@ -63,8 +66,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     proofDocument: '',
   });
 
+  const visibleStudent = optimisticStudent ?? student;
+
   useEffect(() => {
-    if (!student) {
+    setOptimisticStudent(student);
+  }, [student]);
+
+  useEffect(() => {
+    if (!visibleStudent) {
       setEditData(null);
       setIsProfileDataLoading(false);
       return;
@@ -72,18 +81,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
     setIsProfileDataLoading(true);
     const timerId = window.setTimeout(() => {
-      setEditData(JSON.parse(JSON.stringify(student)));
+      setEditData(JSON.parse(JSON.stringify(visibleStudent)));
       setIsProfileDataLoading(false);
     }, 0);
 
     return () => window.clearTimeout(timerId);
-  }, [student]);
+  }, [visibleStudent]);
 
-  if (!student && !isStudentLoading) {
+  if (!visibleStudent && !isStudentLoading) {
     return <LoadingSpinner fullScreen label="Loading your profile..." />;
   }
 
-  const isStudentDataPending = isStudentLoading || !student;
+  const isStudentDataPending = isStudentLoading || !visibleStudent;
 
   const handleUpdateField = (section: keyof StudentProfile, field: string, value: unknown) => {
     setEditData((prev) => {
@@ -98,18 +107,39 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     });
   };
 
-  const saveProfile = () => {
-    if (!editData || !student) return;
-    onUpdate(student.id, {
-      student: { ...student.student, profilePicture: editData.student.profilePicture },
-      bank: editData.bank,
-      bankAccount: editData.bankAccount,
-    });
-    setIsEditing(false);
+  const commitStudentUpdate = async (patch: Partial<StudentProfile>) => {
+    if (!visibleStudent) {
+      return;
+    }
+
+    const previousStudent = visibleStudent;
+    setOptimisticStudent(mergeStudentProfile(previousStudent, patch));
+
+    try {
+      await onUpdate(previousStudent.id, patch);
+    } catch (error) {
+      setOptimisticStudent(student ?? previousStudent);
+      throw error;
+    }
   };
 
-  const submitAcademicUpdate = () => {
-    if (!student) {
+  const saveProfile = async () => {
+    if (!editData || !visibleStudent) return;
+    try {
+      await commitStudentUpdate({
+        student: { ...visibleStudent.student, profilePicture: editData.student.profilePicture },
+        bank: editData.bank,
+        bankAccount: editData.bankAccount,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('[STUDENTS] Failed to save profile:', error);
+      alert((error as Error).message || 'Failed to save your profile.');
+    }
+  };
+
+  const submitAcademicUpdate = async () => {
+    if (!visibleStudent) {
       return;
     }
 
@@ -118,7 +148,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       return;
     }
 
-    const updatedHistory = [...(student.academicHistory || [])];
+    const updatedHistory = [...(visibleStudent.academicHistory || [])];
     const newEntry: ProgressDetails = {
       id: Math.random().toString(36).substr(2, 9),
       date: new Date().toISOString().split('T')[0],
@@ -130,22 +160,27 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     };
 
     updatedHistory.push(newEntry);
-    onUpdate(student.id, { academicHistory: updatedHistory });
-    setIsUpdatingAcademic(false);
-    setNewProgress({ year: '', level: '', grade: '', proofDocument: '' });
+    try {
+      await commitStudentUpdate({ academicHistory: updatedHistory });
+      setIsUpdatingAcademic(false);
+      setNewProgress({ year: '', level: '', grade: '', proofDocument: '' });
+    } catch (error) {
+      console.error('[STUDENTS] Failed to submit academic update:', error);
+      alert((error as Error).message || 'Failed to submit your academic update.');
+    }
   };
 
   const getMissingItems = () => {
-    if (!student) {
+    if (!visibleStudent) {
       return [];
     }
 
     const items: string[] = [];
-    if (!student.student.profilePicture) items.push('Profile picture is missing');
-    if (!student.bankAccount.iban) items.push('Bank RIB Key is missing');
-    if (!student.bank.branchCode) items.push('Bank Branch Code is missing');
+    if (!visibleStudent.student.profilePicture) items.push('Profile picture is missing');
+    if (!visibleStudent.bankAccount.iban) items.push('Bank RIB Key is missing');
+    if (!visibleStudent.bank.branchCode) items.push('Bank Branch Code is missing');
 
-    const hasYear1 = student.academicHistory?.some((h) => h.year === 'Year 1');
+    const hasYear1 = visibleStudent.academicHistory?.some((h) => h.year === 'Year 1');
     if (!hasYear1) items.push('Progress report for Year 1 is pending');
 
     return items;
@@ -153,7 +188,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   const missingItems = getMissingItems();
   const currentPicture =
-    isEditing && editData ? editData.student.profilePicture : student?.student.profilePicture;
+    isEditing && editData ? editData.student.profilePicture : visibleStudent?.student.profilePicture;
 
   const handleTabChange = (tab: ActiveTab) => {
     setActiveTab(tab);
@@ -170,21 +205,23 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   };
 
   const uploadProfilePicture = async (file: File) => {
-    if (!student) {
+    if (!visibleStudent || isUploadingProfilePicture) {
       return;
     }
 
     setIsUploadingProfilePicture(true);
     try {
-      const uploaded = await uploadManagedFile({
-        purpose: 'PROFILE_IMAGE',
-        studentProfileId: student.id,
-        file,
-      });
+      const nextValue = isMockDbEnabled()
+        ? await readFileAsDataUrl(file)
+        : (await uploadManagedFile({
+            purpose: 'PROFILE_IMAGE',
+            studentProfileId: visibleStudent.id,
+            file,
+          })).contentUrl;
 
-      handleUpdateField('student', 'profilePicture', uploaded.contentUrl);
-      onUpdate(student.id, {
-        student: { ...student.student, profilePicture: uploaded.contentUrl },
+      handleUpdateField('student', 'profilePicture', nextValue);
+      await commitStudentUpdate({
+        student: { ...visibleStudent.student, profilePicture: nextValue },
       });
     } catch (error) {
       console.error('[FILES] Failed to upload profile picture:', error);
@@ -194,23 +231,44 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     }
   };
 
+  const removeProfilePicture = async () => {
+    if (!visibleStudent || isUploadingProfilePicture) {
+      return;
+    }
+
+    setIsUploadingProfilePicture(true);
+    try {
+      handleUpdateField('student', 'profilePicture', '');
+      await commitStudentUpdate({
+        student: { ...visibleStudent.student, profilePicture: '' },
+      });
+    } catch (error) {
+      console.error('[FILES] Failed to remove profile picture:', error);
+      alert((error as Error).message || 'Failed to remove profile picture.');
+    } finally {
+      setIsUploadingProfilePicture(false);
+    }
+  };
+
   const uploadProofDocument = async (file: File) => {
-    if (!student) {
+    if (!visibleStudent || isUploadingProofDocument) {
       return;
     }
 
     setIsUploadingProofDocument(true);
     try {
-      const uploaded = await uploadManagedFile({
-        purpose: 'RESULT_SLIP',
-        studentProfileId: student.id,
-        file,
-      });
+      const nextValue = isMockDbEnabled()
+        ? await readFileAsDataUrl(file)
+        : (await uploadManagedFile({
+            purpose: 'RESULT_SLIP',
+            studentProfileId: visibleStudent.id,
+            file,
+          })).contentUrl;
 
-      setNewProgress((current) => ({ ...current, proofDocument: uploaded.contentUrl }));
+      setNewProgress((current) => ({ ...current, proofDocument: nextValue }));
     } catch (error) {
-      console.error('[FILES] Failed to upload result slip:', error);
-      alert((error as Error).message || 'Failed to upload result slip.');
+      console.error('[FILES] Failed to upload proof document:', error);
+      alert((error as Error).message || 'Failed to upload proof document.');
     } finally {
       setIsUploadingProofDocument(false);
     }
@@ -225,7 +283,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       setActiveTab={(tab: string) =>
         onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')
       }
-      profilePicture={student?.student.profilePicture}
+      profilePicture={visibleStudent?.student.profilePicture}
       showSettingsMenu
     >
       {section === 'dashboard' ? (
@@ -245,28 +303,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
               {activeTab === 'profile' ? (
                 <>
                   <StudentProfilePanel
-                    student={student}
+                    student={visibleStudent}
                     currentPicture={currentPicture}
                     loading={isStudentDataPending || isProfileDataLoading || !editData}
                     onProfilePictureChange={uploadProfilePicture}
-                    onProfilePictureRemove={() => {
-                      if (!student) {
-                        return;
-                      }
-
-                      handleUpdateField('student', 'profilePicture', '');
-                      if (!isEditing) {
-                        onUpdate(student.id, {
-                          student: { ...student.student, profilePicture: '' },
-                        });
-                      }
-                    }}
+                    onProfilePictureRemove={removeProfilePicture}
                     isUploadingProfilePicture={isUploadingProfilePicture}
                   />
 
-                  {!isStudentDataPending && !isProfileDataLoading && editData && student ? (
+                  {!isStudentDataPending && !isProfileDataLoading && editData && visibleStudent ? (
                     <StudentContactBankPanel
-                      student={student}
+                      student={visibleStudent}
                       editData={editData}
                       isEditing={isEditing}
                       inputClassName={inputClass}
@@ -291,13 +338,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     onFieldChange={(field, value) => setNewProgress((p) => ({ ...p, [field]: value }))}
                     onProofDocumentUpload={uploadProofDocument}
                     onBack={() => setIsUpdatingAcademic(false)}
-                    onSubmit={submitAcademicUpdate}
+                    onSubmit={() => {
+                      void submitAcademicUpdate();
+                    }}
                     isUploadingProofDocument={isUploadingProofDocument}
                   />
                 ) : (
                   <StudentAcademicProgressPanel
-                    academicHistory={student.academicHistory}
-                    status={student.status}
+                    academicHistory={visibleStudent.academicHistory}
+                    status={visibleStudent.status}
                     onStartUpdate={() => setIsUpdatingAcademic(true)}
                   />
                 )

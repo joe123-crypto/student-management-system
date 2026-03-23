@@ -33,6 +33,7 @@ export default function FileUploadDropzone({
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.currentTarget.value = '';
     if (file) {
       readFile(file);
     }
@@ -41,6 +42,9 @@ export default function FileUploadDropzone({
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragActive(false);
+    if (isUploading) {
+      return;
+    }
     const file = event.dataTransfer.files?.[0];
     if (file) {
       readFile(file);
@@ -49,10 +53,16 @@ export default function FileUploadDropzone({
 
   return (
     <div
-      onClick={() => inputRef.current?.click()}
+      onClick={() => {
+        if (!isUploading) {
+          inputRef.current?.click();
+        }
+      }}
       onDragOver={(event) => {
         event.preventDefault();
-        setDragActive(true);
+        if (!isUploading) {
+          setDragActive(true);
+        }
       }}
       onDragLeave={() => setDragActive(false)}
       onDrop={handleDrop}
@@ -63,6 +73,7 @@ export default function FileUploadDropzone({
           : dragActive
             ? 'border-[color:var(--theme-primary-soft)] bg-[rgba(245,130,74,0.12)]'
             : 'theme-card-muted border hover:border-[color:var(--theme-primary-soft)]',
+        isUploading && 'cursor-not-allowed opacity-70',
         className,
       )}
     >
@@ -74,6 +85,7 @@ export default function FileUploadDropzone({
           <span className="text-sm font-bold uppercase tracking-widest text-[color:var(--theme-primary)]">{uploadedLabel}</span>
           {onClear && (
             <button
+              type="button"
               disabled={isUploading}
               onClick={(event) => {
                 event.stopPropagation();

@@ -37,10 +37,6 @@ export default function StudentAppRouter({
   onChangePassword,
   onLogout,
 }: StudentAppRouterProps) {
-  const handleDashboardUpdate = (id: string, profile: Partial<StudentProfile>) => {
-    void onUpdateStudent(id, profile).catch(() => undefined);
-  };
-
   switch (route) {
     case '/onboarding':
       if (user?.role !== UserRole.STUDENT) {
@@ -83,7 +79,7 @@ export default function StudentAppRouter({
           announcements={announcements}
           isStudentLoading={isStudentLoading}
           isAnnouncementsLoading={isAnnouncementsLoading}
-          onUpdate={handleDashboardUpdate}
+          onUpdate={onUpdateStudent}
           section="dashboard"
           onNavigateSection={onNavigateStudentSection}
           onChangePassword={onChangePassword}
@@ -110,7 +106,7 @@ export default function StudentAppRouter({
           announcements={announcements}
           isStudentLoading={isStudentLoading}
           isAnnouncementsLoading={isAnnouncementsLoading}
-          onUpdate={handleDashboardUpdate}
+          onUpdate={onUpdateStudent}
           section="settings"
           onNavigateSection={onNavigateStudentSection}
           onChangePassword={onChangePassword}

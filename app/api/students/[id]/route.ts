@@ -60,6 +60,17 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    if (error instanceof Error) {
+      const status =
+        error.message === 'Student profile not found.' ? 404 :
+        error.message.endsWith('reference is invalid.') ? 400 :
+        500;
+
+      if (status !== 500) {
+        return NextResponse.json({ error: error.message }, { status });
+      }
+    }
+
     console.error('[STUDENTS] Failed to update student profile:', error);
     return NextResponse.json({ error: 'Failed to update student profile.' }, { status: 500 });
   }

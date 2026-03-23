@@ -21,6 +21,17 @@ Sign-in uses the Prisma auth users created by [`prisma/seed.ts`](/c:/Users/Joe/D
 
 With `NEXT_PUBLIC_USE_MOCK_DB=false`, the runtime now also persists announcements, permission requests, and password changes through the Prisma-backed API routes.
 
+Managed file uploads also require:
+- `OBJECT_STORAGE_PROVIDER=r2`
+- `R2_ACCOUNT_ID`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_BUCKET` or environment-specific `R2_BUCKET_DEV` / `R2_BUCKET_PREVIEW` / `R2_BUCKET_PROD`
+- optional `R2_S3_API_URL`
+- optional `OBJECT_STORAGE_SIGNED_URL_TTL_SECONDS`
+
+For direct browser uploads, configure the R2 bucket CORS policy to allow your frontend origin(s) to send `PUT` requests with `Content-Type`.
+
 ## Run
 ```bash
 npm run dev

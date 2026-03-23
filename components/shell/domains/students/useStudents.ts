@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { mergeStudentProfile } from '@/lib/students/profile';
 import { services } from '@/services';
 import type { PrototypeDatabase } from '@/test/mock/prototypeDatabase';
 import { isMockDbEnabled } from '@/test/mock/config';
@@ -22,6 +23,16 @@ function upsertStudent(students: StudentProfile[], nextStudent: StudentProfile):
 async function readStudentError(response: Response): Promise<string> {
   const payload = (await response.json().catch(() => null)) as { error?: string } | null;
   return payload?.error || `Failed to update student (${response.status}).`;
+}
+
+function mergeStudentPatch(
+  students: StudentProfile[],
+  id: string,
+  patch: Partial<StudentProfile>,
+): StudentProfile[] {
+  return students.map((student) =>
+    student.id === id ? mergeStudentProfile(student, patch) : student,
+  );
 }
 
 export function useStudents(user: User | null) {
@@ -56,6 +67,58 @@ export function useStudents(user: User | null) {
 
     setStudents(student ? [student] : []);
     setCurrentStudent(student);
+  }
+
+  function applyServerState(
+    nextUser: User,
+    payload: {
+      student?: StudentProfile | null;
+      students?: StudentProfile[];
+    },
+  ) {
+    if (nextUser.role === UserRole.ATTACHE) {
+      setStudents(payload.students || []);
+      setCurrentStudent(null);
+      return;
+    }
+
+    const student = payload.student || null;
+    setStudents(student ? [student] : []);
+    setCurrentStudent(student);
+  }
+
+  async function fetchStudentsFromApi(nextUser: User, signal?: AbortSignal) {
+    const response = await fetch(
+      `${nextUser.role === UserRole.ATTACHE ? '/api/students' : '/api/students/me'}?ts=${Date.now()}`,
+      {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+        signal,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to load students (${response.status}).`);
+    }
+
+    return (await response.json()) as {
+      student?: StudentProfile | null;
+      students?: StudentProfile[];
+    };
+  }
+
+  async function refreshStudentsFromServer(nextUser: User) {
+    if (isMockDbEnabled()) {
+      const database = mockDatabase ?? services.students.loadDatabase();
+      syncMockState(database, nextUser);
+      return;
+    }
+
+    const payload = await fetchStudentsFromApi(nextUser);
+    applyServerState(nextUser, payload);
   }
 
   useEffect(() => {
@@ -107,36 +170,13 @@ export function useStudents(user: User | null) {
       }
 
       try {
-        const response = await fetch(
-          user.role === UserRole.ATTACHE ? '/api/students' : '/api/students/me',
-          {
-            method: 'GET',
-            cache: 'no-store',
-            signal: controller.signal,
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to load students (${response.status}).`);
-        }
-
-        const payload = (await response.json()) as {
-          student?: StudentProfile | null;
-          students?: StudentProfile[];
-        };
+        const payload = await fetchStudentsFromApi(user, controller.signal);
 
         if (isCancelled) {
           return;
         }
 
-        if (user.role === UserRole.ATTACHE) {
-          setStudents(payload.students || []);
-          setCurrentStudent(null);
-        } else {
-          const student = payload.student || null;
-          setStudents(student ? [student] : []);
-          setCurrentStudent(student);
-        }
+        applyServerState(user, payload);
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           console.error('[STUDENTS] Failed to hydrate students:', error);
@@ -170,27 +210,47 @@ export function useStudents(user: User | null) {
       return;
     }
 
-    const response = await fetch(`/api/students/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ patch: profile }),
-    });
+    const previousStudents = students;
+    const previousCurrentStudent = currentStudent;
 
-    if (!response.ok) {
-      throw new Error(await readStudentError(response));
-    }
-
-    const payload = (await response.json()) as { student: StudentProfile };
-    const nextStudent = payload.student;
-
-    setStudents((current) =>
-      user?.role === UserRole.ATTACHE ? upsertStudent(current, nextStudent) : [nextStudent],
+    setStudents((current) => mergeStudentPatch(current, id, profile));
+    setCurrentStudent((current) =>
+      current && current.id === id ? mergeStudentProfile(current, profile) : current,
     );
 
-    if (user?.role === UserRole.STUDENT) {
-      setCurrentStudent(nextStudent);
+    try {
+      const response = await fetch(`/api/students/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ patch: profile }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await readStudentError(response));
+      }
+
+      const payload = (await response.json()) as { student: StudentProfile };
+      const nextStudent = payload.student;
+
+      setStudents((current) =>
+        user?.role === UserRole.ATTACHE ? upsertStudent(current, nextStudent) : [nextStudent],
+      );
+
+      if (user?.role === UserRole.STUDENT) {
+        setCurrentStudent(nextStudent);
+      }
+
+      if (user) {
+        void refreshStudentsFromServer(user).catch((error) => {
+          console.error('[STUDENTS] Failed to refresh students after update:', error);
+        });
+      }
+    } catch (error) {
+      setStudents(previousStudents);
+      setCurrentStudent(previousCurrentStudent);
+      throw error;
     }
   }
 

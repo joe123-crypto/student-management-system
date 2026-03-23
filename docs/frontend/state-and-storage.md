@@ -11,6 +11,7 @@
 
 ## Server Persistence
 - Student profiles: normalized Prisma tables via `/api/students`, `/api/students/me`, and `/api/students/[id]`.
+- Managed student files: Prisma `FileAsset` metadata plus private Cloudflare R2 objects via `/api/files/*`.
 - Announcements: Prisma-backed records via `/api/announcements` and `/api/announcements/[id]`.
 - Permission requests: Prisma-backed records via `/api/permission-requests` and `/api/permission-requests/[id]`.
 - Auth session: Auth.js JWT session cookie.
@@ -19,6 +20,7 @@
 ## Domain Hook Ownership
 - Students DB: `components/shell/domains/students/useStudents.ts`
 - Student repository + API: `lib/students/store.ts`, `app/api/students/*`
+- Managed file upload + access: `lib/files/*`, `lib/storage/*`, `app/api/files/*`
 - Auth session: `components/shell/domains/auth/useAuth.ts`
 - Announcements: `components/shell/domains/announcements/useAnnouncements.ts`
 - Permission requests: `components/shell/domains/permissions/usePermissionRequests.ts`
@@ -26,6 +28,7 @@
 
 ## Persistence Model
 - Source of truth for runtime student data is PostgreSQL via normalized Prisma student tables.
+- Source of truth for profile-picture and proof-document bytes is private object storage; the frontend stores authenticated file URLs/references, not base64 payloads.
 - Source of truth for runtime announcements and permission requests is PostgreSQL when `NEXT_PUBLIC_USE_MOCK_DB=false`.
 - Runtime announcements may be replayed from IndexedDB before the network refresh completes.
 - Auth session state comes from Auth.js cookies via `useSession`, not `localStorage`.

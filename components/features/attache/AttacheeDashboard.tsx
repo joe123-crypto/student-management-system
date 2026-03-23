@@ -95,6 +95,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
       activeTab={section === 'dashboard' ? 'home' : 'settings'}
       setActiveTab={(tab: string) => onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')}
       showSettingsMenu
+      showSidebarFooter={section !== 'dashboard'}
     >
       {section === 'dashboard' ? (
         <>
