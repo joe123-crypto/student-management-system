@@ -4,70 +4,24 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, SendHorizontal, ShieldCheck, Sparkles, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useAgent } from '@/components/shell/domains/agent/useAgent';
+import type { AttacheAgentContext, User } from '@/types';
 import { UserRole } from '@/types';
 
-type ChatMessage = {
-  id: string;
-  author: 'assistant' | 'user';
-  content: string;
-  sentAt: string;
-};
-
 const quickActions = [
-  'What can you help me with?',
+  'Summarize the current student scope',
   'Summarize recent updates',
   'Show next best action',
+  'Draft a missing-documents reminder',
 ];
 
-function createMessage(author: ChatMessage['author'], content: string): ChatMessage {
-  return {
-    id: `${author}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    author,
-    content,
-    sentAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  };
-}
-
-function getStarterMessages(role: UserRole): ChatMessage[] {
-  if (role === 'ATTACHE') {
-    return [
-      createMessage(
-        'assistant',
-        'Hello. I can help you draft replies, summarize student records, and guide communication workflows once the backend is connected.',
-      ),
-    ];
+function formatMessageTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
   }
 
-  return [
-    createMessage(
-      'assistant',
-      'Hello. I can help you understand onboarding steps, review your profile status, and prepare support questions.',
-    ),
-  ];
-}
-
-function getAssistantReply(role: UserRole, prompt: string) {
-  const normalizedPrompt = prompt.trim();
-
-  if (role === 'ATTACHE') {
-    return [
-      `I have noted: "${normalizedPrompt}".`,
-      '',
-      'In the next step, this panel can connect to:',
-      '- student conversations',
-      '- approval workflows',
-      '- drafted responses',
-    ].join('\n');
-  }
-
-  return [
-    `I have noted: "${normalizedPrompt}".`,
-    '',
-    'In the next step, this panel can connect to:',
-    '- your profile',
-    '- onboarding progress',
-    '- support conversations',
-  ].join('\n');
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function AssistantMarkdown({ content }: { content: string }) {
@@ -136,18 +90,25 @@ function AssistantMarkdown({ content }: { content: string }) {
   );
 }
 
-export default function FloatingChatWidget({ role }: { role: UserRole }) {
+export default function FloatingChatWidget({
+  role,
+  user,
+  context,
+}: {
+  role: UserRole;
+  user: User | null;
+  context?: AttacheAgentContext;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>(() => getStarterMessages(role));
-  const [isReplying, setIsReplying] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const { messages, isLoading, isSending, sendMessage } = useAgent(user, context);
 
-  const title = useMemo(() => (role === 'ATTACHE' ? 'Attache Support' : 'Student Support'), [role]);
-
-  useEffect(() => {
-    setMessages(getStarterMessages(role));
-  }, [role]);
+  const title = useMemo(
+    () => (role === UserRole.ATTACHE ? 'Attache Support' : 'Student Support'),
+    [role],
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -181,23 +142,25 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
       top: node.scrollHeight,
       behavior: 'smooth',
     });
-  }, [messages, isReplying, isOpen]);
+  }, [messages, pendingMessage, isSending, isOpen]);
 
-  function handleSend(nextContent: string) {
+  async function handleSend(nextContent: string) {
     const trimmedContent = nextContent.trim();
 
-    if (!trimmedContent || isReplying) {
+    if (!trimmedContent || isSending) {
       return;
     }
 
-    setMessages((current) => [...current, createMessage('user', trimmedContent)]);
     setDraft('');
-    setIsReplying(true);
+    setPendingMessage(trimmedContent);
 
-    window.setTimeout(() => {
-      setMessages((current) => [...current, createMessage('assistant', getAssistantReply(role, trimmedContent))]);
-      setIsReplying(false);
-    }, 450);
+    try {
+      await sendMessage(trimmedContent);
+    } catch (error) {
+      console.error('[AGENT] Failed to send widget message:', error);
+    } finally {
+      setPendingMessage(null);
+    }
   }
 
   return (
@@ -241,14 +204,14 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
           </div>
 
           <div className="relative border-b border-[color:rgba(220,205,166,0.6)] px-5 py-4 sm:px-6">
-            <div className="theme-card-muted flex items-start gap-3 rounded-[1.5rem] border px-4 py-3">
+              <div className="theme-card-muted flex items-start gap-3 rounded-[1.5rem] border px-4 py-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--theme-primary)] text-white shadow-[0_16px_30px_-16px_rgba(37,79,34,0.7)]">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div className="min-w-0">
                 <p className="theme-heading text-sm font-bold">Scoped access only</p>
                 <p className="theme-text-muted mt-1 text-xs leading-5">
-                  This panel is ready for privacy-safe chat flows with role checks and controlled data access.
+                  This panel now uses authenticated attache scope with controlled student summaries and draft-only assistance.
                 </p>
               </div>
             </div>
@@ -264,7 +227,9 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
                 <button
                   key={action}
                   type="button"
-                  onClick={() => handleSend(action)}
+                  onClick={() => {
+                    void handleSend(action);
+                  }}
                   className="theme-card-muted rounded-full border px-3 py-2 text-xs font-bold text-[color:var(--theme-primary)] transition hover:border-[color:var(--theme-primary-soft)] hover:text-[color:var(--theme-primary-soft)]"
                 >
                   {action}
@@ -272,8 +237,18 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
               ))}
             </div>
 
+            {isLoading && messages.length === 0 ? (
+              <div className="flex justify-start">
+                <div className="theme-card-muted inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm text-[color:var(--theme-text-muted)]">
+                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[color:var(--theme-primary-soft)]" />
+                  Loading assistant thread...
+                </div>
+              </div>
+            ) : null}
+
             {messages.map((message) => {
               const isUser = message.author === 'user';
+              const sentAt = formatMessageTime(message.createdAt);
 
               if (!isUser) {
                 return (
@@ -282,7 +257,7 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
                       <Bot className="h-3.5 w-3.5" />
                       <span>Assistant</span>
                       <span className="h-1 w-1 rounded-full bg-current/60" />
-                      <span className="theme-text-muted">{message.sentAt}</span>
+                      <span className="theme-text-muted">{sentAt}</span>
                     </div>
                     <div className="theme-text-muted max-w-none text-[1.05rem] leading-9">
                       <AssistantMarkdown content={message.content} />
@@ -299,7 +274,7 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
                     <div className="mb-2 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em]">
                       <span>You</span>
                       <span className="h-1 w-1 rounded-full bg-current/60" />
-                      <span className="text-white/75">{message.sentAt}</span>
+                      <span className="text-white/75">{sentAt}</span>
                     </div>
                     <p className="text-sm leading-6 text-white">{message.content}</p>
                   </div>
@@ -307,7 +282,18 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
               );
             })}
 
-            {isReplying ? (
+            {pendingMessage ? (
+              <div className="flex justify-end">
+                <div className="max-w-[85%] rounded-[1.6rem] border border-[color:rgba(160,58,19,0.18)] bg-[color:var(--theme-primary-soft)] px-4 py-3 text-white shadow-[0_18px_36px_-30px_rgba(37,79,34,0.7)] opacity-80">
+                  <div className="mb-2 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em]">
+                    <span>You</span>
+                  </div>
+                  <p className="text-sm leading-6 text-white">{pendingMessage}</p>
+                </div>
+              </div>
+            ) : null}
+
+            {isSending ? (
               <div className="flex justify-start">
                 <div className="theme-card-muted inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm text-[color:var(--theme-text-muted)]">
                   <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[color:var(--theme-primary-soft)]" />
@@ -321,7 +307,7 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                handleSend(draft);
+                void handleSend(draft);
               }}
             >
               <div className="theme-card-muted flex items-end gap-3 rounded-[1.75rem] border p-2.5">
@@ -334,7 +320,7 @@ export default function FloatingChatWidget({ role }: { role: UserRole }) {
                 />
                 <button
                   type="submit"
-                  disabled={!draft.trim() || isReplying}
+                  disabled={!draft.trim() || isSending}
                   className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--theme-primary)] text-white shadow-[0_18px_30px_-18px_rgba(37,79,34,0.9)] transition hover:bg-[color:var(--theme-primary-strong)] disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Send message"
                 >

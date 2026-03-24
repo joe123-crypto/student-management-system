@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import type { StudentProfile } from '@/types';
+import React, { useEffect, useMemo, useState } from 'react';
+import type { AttacheAgentContext, StudentProfile } from '@/types';
 import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
 import StudentAdvancedFilters from '@/components/features/attache/components/StudentAdvancedFilters';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
@@ -30,6 +30,7 @@ interface StudentsSectionProps {
     template: string;
     recipientCount: number;
   }) => void;
+  onAgentContextChange?: (context: AttacheAgentContext) => void;
 }
 
 const DEFAULT_REPORT_COLUMNS = ['fullName', 'email', 'inscriptionNumber', 'status', 'university', 'program'];
@@ -41,6 +42,7 @@ export default function StudentsSection({
   isLoading = false,
   onDeleteStudents,
   onLogCommunication,
+  onAgentContextChange,
 }: StudentsSectionProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [exportPopupOpen, setExportPopupOpen] = useState(false);
@@ -120,6 +122,18 @@ export default function StudentsSection({
   const selectedStudent = selectedStudentId
     ? students.find((student) => student.id === selectedStudentId) ?? null
     : null;
+
+  useEffect(() => {
+    onAgentContextChange?.({
+      filteredStudentIds: filteredStudents.map((student) => student.id),
+      selectedStudentIds: Array.from(selectedStudentIds),
+      searchQuery: query.searchQuery,
+      statusFilter: query.status,
+      university: query.university,
+      program: query.program,
+      duplicatesOnly: query.duplicatesOnly,
+    });
+  }, [filteredStudents, onAgentContextChange, query, selectedStudentIds]);
 
   const uniqueUniversities = useMemo(
     () => Array.from(new Set(students.map((student) => student.university.universityName))).sort(),

@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { Announcement, PermissionRequest, StudentProfile, UserRole } from '@/types';
+import React, { useEffect, useState } from 'react';
+import {
+  Announcement,
+  AttacheAgentContext,
+  PermissionRequest,
+  StudentProfile,
+  User,
+  UserRole,
+} from '@/types';
 import Layout from '@/components/layout/Layout';
 import Tabs from '@/components/ui/Tabs';
 import StudentsSection from '@/components/features/attache/components/StudentsSection';
@@ -10,6 +17,7 @@ import PermissionRequestsSection from '@/components/features/attache/components/
 import type { CommunicationLogEntry } from '@/components/features/attache/types';
 
 interface AttacheDashboardProps {
+  user: User;
   students: StudentProfile[];
   announcements: Announcement[];
   permissionRequests: PermissionRequest[];
@@ -46,6 +54,7 @@ type ActiveView = (typeof tabItems)[number]['id'];
 type ActiveCommunicationView = (typeof communicationTabItems)[number]['id'];
 
 const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
+  user,
   students,
   announcements,
   permissionRequests,
@@ -64,6 +73,33 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   const [activeView, setActiveView] = useState<ActiveView>('students');
   const [activeCommunicationView, setActiveCommunicationView] = useState<ActiveCommunicationView>('announcements');
   const [communicationLogs, setCommunicationLogs] = useState<CommunicationLogEntry[]>([]);
+  const [agentContext, setAgentContext] = useState<AttacheAgentContext>({
+    filteredStudentIds: students.map((student) => student.id),
+    selectedStudentIds: [],
+    searchQuery: '',
+    statusFilter: 'ALL',
+    university: 'ALL',
+    program: 'ALL',
+    duplicatesOnly: false,
+  });
+
+  useEffect(() => {
+    setAgentContext((current) => {
+      if (current.filteredStudentIds.length > 0 && current.filteredStudentIds.every((id) => students.some((student) => student.id === id))) {
+        return current;
+      }
+
+      return {
+        filteredStudentIds: students.map((student) => student.id),
+        selectedStudentIds: [],
+        searchQuery: '',
+        statusFilter: 'ALL',
+        university: 'ALL',
+        program: 'ALL',
+        duplicatesOnly: false,
+      };
+    });
+  }, [students]);
 
   const appendCommunicationLog = ({
     channel,
@@ -90,12 +126,14 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   return (
     <Layout
       role={UserRole.ATTACHE}
+      user={user}
       title={section === 'dashboard' ? 'Attache Management Console' : 'Settings'}
       onLogout={onLogout}
       activeTab={section === 'dashboard' ? 'home' : 'settings'}
       setActiveTab={(tab: string) => onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')}
       showSettingsMenu
       sidebarFooterVariant="logout-only"
+      agentContext={agentContext}
     >
       {section === 'dashboard' ? (
         <>
@@ -106,6 +144,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
               isLoading={isStudentsLoading}
               onDeleteStudents={onDeleteStudents}
               onLogCommunication={appendCommunicationLog}
+              onAgentContextChange={setAgentContext}
             />
           ) : null}
           {activeView === 'announcements' ? (

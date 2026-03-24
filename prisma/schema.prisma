@@ -48,6 +48,15 @@ enum StorageProvider {
   S3
 }
 
+enum AgentThreadChannel {
+  WEB
+}
+
+enum AgentMessageAuthor {
+  USER
+  ASSISTANT
+}
+
 model AuthUser {
   id                String              @id @default(cuid())
   role              UserRole
@@ -64,6 +73,7 @@ model AuthUser {
   reviewedRequests  PermissionRequest[] @relation("PermissionRequestReviewer")
   uploadedFiles     FileAsset[]
   agentContextFiles AgentContextFile[]
+  agentThreads      AgentThread[]
 
   @@unique([role, loginId])
   @@index([role])
@@ -385,4 +395,29 @@ model AgentContextFile {
 
   @@index([ownerUserId, createdAt])
   @@index([sessionId])
+}
+
+model AgentThread {
+  id            String             @id @default(cuid())
+  ownerUserId   String
+  channel       AgentThreadChannel @default(WEB)
+  title         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  ownerUser     AuthUser           @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  messages      AgentMessage[]
+
+  @@index([ownerUserId, updatedAt])
+}
+
+model AgentMessage {
+  id        String             @id @default(cuid())
+  threadId  String
+  author    AgentMessageAuthor
+  content   String
+  metadata  Json?
+  createdAt DateTime           @default(now())
+  thread    AgentThread        @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
 }
