@@ -32,11 +32,6 @@ memory
 .env*
 test/test-db-output.txt
 test/test-db-output-2.txt
-<<<<<<< Updated upstream
-
-.playwright-cli
-security_best_practices_report.md
-=======
 .playwright-cli/
+output/
 security_best_practices_report.md
->>>>>>> Stashed changes

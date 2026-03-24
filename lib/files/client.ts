@@ -14,6 +14,22 @@ async function readUploadError(response: Response): Promise<string> {
   return payload?.error || `File upload failed (${response.status}).`;
 }
 
+export function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read the selected file.'));
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error('Failed to read the selected file.'));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function uploadManagedFile(params: {
   purpose: ManagedFilePurpose;
   studentProfileId: string;

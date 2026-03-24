@@ -6,6 +6,7 @@ import {
   clearStudentProfileImageTx,
   extractFileIdFromReference,
   listStudentFileLinks,
+  resolveFileIdFromReferenceOrThrow,
 } from '@/lib/files/store';
 import {
   createEmptyStudentProfile,
@@ -1078,6 +1079,7 @@ async function updateStudentProfileTx(
 }
 
 async function clearNormalizedStudentData(tx: DbTx): Promise<void> {
+  await tx.fileAsset.deleteMany();
   await tx.progress.deleteMany();
   await tx.enrollment.deleteMany();
   await tx.account.deleteMany();
@@ -1118,8 +1120,16 @@ export async function listStudentProfiles(): Promise<StudentProfile[]> {
     loadUniversities(),
   ]);
 
-  return students
-    .map((student) => mapStudentRow(student, universities))
+  const profiles = await Promise.all(
+    students.map(async (student) => {
+      const latestEnrollment = student.enrollments[0];
+      const progressIds = latestEnrollment?.progressRows.map((entry) => entry.id) || [];
+      const fileLinks = await listStudentFileLinks(student.id, progressIds);
+      return mapStudentRow(student, universities, fileLinks);
+    }),
+  );
+
+  return profiles
     .sort((left, right) =>
       left.student.fullName.localeCompare(right.student.fullName) ||
       left.student.inscriptionNumber.localeCompare(right.student.inscriptionNumber),
@@ -1216,6 +1226,23 @@ export async function updateStudentProfile(
   }
 
   const clearProfilePicture = patch.student?.profilePicture === '';
+  const profilePictureTouched = Boolean(
+    patch.student && Object.prototype.hasOwnProperty.call(patch.student, 'profilePicture'),
+  );
+
+  if (profilePictureTouched && !clearProfilePicture) {
+    resolveFileIdFromReferenceOrThrow(
+      typeof patch.student?.profilePicture === 'string' ? patch.student.profilePicture : '',
+      'Profile picture',
+    );
+  }
+
+  for (const [index, entry] of (nextProfile.academicHistory || []).entries()) {
+    resolveFileIdFromReferenceOrThrow(
+      entry.proofDocument,
+      `Academic history item ${index + 1}`,
+    );
+  }
 
   await prisma.$transaction(
     (tx) =>
@@ -1273,6 +1300,14 @@ export async function deleteStudentProfiles(ids: string[]): Promise<void> {
 
   await prisma.$transaction(
     async (tx) => {
+      await tx.fileAsset.deleteMany({
+        where: {
+          studentId: {
+            in: studentIds,
+          },
+        },
+      });
+
       if (enrollmentIds.length > 0) {
         await tx.progress.deleteMany({
           where: {

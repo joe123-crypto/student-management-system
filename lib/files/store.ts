@@ -23,6 +23,8 @@ export type RequestAuditMeta = {
   userAgent?: string;
 };
 
+const ATTACHE_ATTACHMENT_PURPOSE = 'ATTACHE_ATTACHMENT';
+
 type DbLike = typeof prisma | Prisma.TransactionClient;
 
 type StudentTarget = {
@@ -262,7 +264,7 @@ export async function createUploadIntent(params: {
       studentId: file.studentId,
     },
     ip: params.audit?.ip,
-      userAgent: params.audit?.userAgent,
+    userAgent: params.audit?.userAgent,
   });
 
   return {
@@ -404,7 +406,10 @@ export async function createFileAccess(params: {
     expiresInSeconds: getSignedUrlTtlSeconds(),
   });
 
-  if (file.purpose === FilePurpose.RESULT_SLIP || file.purpose === FilePurpose.ATTACHE_ATTACHMENT) {
+  if (
+    file.purpose === FilePurpose.RESULT_SLIP ||
+    (file.purpose as string) === ATTACHE_ATTACHMENT_PURPOSE
+  ) {
     await recordAuditLog({
       userId: params.actor.id,
       event: 'FILE_ACCESS_GRANTED',
@@ -570,6 +575,23 @@ export async function attachResultSlipToProgressTx(params: {
       visibility: FileVisibility.PRIVATE,
     },
   });
+}
+
+export function resolveFileIdFromReferenceOrThrow(
+  reference: string | null | undefined,
+  fieldLabel: string,
+): string | null {
+  const normalized = reference?.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const fileId = extractFileIdFromReference(normalized);
+  if (!fileId) {
+    throw new Error(`${fieldLabel} reference is invalid.`);
+  }
+
+  return fileId;
 }
 
 export { buildFileContentPath, extractFileIdFromReference };

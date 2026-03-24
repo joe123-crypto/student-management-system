@@ -6,8 +6,10 @@ export type FilePolicy = {
 };
 
 const MB = 1024 * 1024;
+const ATTACHE_ATTACHMENT_PURPOSE = 'ATTACHE_ATTACHMENT';
+const AGENT_CONTEXT_PURPOSE = 'AGENT_CONTEXT';
 
-export const FILE_POLICIES: Record<FilePurpose, FilePolicy> = {
+export const FILE_POLICIES: Record<string, FilePolicy> = {
   [FilePurpose.PROFILE_IMAGE]: {
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
     maxSizeBytes: 5 * MB,
@@ -16,11 +18,11 @@ export const FILE_POLICIES: Record<FilePurpose, FilePolicy> = {
     allowedMimeTypes: ['application/pdf'],
     maxSizeBytes: 15 * MB,
   },
-  [FilePurpose.ATTACHE_ATTACHMENT]: {
+  [ATTACHE_ATTACHMENT_PURPOSE]: {
     allowedMimeTypes: ['application/pdf', 'image/jpeg', 'image/png'],
     maxSizeBytes: 20 * MB,
   },
-  [FilePurpose.AGENT_CONTEXT]: {
+  [AGENT_CONTEXT_PURPOSE]: {
     allowedMimeTypes: ['application/pdf', 'text/plain', 'text/markdown', 'application/json'],
     maxSizeBytes: 25 * MB,
   },

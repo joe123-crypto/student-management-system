@@ -78,7 +78,7 @@ export interface ProgressDetails {
   level: string;
   grade: string;
   status: string;
-  proofDocument?: string; // base64 string for transcript/document
+  proofDocument?: string; // authenticated file URL/reference for transcript/document
 }
 
 export interface StudentProfile {
