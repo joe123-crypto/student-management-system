@@ -62,7 +62,9 @@ const StudentAcademicProgressPanel: React.FC<StudentAcademicProgressPanelProps> 
       metricLabel={latestEntry ? 'Latest Moyenne' : 'Academic Record'}
       metricValue={latestEntry ? `${latestEntry.grade}/20` : 'No records yet'}
       chartData={chartData}
-      chartDataKey="Moyenne"
+      chartDataKey="grade"
+      chartSeriesLabel="Moyenne"
+      chartValueSuffix="/20"
       chartLabelKey="label"
       yDomain={[0, 20]}
       history={academicHistory}
