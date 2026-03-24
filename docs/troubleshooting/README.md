@@ -26,6 +26,12 @@ Use this page to debug common local issues quickly.
 - Verify normalized Prisma student rows were updated as expected.
 - For CSV import, inspect parser behavior in `components/features/attache/utils/csvImport.ts`.
 
+## Attache assistant does not load or reply
+- Verify `/api/agent/chat` returns `200` for an authenticated attache session.
+- Confirm `AgentThread` and `AgentMessage` tables were created by the latest Prisma migration.
+- If the assistant loads but has no useful scope, open the Student Records view and confirm filters/selection are updating normally.
+- Inspect server logs for `[AGENT]` errors from `app/api/agent/chat/route.ts`.
+
 ## `docs:check` fails
 - Sync docs with source changes in:
   - `types.ts`

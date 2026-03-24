@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
+import type { AttacheAgentContext, User } from '../../types';
 import { UserRole } from '../../types';
 import Button from '@/components/ui/Button';
 import FloatingChatWidget from '@/components/layout/FloatingChatWidget';
@@ -9,6 +10,7 @@ interface LayoutProps {
   children: React.ReactNode;
   title: string;
   role: UserRole;
+  user?: User | null;
   onLogout: () => void;
   activeTab?: string;
   setActiveTab?: (tab: string) => void;
@@ -16,12 +18,14 @@ interface LayoutProps {
   showSettingsMenu?: boolean;
   showSidebarFooter?: boolean;
   sidebarFooterVariant?: 'full' | 'logout-only';
+  agentContext?: AttacheAgentContext;
 }
 
 const Layout: React.FC<LayoutProps> = ({
   children,
   title,
   role,
+  user = null,
   onLogout,
   activeTab,
   setActiveTab,
@@ -29,6 +33,7 @@ const Layout: React.FC<LayoutProps> = ({
   showSettingsMenu = false,
   showSidebarFooter = true,
   sidebarFooterVariant = 'full',
+  agentContext,
 }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const pathname = usePathname();
@@ -208,7 +213,9 @@ const Layout: React.FC<LayoutProps> = ({
         </footer>
       </div>
 
-      {role === UserRole.ATTACHE ? <FloatingChatWidget role={role} /> : null}
+      {role === UserRole.ATTACHE ? (
+        <FloatingChatWidget role={role} user={user} context={agentContext} />
+      ) : null}
     </div>
   );
 };

@@ -120,4 +120,29 @@ export interface User {
   role: UserRole;
 }
 
+export interface AgentChatMessage {
+  id: string;
+  author: 'assistant' | 'user';
+  content: string;
+  createdAt: string;
+}
+
+export interface AgentThread {
+  id: string;
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+  messages: AgentChatMessage[];
+}
+
+export interface AttacheAgentContext {
+  filteredStudentIds: string[];
+  selectedStudentIds: string[];
+  searchQuery: string;
+  statusFilter: string;
+  university: string;
+  program: string;
+  duplicatesOnly: boolean;
+}
+
 

@@ -19,10 +19,16 @@
 
 ## Shared UI
 - Authenticated shell: `components/layout/Layout.tsx`
-- Floating authenticated chat shell: `components/layout/FloatingChatWidget.tsx`
+- Floating authenticated attache assistant: `components/layout/FloatingChatWidget.tsx`
 - Public footer: `components/layout/Footer.tsx`
 - UI primitives: `components/ui/*`
 - Shared announcements widgets: `components/features/shared/announcements/AnnouncementSections.tsx`
+
+## Attache Assistant
+- Client hook: `components/shell/domains/agent/useAgent.ts`
+- Server route: `app/api/agent/chat/route.ts`
+- Reply generation + persistence: `lib/agent/*`
+- Live scope input: `components/features/attache/components/StudentsSection.tsx` publishes filtered/selected student scope into the assistant
 
 ## Feature Change Checklist
 1. Update relevant feature components and hooks.
