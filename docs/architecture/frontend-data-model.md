@@ -31,6 +31,7 @@ This document is the complete reference for frontend data contracts used by the 
 | `Announcement` | PostgreSQL via Prisma | Served through `lib/announcements/store.ts` and `/api/announcements*` |
 | `PermissionRequest` | PostgreSQL via Prisma | Served through `lib/permission-requests/store.ts` and `/api/permission-requests*` |
 | `FileAsset` | PostgreSQL via Prisma + private object storage | File metadata in Postgres, file bytes in Cloudflare R2 via `/api/files*` |
+| `AgentThread` + `AgentMessage` | PostgreSQL via Prisma | Attache assistant thread history served through `/api/agent/chat` |
 
 ### Storage Ownership
 - Student records are persisted server-side in normalized Prisma tables.
@@ -83,6 +84,15 @@ This document is the complete reference for frontend data contracts used by the 
 
 ### `User`
 - `id`, `subject`, `loginId`, `authProvider`, `role`
+
+### `AgentChatMessage`
+- `id`, `author`, `content`, `createdAt`
+
+### `AgentThread`
+- `id`, `title`, `createdAt`, `updatedAt`, `messages`
+
+### `AttacheAgentContext`
+- `filteredStudentIds`, `selectedStudentIds`, `searchQuery`, `statusFilter`, `university`, `program`, `duplicatesOnly`
 
 ## Service Contracts (`services/contracts.ts`)
 ### `StudentsService`

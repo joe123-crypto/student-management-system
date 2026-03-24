@@ -50,6 +50,7 @@ export default function AttacheAppRouter({
   const section = route === '/attache/settings' ? 'settings' : 'dashboard';
   return (
     <AttacheDashboard
+      user={user}
       students={students}
       announcements={announcements}
       permissionRequests={permissionRequests}

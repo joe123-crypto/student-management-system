@@ -14,6 +14,7 @@
 - Managed student files: Prisma `FileAsset` metadata plus private Cloudflare R2 objects via `/api/files/*`.
 - Announcements: Prisma-backed records via `/api/announcements` and `/api/announcements/[id]`.
 - Permission requests: Prisma-backed records via `/api/permission-requests` and `/api/permission-requests/[id]`.
+- Attache assistant threads: Prisma-backed `AgentThread` and `AgentMessage` rows via `/api/agent/chat`.
 - Auth session: Auth.js JWT session cookie.
 - Password changes: authenticated mutation via `POST /api/auth/change-password`.
 
@@ -24,6 +25,7 @@
 - Auth session: `components/shell/domains/auth/useAuth.ts`
 - Announcements: `components/shell/domains/announcements/useAnnouncements.ts`
 - Permission requests: `components/shell/domains/permissions/usePermissionRequests.ts`
+- Attache assistant: `components/shell/domains/agent/useAgent.ts`
 - Storage helper: `components/shell/shared/storage.ts`
 
 ## Persistence Model
@@ -31,6 +33,7 @@
 - Source of truth for profile-picture and proof-document bytes is private object storage; the frontend stores authenticated file URLs/references, not base64 payloads.
 - Source of truth for runtime announcements and permission requests is PostgreSQL when `NEXT_PUBLIC_USE_MOCK_DB=false`.
 - Runtime announcements may be replayed from IndexedDB before the network refresh completes.
+- Attache assistant history is persisted server-side and scoped to the signed-in attache user.
 - Auth session state comes from Auth.js cookies via `useSession`, not `localStorage`.
 - UI consumes `StudentProfile[]` and `currentStudent` from authenticated API routes.
 - Announcements and permission requests use `localStorage` only in mock mode.
