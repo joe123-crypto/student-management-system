@@ -15,6 +15,7 @@
     "lint:fix": "eslint . --fix",
     "docs:check": "node scripts/check-frontend-data-model-docs.mjs",
     "test:auth": "node --import tsx --test test/auth/**/*.test.ts",
+    "test:storage": "node --import tsx --test test/storage/**/*.test.ts",
     "typecheck:auth": "tsc -p tsconfig.auth-tests.json",
     "typecheck": "tsc --noEmit",
     "audit:high": "npm audit --audit-level=high"
