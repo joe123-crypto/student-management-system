@@ -14,6 +14,8 @@ interface AcademicStatusCardProps {
   metricValue: string;
   chartData: ChartDatum[];
   chartDataKey: string;
+  chartSeriesLabel?: string;
+  chartValueSuffix?: string;
   chartLabelKey?: string;
   yDomain?: [number | 'auto', number | 'auto'];
   history?: ProgressDetails[];
@@ -42,6 +44,8 @@ export default function AcademicStatusCard({
   metricValue,
   chartData,
   chartDataKey,
+  chartSeriesLabel,
+  chartValueSuffix,
   chartLabelKey = 'name',
   yDomain,
   history,
@@ -133,6 +137,10 @@ export default function AcademicStatusCard({
                     padding: '16px',
                     fontWeight: 'bold',
                   }}
+                  formatter={(value) => [
+                    `${value}${chartValueSuffix ?? ''}`,
+                    chartSeriesLabel ?? chartDataKey,
+                  ]}
                 />
               ) : null}
               <Area
@@ -143,6 +151,18 @@ export default function AcademicStatusCard({
                 fillOpacity={1}
                 fill={`url(#${gradientId})`}
                 animationDuration={2000}
+                dot={{
+                  r: 4,
+                  strokeWidth: 2,
+                  stroke: 'var(--theme-primary)',
+                  fill: 'var(--theme-surface, #fff)',
+                }}
+                activeDot={{
+                  r: 6,
+                  strokeWidth: 2,
+                  stroke: 'var(--theme-primary)',
+                  fill: 'var(--theme-surface, #fff)',
+                }}
               />
             </AreaChart>
           </ResponsiveContainer>

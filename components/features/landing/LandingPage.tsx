@@ -139,7 +139,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                   metricLabel="Moyenne"
                   metricValue="3.92"
                   chartData={PROGRESS_DATA}
-                  chartDataKey="Moyenne"
+                  chartDataKey="gpa"
+                  chartSeriesLabel="Moyenne"
                   yDomain={[0, 4]}
                   className="shadow-[0_32px_120px_-20px_rgba(79,70,229,0.12)] transform transition-transform duration-700 hover:scale-[1.02]"
                   chartHeightClassName="h-48"
