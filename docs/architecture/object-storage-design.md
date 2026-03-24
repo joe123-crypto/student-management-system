@@ -39,11 +39,11 @@ Use one logical bucket per environment.
 - `student-platform-preview`
 - `student-platform-prod`
 
-Use prefixed keys inside each bucket:
+Use student-centric prefixes for student-owned files inside each bucket:
 
-- `profile-images/{studentId}/{fileId}/{sanitizedFilename}`
-- `result-slips/{studentId}/{enrollmentId}/{fileId}.pdf`
-- `attache-attachments/{studentId}/{fileId}/{sanitizedFilename}`
+- `students/{studentId}/profile-images/{fileId}/{sanitizedFilename}`
+- `students/{studentId}/result-slips/{fileId}/{sanitizedFilename}`
+- `students/{studentId}/attache-attachments/{fileId}/{sanitizedFilename}`
 - `agent-context/{scope}/{ownerId}/{fileId}/{sanitizedFilename}`
 
 Rules:
@@ -195,7 +195,7 @@ Response shape:
     "id": "ck_file_123",
     "purpose": "PROFILE_IMAGE",
     "status": "PENDING_UPLOAD",
-    "objectKey": "profile-images/123/ck_file_123/passport-photo.jpg"
+    "objectKey": "students/123/profile-images/ck_file_123/passport-photo.jpg"
   },
   "upload": {
     "method": "PUT",

@@ -3,6 +3,7 @@ import { FilePurpose, FileStatus, FileVisibility, Prisma, StorageProvider } from
 import { prisma } from '@/lib/db';
 import { recordAuditLog } from '@/lib/auth/store';
 import { FILE_POLICIES, assertPurposeSupportedForPhaseOne, validateFileInput } from '@/lib/files/policies';
+import { buildFileObjectKey, normalizeUploadedFilename } from '@/lib/files/object-key';
 import {
   buildFileContentPath,
   buildFileUploadPath,
@@ -34,17 +35,6 @@ type StudentTarget = {
 
 type FileAssetRow = Awaited<ReturnType<typeof prisma.fileAsset.findUnique>>;
 
-function normalizeFilename(filename: string): string {
-  const trimmed = filename.trim() || 'upload';
-  const sanitized = trimmed
-    .replace(/[^A-Za-z0-9._-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^\.+/, '')
-    .slice(0, 120);
-
-  return sanitized || 'upload';
-}
-
 function parseStudentProfileId(value: string | null | undefined): number | null {
   const normalized = value?.trim();
   if (!normalized) {
@@ -57,20 +47,6 @@ function parseStudentProfileId(value: string | null | undefined): number | null 
   }
 
   return /^\d+$/.test(normalized) ? Number(normalized) : null;
-}
-
-function buildObjectKey(params: {
-  purpose: FilePurpose;
-  studentId: number;
-  fileId: string;
-  filename: string;
-}): string {
-  const safeFilename = normalizeFilename(params.filename);
-  if (params.purpose === FilePurpose.PROFILE_IMAGE) {
-    return `profile-images/${params.studentId}/${params.fileId}/${safeFilename}`;
-  }
-
-  return `result-slips/${params.studentId}/${params.fileId}/${safeFilename}`;
 }
 
 function serializeFileAsset(file: NonNullable<FileAssetRow>) {
@@ -228,8 +204,8 @@ export async function createUploadIntent(params: {
 
   const target = await resolveUploadTarget(params);
   const fileId = randomUUID();
-  const sanitizedFilename = normalizeFilename(params.filename);
-  const objectKey = buildObjectKey({
+  const sanitizedFilename = normalizeUploadedFilename(params.filename);
+  const objectKey = buildFileObjectKey({
     purpose: params.purpose,
     studentId: target.studentId,
     fileId,
