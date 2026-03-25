@@ -48,11 +48,7 @@ npm run dev
 ## Deployment Migrations
 GitHub Actions applies Prisma migrations before preview and production deploys.
 
-Configure a `DATABASE_URL` GitHub environment secret for:
-- `preview`
-- `production`
-
-Each secret should point to the Neon database or branch for that environment.
+The deploy workflow now runs migrations through `vercel env run`, so the Prisma migration command uses the same Preview or Production environment variables that Vercel uses for the deployment itself. This avoids a common mismatch where GitHub Actions migrates one database while the deployed app points at another.
 
 ## First Read for New Maintainers
 1. `docs/README.md`

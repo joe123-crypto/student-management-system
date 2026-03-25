@@ -29,6 +29,7 @@ Use this page to debug common local issues quickly.
 ## Attache assistant does not load or reply
 - Verify `/api/agent/chat` returns `200` for an authenticated attache session.
 - Confirm `AgentThread` and `AgentMessage` tables were created by the latest Prisma migration.
+- If persistence works in local development but not in Preview or Production, verify the deploy workflow is running Prisma migrations against the same Vercel environment variables that the deployed app uses.
 - If the assistant loads but has no useful scope, open the Student Records view and confirm filters/selection are updating normally.
 - Inspect server logs for `[AGENT]` errors from `app/api/agent/chat/route.ts`.
 
