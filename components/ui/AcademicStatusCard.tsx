@@ -1,9 +1,10 @@
-import React, { useId } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { ProgressDetails } from '@/types';
 import Button from './Button';
 import AcademicHistoryItem from './AcademicHistoryItem';
 import { cn } from './cn';
+import StatusBadge from './StatusBadge';
 
 type ChartDatum = Record<string, string | number>;
 
@@ -29,14 +30,6 @@ interface AcademicStatusCardProps {
   chartHeightClassName?: string;
 }
 
-function formatStatusLabel(status: string) {
-  return status
-    .toLowerCase()
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
 export default function AcademicStatusCard({
   title,
   status,
@@ -59,6 +52,17 @@ export default function AcademicStatusCard({
   chartHeightClassName = 'h-64 sm:h-80',
 }: AcademicStatusCardProps) {
   const gradientId = useId().replace(/:/g, '');
+  const [isChartReady, setIsChartReady] = useState(false);
+
+  useEffect(() => {
+    setIsChartReady(false);
+
+    const frameId = window.requestAnimationFrame(() => {
+      setIsChartReady(true);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [chartData, chartHeightClassName]);
 
   return (
     <div
@@ -91,15 +95,19 @@ export default function AcademicStatusCard({
             <p className="theme-heading text-3xl font-black tracking-tight">{metricValue}</p>
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl border border-[color:var(--theme-primary-soft)] bg-[var(--theme-primary)] p-6 text-white shadow-[0_0_40px_rgba(0,95,2,0.2)]">
-            <p className="mb-1 text-xs font-bold uppercase text-[rgba(255,255,255,0.7)]">Status</p>
-            <p className="text-3xl font-black tracking-tight">{formatStatusLabel(status)}</p>
+          <div className="rounded-2xl border border-[rgba(220,205,166,0.55)] bg-[rgba(255,255,255,0.64)] p-6">
+            <p className="theme-text-muted mb-3 text-xs font-bold uppercase">Status</p>
+            <div className="flex items-center justify-between gap-4">
+              <StatusBadge status={status} className="px-3 py-1.5 text-[11px] font-semibold" />
+              <p className="theme-text-muted text-sm font-semibold">Managed by administration</p>
+            </div>
           </div>
         </div>
 
         <div className={cn('w-full', chartHeightClassName)}>
-          <ResponsiveContainer width="100%" height="100%" minWidth={1}>
-            <AreaChart data={chartData}>
+          {isChartReady ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} debounce={50}>
+              <AreaChart data={chartData}>
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="var(--theme-primary-soft)" stopOpacity={0.22} />
@@ -143,29 +151,32 @@ export default function AcademicStatusCard({
                   ]}
                 />
               ) : null}
-              <Area
-                type="monotone"
-                dataKey={chartDataKey}
-                stroke="var(--theme-primary)"
-                strokeWidth={4}
-                fillOpacity={1}
-                fill={`url(#${gradientId})`}
-                animationDuration={2000}
-                dot={{
-                  r: 4,
-                  strokeWidth: 2,
-                  stroke: 'var(--theme-primary)',
-                  fill: 'var(--theme-surface, #fff)',
-                }}
-                activeDot={{
-                  r: 6,
-                  strokeWidth: 2,
-                  stroke: 'var(--theme-primary)',
-                  fill: 'var(--theme-surface, #fff)',
-                }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+                <Area
+                  type="monotone"
+                  dataKey={chartDataKey}
+                  stroke="var(--theme-primary)"
+                  strokeWidth={4}
+                  fillOpacity={1}
+                  fill={`url(#${gradientId})`}
+                  animationDuration={2000}
+                  dot={{
+                    r: 4,
+                    strokeWidth: 2,
+                    stroke: 'var(--theme-primary)',
+                    fill: 'var(--theme-surface, #fff)',
+                  }}
+                  activeDot={{
+                    r: 6,
+                    strokeWidth: 2,
+                    stroke: 'var(--theme-primary)',
+                    fill: 'var(--theme-surface, #fff)',
+                  }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="theme-card-muted h-full rounded-[1.5rem] border border-[rgba(220,205,166,0.42)]" />
+          )}
         </div>
 
         {history && history.length > 0 ? (

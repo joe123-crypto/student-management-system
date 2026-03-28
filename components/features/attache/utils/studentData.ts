@@ -5,6 +5,7 @@ import type {
   ReportColumnOption,
   StudentQueryState,
 } from '@/components/features/attache/types';
+import { getLatestAcademicEntry } from '@/lib/students/academicHistory';
 
 export const DEFAULT_STUDENT_QUERY: StudentQueryState = {
   searchQuery: '',
@@ -36,10 +37,7 @@ export const REPORT_COLUMNS: ReportColumnOption[] = [
 const normalize = (value: string) => value.trim().toLowerCase();
 
 function getLatestDocumentStatus(student: StudentProfile): string {
-  if (!student.academicHistory || student.academicHistory.length === 0) {
-    return 'MISSING';
-  }
-  return student.academicHistory[student.academicHistory.length - 1]?.status || 'MISSING';
+  return getLatestAcademicEntry(student.academicHistory)?.status || 'MISSING';
 }
 
 function hasMissingProfile(student: StudentProfile): boolean {

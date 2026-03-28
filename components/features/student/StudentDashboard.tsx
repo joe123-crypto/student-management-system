@@ -294,6 +294,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
             <div className="space-y-10 md:col-span-2">
               {activeTab === 'overview' ? (
                 <StudentDashboardOverview
+                  student={visibleStudent}
                   announcements={announcements}
                   isStudentLoading={isStudentDataPending}
                   isAnnouncementsLoading={isAnnouncementsLoading}
