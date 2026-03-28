@@ -70,22 +70,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Apply preview Prisma migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "$DATABASE_URL" ]; then
-            echo "DATABASE_URL secret is not configured for the GitHub preview environment."
-            exit 1
-          fi
-
-          npm run prisma:migrate:deploy
-
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
 
       - name: Pull Vercel preview environment
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Apply preview Prisma migrations
+        run: vercel env run -e preview --token=${{ secrets.VERCEL_TOKEN }} -- npm run prisma:migrate:deploy
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -134,22 +129,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Apply production Prisma migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "$DATABASE_URL" ]; then
-            echo "DATABASE_URL secret is not configured for the GitHub production environment."
-            exit 1
-          fi
-
-          npm run prisma:migrate:deploy
-
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
 
       - name: Pull Vercel production environment
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Apply production Prisma migrations
+        run: vercel env run -e production --token=${{ secrets.VERCEL_TOKEN }} -- npm run prisma:migrate:deploy
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
