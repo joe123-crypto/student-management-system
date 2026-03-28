@@ -3,6 +3,7 @@ import { ProgressDetails } from '@/types';
 import { PROGRESS_DATA } from '@/constants';
 import AcademicStatusCard from '@/components/ui/AcademicStatusCard';
 import Skeleton from '@/components/ui/Skeleton';
+import { getSortedAcademicHistory } from '@/lib/students/academicHistory';
 
 interface StudentAcademicProgressPanelProps {
   academicHistory?: ProgressDetails[];
@@ -42,11 +43,12 @@ const StudentAcademicProgressPanel: React.FC<StudentAcademicProgressPanelProps> 
     );
   }
 
-  const latestEntry = academicHistory?.[academicHistory.length - 1];
+  const sortedAcademicHistory = getSortedAcademicHistory(academicHistory);
+  const latestEntry = sortedAcademicHistory[sortedAcademicHistory.length - 1];
 
   const chartData =
-    academicHistory && academicHistory.length > 0
-      ? academicHistory.map((entry) => ({
+    sortedAcademicHistory.length > 0
+      ? sortedAcademicHistory.map((entry) => ({
           label: entry.year,
           grade: Number(entry.grade),
         }))
@@ -67,7 +69,7 @@ const StudentAcademicProgressPanel: React.FC<StudentAcademicProgressPanelProps> 
       chartValueSuffix="/20"
       chartLabelKey="label"
       yDomain={[0, 20]}
-      history={academicHistory}
+      history={sortedAcademicHistory}
       actionLabel="Update"
       onAction={onStartUpdate}
       showRealtimeBadge

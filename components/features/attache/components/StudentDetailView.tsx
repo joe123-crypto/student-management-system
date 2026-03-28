@@ -14,6 +14,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
 import AcademicHistoryItem from '@/components/ui/AcademicHistoryItem';
+import { getSortedAcademicHistory } from '@/lib/students/academicHistory';
 
 interface StudentDetailViewProps {
   student: StudentProfile;
@@ -76,21 +77,9 @@ function DetailField({
   );
 }
 
-function getAcademicOrderValue(value: string) {
-  const match = value.match(/\d+/);
-  return match ? Number(match[0]) : 0;
-}
-
 export default function StudentDetailView({ student, onBack }: StudentDetailViewProps) {
   const [isChartReady, setIsChartReady] = React.useState(false);
-  const sortedAcademicHistory = [...(student.academicHistory || [])].sort((left, right) => {
-    const yearDelta = getAcademicOrderValue(left.year) - getAcademicOrderValue(right.year);
-    if (yearDelta !== 0) {
-      return yearDelta;
-    }
-
-    return getAcademicOrderValue(left.level) - getAcademicOrderValue(right.level);
-  });
+  const sortedAcademicHistory = getSortedAcademicHistory(student.academicHistory);
 
   const academicChartData = sortedAcademicHistory.map((entry) => ({
     label: entry.year,

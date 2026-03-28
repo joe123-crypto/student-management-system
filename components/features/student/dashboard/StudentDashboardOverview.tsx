@@ -3,6 +3,7 @@ import { Announcement, StudentProfile } from '@/types';
 import StatCard from '@/components/ui/StatCard';
 import { AnnouncementFeedSection } from '@/components/features/shared/announcements/AnnouncementSections';
 import Skeleton from '@/components/ui/Skeleton';
+import { getLatestAcademicEntry } from '@/lib/students/academicHistory';
 
 interface StudentDashboardOverviewProps {
   student?: StudentProfile | null;
@@ -17,8 +18,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({
   isStudentLoading = false,
   isAnnouncementsLoading = false,
 }) => {
-  const academicHistory = student?.academicHistory ?? [];
-  const latestAcademicEntry = academicHistory[academicHistory.length - 1];
+  const latestAcademicEntry = getLatestAcademicEntry(student?.academicHistory);
   const currentLevel = student?.program.degreeLevel || 'Not set';
   const currentProgram = student?.program.major || 'Program details are not available yet.';
   const latestGrade = latestAcademicEntry ? latestAcademicEntry.grade : 'No record';
