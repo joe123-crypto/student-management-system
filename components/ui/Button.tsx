@@ -12,13 +12,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-strong)] shadow-lg shadow-[rgba(0,95,2,0.16)]',
+    'bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-strong)] shadow-[0_12px_24px_rgba(37,79,34,0.16)]',
   secondary:
-    'border border-[color:var(--theme-border)] bg-[color:var(--theme-surface)] text-[color:var(--theme-text)] hover:bg-[color:var(--theme-surface-strong)]',
+    'border border-[color:var(--theme-border)] bg-[rgba(255,255,255,0.72)] text-[color:var(--theme-text)] hover:bg-[rgba(255,255,255,0.96)]',
   ghost:
-    'bg-transparent text-[color:var(--theme-primary-soft)] hover:bg-[rgba(192,184,122,0.14)] hover:text-[color:var(--theme-primary)]',
+    'bg-transparent text-[color:var(--theme-primary-soft)] hover:bg-[rgba(237,228,194,0.38)] hover:text-[color:var(--theme-primary)]',
   danger:
-    'bg-[color:var(--theme-danger)] text-white hover:bg-[color:var(--theme-danger-strong)] shadow-lg shadow-[rgba(183,76,45,0.2)]',
+    'bg-[color:var(--theme-danger)] text-white hover:bg-[color:var(--theme-danger-strong)] shadow-[0_12px_24px_rgba(183,76,45,0.18)]',
   success: 'bg-[color:var(--theme-primary-soft)] text-white hover:bg-[color:var(--theme-primary)]',
 };
 
@@ -40,7 +40,7 @@ export default function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-bold transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none',
+        'inline-flex items-center justify-center gap-2 font-semibold tracking-[0.01em] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(160,58,19,0.3)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--theme-page)] active:scale-95 disabled:pointer-events-none disabled:opacity-50',
         variantClasses[variant],
         sizeClasses[size],
         fullWidth && 'w-full',

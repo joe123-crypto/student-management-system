@@ -13,47 +13,71 @@ export default function ActionCard({
   emptyMessage = 'Everything is up to date.',
   priorityLabel = 'Priority High',
 }: ActionCardProps) {
-  return (
-    <div className="group relative overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,var(--theme-primary),var(--theme-primary-strong))] p-6 text-white shadow-[0_32px_64px_-16px_rgba(37,79,34,0.34)] sm:p-10">
-      <div className="absolute right-[-20%] top-[-20%] h-48 w-48 rounded-full bg-[rgba(245,130,74,0.2)] blur-3xl transition-all group-hover:scale-125" />
-      <div className="relative z-10 flex flex-col">
-        <p className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/70">Action Center</p>
-        <h4 className="mb-6 text-2xl font-black leading-tight sm:mb-8 sm:text-3xl">{title}</h4>
+  const hasItems = items.length > 0;
 
-        <div className="space-y-5">
-          {items.length > 0 ? (
+  return (
+    <div className="theme-card relative overflow-hidden rounded-[2rem] border p-6 shadow-[0_22px_44px_rgba(37,79,34,0.08)] sm:p-8">
+      <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-[rgba(245,130,74,0.08)] blur-3xl" />
+      <div className="relative z-10 min-w-0">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.18em]">
+              Action Center
+            </p>
+            <h4 className="theme-heading break-words text-2xl font-black leading-tight">{title}</h4>
+            <p className="theme-text-muted mt-2 text-sm leading-relaxed">
+              {hasItems
+                ? 'Keep attention on the remaining items that block a complete profile.'
+                : 'No further action is needed right now.'}
+            </p>
+          </div>
+          <div className="rounded-full border border-[rgba(220,205,166,0.65)] bg-white/70 px-3 py-1.5 text-[11px] font-bold text-[color:var(--theme-text)]">
+            {hasItems ? `${items.length} open` : 'All clear'}
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          {hasItems ? (
             items.map((item, idx) => (
-              <div key={`${item}-${idx}`} className="flex items-start gap-3 group/item cursor-pointer">
-                <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-md bg-white/10 text-[color:var(--theme-secondary)] transition-all group-hover/item:bg-[color:var(--theme-primary-soft)] group-hover/item:text-white">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <div
+                key={`${item}-${idx}`}
+                className="flex min-w-0 items-start gap-3 rounded-[1.35rem] border border-[rgba(220,205,166,0.5)] bg-white/72 px-4 py-4"
+              >
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[rgba(245,130,74,0.14)] text-[color:var(--theme-primary-soft)]">
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2.5"
+                      d="M12 9v2m0 4h.01m-7 4h14c1.333 0 2.167-1.444 1.5-2.6l-7-12.124a1.732 1.732 0 00-3 0L3.5 16.4C2.833 17.556 3.667 19 5 19z"
+                    />
                   </svg>
                 </div>
-                <p className="text-sm font-bold text-white/78 transition-colors group-hover/item:text-white">{item}</p>
+                <p className="theme-heading min-w-0 break-words text-sm font-semibold leading-relaxed">
+                  {item}
+                </p>
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/12 text-[color:var(--theme-secondary)]">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+            <div className="theme-success flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(37,79,34,0.14)] px-6 py-8 text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/70 text-[color:var(--theme-primary)]">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-sm font-bold text-white/78">{emptyMessage}</p>
+              <p className="text-sm font-semibold">{emptyMessage}</p>
             </div>
           )}
         </div>
 
-        {items.length > 0 && (
-          <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-6 sm:mt-10">
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/68">{priorityLabel}</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
-              <svg className="w-4 h-4 text-[color:var(--theme-secondary)]" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-              </svg>
-            </div>
+        {hasItems ? (
+          <div className="mt-6 flex items-center justify-between gap-4 border-t border-[rgba(220,205,166,0.55)] pt-5">
+            <span className="theme-text-muted text-[10px] font-black uppercase tracking-[0.14em]">
+              {priorityLabel}
+            </span>
+            <span className="theme-heading text-sm font-semibold">Review the profile tabs to resolve these items.</span>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -62,7 +62,7 @@ export default function ProfilePictureUpload({
         />
       </div>
 
-      <div className="mt-4 flex gap-3 justify-center md:justify-start">
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3 md:justify-start">
         <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
           {isUploading ? 'Uploading...' : 'Upload New Picture'}
         </Button>

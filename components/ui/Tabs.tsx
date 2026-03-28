@@ -15,28 +15,28 @@ interface TabsProps<T extends string> {
 
 export default function Tabs<T extends string>({ items, activeTab, onChange, className }: TabsProps<T>) {
   return (
-    <div className={cn('flex gap-3 overflow-x-auto pb-1 sm:gap-6', className)}>
-      {items.map((item) => {
-        const active = item.id === activeTab;
+    <div className={cn('overflow-x-auto pb-1', className)}>
+      <div className="inline-flex min-w-full gap-1 rounded-[1.5rem] border border-[rgba(220,205,166,0.72)] bg-[rgba(255,255,255,0.72)] p-1 shadow-[0_12px_26px_rgba(37,79,34,0.05)] sm:min-w-0">
+        {items.map((item) => {
+          const active = item.id === activeTab;
 
-        return (
-          <button
-            key={item.id}
-            onClick={() => onChange(item.id)}
-            className={cn(
-              'relative whitespace-nowrap px-1.5 pb-3 text-sm font-bold transition-all sm:px-2 sm:pb-5',
-              active
-                ? 'text-[color:var(--theme-primary)]'
-                : 'text-[color:var(--theme-text-muted)] hover:text-[color:var(--theme-primary-soft)]',
-            )}
-          >
-            {item.label}
-            {active ? (
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-[color:var(--theme-primary-soft)]" />
-            ) : null}
-          </button>
-        );
-      })}
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onChange(item.id)}
+              className={cn(
+                'rounded-[1.1rem] px-4 py-3 text-sm font-semibold whitespace-nowrap transition-all sm:px-5',
+                active
+                  ? 'bg-[var(--theme-card)] text-[color:var(--theme-text)] shadow-[0_10px_20px_rgba(37,79,34,0.08)]'
+                  : 'text-[color:var(--theme-text-muted)] hover:bg-[rgba(255,255,255,0.82)] hover:text-[color:var(--theme-text)]',
+              )}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -24,10 +24,14 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
   isUploadingProofDocument = false,
 }) => {
   return (
-    <div className="theme-card relative min-h-[500px] overflow-hidden rounded-[2.5rem] border p-10 transition-all">
-      <div className="mb-10 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+    <div className="theme-card relative min-h-[500px] overflow-hidden rounded-[2.5rem] border p-6 transition-all sm:p-10">
+      <div className="mb-8 flex items-start justify-between gap-4 sm:mb-10">
+        <div className="max-w-2xl">
+          <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.18em]">Academic Update</p>
           <h4 className="theme-heading font-rounded text-2xl font-black">Upload Progress Details</h4>
+          <p className="theme-text-muted mt-3 text-sm leading-relaxed">
+            Share the latest verified result so your record stays current and easy to review.
+          </p>
         </div>
       </div>
 
