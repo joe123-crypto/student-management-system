@@ -5,7 +5,7 @@ interface AppLoadingScreenProps {
 const spinnerDots = Array.from({ length: 12 }, (_, index) => index);
 
 export default function AppLoadingScreen({
-  label = 'Loading your workspace...',
+  label = 'Getting your dashboard ready...',
 }: AppLoadingScreenProps) {
   return (
     <div className="theme-shell flex min-h-screen items-center justify-center px-6">

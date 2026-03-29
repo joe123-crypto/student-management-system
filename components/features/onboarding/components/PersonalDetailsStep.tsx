@@ -45,7 +45,7 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({ student, read
       <div className="flex justify-end">
         <Button
           onClick={onNext}
-          className="w-full md:w-auto px-12 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700"
+          className="w-full rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)] md:w-auto"
         >
           <ArrowRight className="w-4 h-4" />
           Continue

@@ -54,7 +54,6 @@ export default function StudentAppRouter({
 
       return (
         <OnboardingPage
-          user={user}
           student={currentStudent}
           onComplete={(profilePatch) => onUpdateStudent(currentStudent.id, profilePatch)}
         />

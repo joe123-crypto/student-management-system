@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { StudentProfile, User } from '@/types';
+import { StudentProfile } from '@/types';
 import AcademicInfoStep from './components/AcademicInfoStep';
 import BankRecordsStep from './components/BankRecordsStep';
 import OnboardingProgress from './components/OnboardingProgress';
@@ -10,12 +10,11 @@ import { getMissingStudentOnboardingFields, mergeStudentProfile } from '@/lib/st
 import { inputClass, readOnlyInputClass } from './components/styles';
 
 interface OnboardingPageProps {
-  user: User;
   student: StudentProfile;
   onComplete: (profilePatch: Partial<StudentProfile>) => Promise<void>;
 }
 
-const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, student, onComplete }) => {
+const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -92,7 +91,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, student, onComple
       <div className="mx-auto max-w-3xl">
         <OnboardingProgress step={step} totalSteps={totalSteps} />
         {submitError ? (
-          <div className="mb-6 rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
+          <div className="theme-danger mb-6 rounded-3xl border px-5 py-4 text-sm font-semibold">
             {submitError}
           </div>
         ) : null}
@@ -122,7 +121,6 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ user, student, onComple
           )}
           {step === 4 && (
             <ReviewDetailsStep
-              user={user}
               student={student}
               readOnlyInputClass={readOnlyInputClass}
               onBack={prevStep}

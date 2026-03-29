@@ -22,8 +22,8 @@ const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
   onNext,
 }) => (
   <div className="space-y-8">
-    <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
-      <Landmark className="w-6 h-6 text-indigo-600" />
+    <h2 className="theme-heading font-rounded flex items-center gap-2 text-2xl font-bold">
+      <Landmark className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
       Bank Account Details
     </h2>
     <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
@@ -87,16 +87,19 @@ const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
         <Button
           onClick={onBack}
           variant="secondary"
-          className="px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-600"
+          className="rounded-2xl px-8 py-3"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>
         <div className="flex items-center gap-6">
-          <Button onClick={onNext} variant="ghost" className="text-sm font-bold text-slate-400 hover:text-slate-600">
+          <Button onClick={onNext} variant="ghost" className="text-sm font-bold hover:bg-transparent">
             Skip for now
           </Button>
-          <Button onClick={onNext} className="px-12 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700">
+          <Button
+            onClick={onNext}
+            className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
+          >
             <ArrowRight className="w-4 h-4" />
             Continue
           </Button>

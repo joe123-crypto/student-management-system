@@ -9,7 +9,7 @@ import type { AttacheAgentContext, User } from '@/types';
 import { UserRole } from '@/types';
 
 const quickActions = [
-  'Summarize the current student scope',
+  "Summarize the students I'm viewing",
   'Summarize recent updates',
   'Show next best action',
   'Draft a missing-documents reminder',
@@ -209,9 +209,9 @@ export default function FloatingChatWidget({
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <p className="theme-heading text-sm font-bold">Scoped access only</p>
+                <p className="theme-heading text-sm font-bold">Private and secure</p>
                 <p className="theme-text-muted mt-1 text-xs leading-5">
-                  This panel now uses authenticated attache scope with controlled student summaries and draft-only assistance.
+                  Ask for summaries, recent updates, or message drafts based on the student records you can access.
                 </p>
               </div>
             </div>
@@ -338,12 +338,12 @@ export default function FloatingChatWidget({
         className={`fixed bottom-5 right-5 z-30 inline-flex h-16 w-16 items-center justify-center rounded-[1.6rem] border border-[color:rgba(160,58,19,0.2)] bg-[linear-gradient(145deg,var(--theme-card),color-mix(in_srgb,var(--theme-surface)_38%,white))] text-[color:var(--theme-primary)] shadow-[0_24px_40px_-18px_rgba(37,79,34,0.55)] transition duration-300 hover:-translate-y-1 hover:border-[color:var(--theme-primary-soft)] hover:text-[color:var(--theme-primary-soft)] ${
           isOpen ? 'pointer-events-none translate-y-2 opacity-0' : 'translate-y-0 opacity-100'
         }`}
-        aria-label="Open agent panel"
+        aria-label="Open assistant"
       >
         <div className="absolute inset-0 rounded-[1.6rem] bg-[radial-gradient(circle_at_top,rgba(245,130,74,0.28),transparent_60%)]" />
         <div className="relative flex flex-col items-center gap-1">
           <Bot className="h-7 w-7" />
-          <span className="text-[8px] font-black uppercase tracking-[0.22em]">Agent</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.22em]">Assistant</span>
         </div>
       </button>
     </>

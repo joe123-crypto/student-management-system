@@ -76,7 +76,7 @@ const LoginPage: React.FC = () => {
               Secure access
             </div>
             <h1 className="theme-heading font-rounded text-4xl font-black tracking-tight">Sign in</h1>
-            <p className="theme-text-muted mt-2 text-sm">Continue into the ScholarsAlger workspace with the new unified palette.</p>
+            <p className="theme-text-muted mt-2 text-sm">Sign in to access your ScholarsAlger account.</p>
           </div>
 
           <SegmentedControl

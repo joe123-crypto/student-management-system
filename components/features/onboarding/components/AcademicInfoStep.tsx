@@ -18,8 +18,8 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
   onNext,
 }) => (
   <div className="space-y-8">
-    <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
-      <GraduationCap className="w-6 h-6 text-indigo-600" />
+    <h2 className="theme-heading font-rounded flex items-center gap-2 text-2xl font-bold">
+      <GraduationCap className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
       University & Program
     </h2>
     <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
@@ -47,12 +47,15 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
         <Button
           onClick={onBack}
           variant="secondary"
-          className="px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-600"
+          className="rounded-2xl px-8 py-3"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>
-        <Button onClick={onNext} className="px-12 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700">
+        <Button
+          onClick={onNext}
+          className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
+        >
           <ArrowRight className="w-4 h-4" />
           Continue
         </Button>
