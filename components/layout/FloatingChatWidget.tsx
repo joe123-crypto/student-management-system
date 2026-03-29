@@ -335,15 +335,17 @@ export default function FloatingChatWidget({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-5 right-5 z-30 inline-flex h-16 w-16 items-center justify-center rounded-[1.6rem] border border-[color:rgba(160,58,19,0.2)] bg-[linear-gradient(145deg,var(--theme-card),color-mix(in_srgb,var(--theme-surface)_38%,white))] text-[color:var(--theme-primary)] shadow-[0_24px_40px_-18px_rgba(37,79,34,0.55)] transition duration-300 hover:-translate-y-1 hover:border-[color:var(--theme-primary-soft)] hover:text-[color:var(--theme-primary-soft)] ${
+        className={`fixed bottom-5 right-5 z-30 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1.6rem] border border-[color:rgba(160,58,19,0.2)] bg-[linear-gradient(145deg,var(--theme-card),color-mix(in_srgb,var(--theme-surface)_38%,white))] text-[color:var(--theme-primary)] shadow-[0_24px_40px_-18px_rgba(37,79,34,0.55)] transition duration-300 hover:-translate-y-1 hover:border-[color:var(--theme-primary-soft)] hover:text-[color:var(--theme-primary-soft)] ${
           isOpen ? 'pointer-events-none translate-y-2 opacity-0' : 'translate-y-0 opacity-100'
         }`}
         aria-label="Open assistant"
       >
         <div className="absolute inset-0 rounded-[1.6rem] bg-[radial-gradient(circle_at_top,rgba(245,130,74,0.28),transparent_60%)]" />
-        <div className="relative flex flex-col items-center gap-1">
-          <Bot className="h-7 w-7" />
-          <span className="text-[8px] font-black uppercase tracking-[0.22em]">Assistant</span>
+        <div className="relative flex w-[2.85rem] flex-col items-center">
+          <Bot className="h-6 w-6 shrink-0" />
+          <span className="mt-1 block max-w-full text-center text-[0.5rem] font-black uppercase tracking-[0.08em] leading-none">
+            Assistant
+          </span>
         </div>
       </button>
     </>

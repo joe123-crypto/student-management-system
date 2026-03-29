@@ -81,7 +81,6 @@ body {
 .theme-shell {
   background:
     radial-gradient(circle at top right, rgba(245, 130, 74, 0.16), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(37, 79, 34, 0.08), transparent 30%),
     linear-gradient(180deg, var(--theme-page-start) 0%, var(--theme-page) 100%);
 }
 
@@ -97,10 +96,10 @@ body {
 }
 
 .theme-sidebar {
-  background-color: color-mix(in srgb, var(--theme-card) 88%, white);
+  background-color: color-mix(in srgb, var(--theme-card) 96%, white);
   border-color: color-mix(in srgb, var(--theme-border) 76%, white);
-  box-shadow: 16px 0 48px rgba(37, 79, 34, 0.05);
-  backdrop-filter: blur(18px);
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .theme-header {
