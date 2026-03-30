@@ -4,11 +4,11 @@ export default function NotFound() {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-12">
       <section className="theme-card w-full max-w-2xl rounded-3xl border p-8 text-center md:p-12">
-        <p className="theme-accent font-rounded text-sm font-semibold uppercase tracking-[0.2em]">404 Error</p>
-        <h1 className="theme-heading mt-3 font-rounded text-4xl font-extrabold md:text-5xl">
+        <p className="theme-accent type-label">404 Error</p>
+        <h1 className="theme-heading type-page-title mt-3">
           Page Not Found
         </h1>
-        <p className="theme-text-muted mt-4 text-base md:text-lg">
+        <p className="theme-text-muted type-body mt-4">
           The page you are looking for does not exist or may have been moved.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

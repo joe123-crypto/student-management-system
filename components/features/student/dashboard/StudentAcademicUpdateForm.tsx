@@ -27,9 +27,9 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
     <div className="theme-card relative min-h-[500px] overflow-hidden rounded-[2.5rem] border p-6 transition-all sm:p-10">
       <div className="mb-8 flex items-start justify-between gap-4 sm:mb-10">
         <div className="max-w-2xl">
-          <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.18em]">Academic Update</p>
-          <h4 className="theme-heading font-rounded text-2xl font-black">Upload Progress Details</h4>
-          <p className="theme-text-muted mt-3 text-sm leading-relaxed">
+          <p className="theme-text-muted type-label mb-2">Academic Update</p>
+          <h4 className="theme-heading type-section-title">Upload Progress Details</h4>
+          <p className="theme-text-muted type-body-sm mt-3">
             Share the latest verified result so your record stays current and easy to review.
           </p>
         </div>
@@ -39,7 +39,7 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
         <div className="grid gap-6 md:grid-cols-3">
           <FormField
             label="Academic Year"
-            labelClassName="theme-text-muted mb-3 block text-xs font-black uppercase tracking-widest"
+            labelClassName="mb-3"
           >
             <select
               value={newProgress.year}
@@ -54,7 +54,7 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
               <option value="Year 5">Year 5</option>
             </select>
           </FormField>
-          <FormField label="Level" labelClassName="theme-text-muted mb-3 block text-xs font-black uppercase tracking-widest">
+          <FormField label="Level" labelClassName="mb-3">
             <input
               placeholder="e.g. L1, M2"
               value={newProgress.level}
@@ -64,7 +64,7 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
           </FormField>
           <FormField
             label="Final Grade (/20)"
-            labelClassName="theme-text-muted mb-3 block text-xs font-black uppercase tracking-widest"
+            labelClassName="mb-3"
           >
             <input
               type="number"
@@ -79,7 +79,7 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
 
         <FormField
           label="Proof of Result (Transcript)"
-          labelClassName="theme-text-muted mb-3 block text-xs font-black uppercase tracking-widest"
+          labelClassName="mb-3"
         >
           <FileUploadDropzone
             value={newProgress.proofDocument}

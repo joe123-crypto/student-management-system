@@ -40,7 +40,7 @@ export function AnnouncementFeedSection({
   return (
     <div className={className}>
       {titleVariant === 'headline' ? (
-        <h4 className="theme-heading mb-8 font-rounded text-2xl font-black">{title}</h4>
+        <h4 className="theme-heading type-section-title mb-8">{title}</h4>
       ) : (
         <SectionHeader title={title} className="mb-4" />
       )}

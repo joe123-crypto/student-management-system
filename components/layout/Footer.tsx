@@ -9,16 +9,16 @@ const Footer: React.FC = () => {
         <div className="mb-20 grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-8">
           <div className="space-y-6 md:col-span-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--theme-primary)] shadow-lg shadow-[rgba(0,95,2,0.18)]">
-                <span className="text-xl font-bold text-white">S</span>
-              </div>
-              <h1 className="theme-heading font-rounded text-2xl font-black tracking-tight">ScholarsAlger</h1>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--theme-primary)] shadow-lg shadow-[rgba(0,95,2,0.18)]">
+              <span className="text-xl font-bold text-white">S</span>
+            </div>
+              <h1 className="theme-heading type-brand text-2xl">ScholarsAlger</h1>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-8 md:col-span-6">
             <div className="space-y-6">
-              <h4 className="theme-heading font-rounded text-sm font-black uppercase tracking-widest">Resources</h4>
+              <h4 className="theme-heading type-label">Resources</h4>
               <ul className="theme-text-muted space-y-4 text-sm font-medium">
                 <li><a href="#" className="theme-link">Help Center</a></li>
                 <li><a href="#" className="theme-link">Documentation</a></li>
@@ -26,7 +26,7 @@ const Footer: React.FC = () => {
               </ul>
             </div>
             <div className="space-y-6">
-              <h4 className="theme-heading font-rounded text-sm font-black uppercase tracking-widest">Legal</h4>
+              <h4 className="theme-heading type-label">Legal</h4>
               <ul className="theme-text-muted space-y-4 text-sm font-medium">
                 <li><a href="#" className="theme-link">Terms of Service</a></li>
                 <li><a href="#" className="theme-link">Privacy Policy</a></li>
@@ -36,7 +36,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-6 border-t border-[color:rgba(192,184,122,0.55)] pt-8 md:flex-row">
-          <p className="theme-text-muted text-xs font-bold uppercase tracking-widest">
+          <p className="theme-text-muted type-label">
             &copy; {new Date().getFullYear()} ScholarsAlger. All rights reserved.
           </p>
           <div className="flex items-center gap-6">

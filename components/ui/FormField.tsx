@@ -11,7 +11,7 @@ interface FormFieldProps {
 export default function FormField({ label, children, className, labelClassName }: FormFieldProps) {
   return (
     <div className={className}>
-      <label className={cn('theme-heading mb-1 block text-sm font-medium', labelClassName)}>{label}</label>
+      <label className={cn('theme-text-muted type-label mb-2 block', labelClassName)}>{label}</label>
       {children}
     </div>
   );

@@ -13,15 +13,20 @@ const statusClassMap: Record<string, string> = {
 };
 
 export default function StatusBadge({ status, className }: StatusBadgeProps) {
+  const displayStatus = status
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+
   return (
     <span
       className={cn(
-        'px-2 py-1 text-xs font-bold rounded-full uppercase tracking-wide',
+        'rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.03em]',
         statusClassMap[status] || 'theme-card-muted theme-text-muted',
         className,
       )}
     >
-      {status}
+      {displayStatus}
     </span>
   );
 }

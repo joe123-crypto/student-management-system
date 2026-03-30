@@ -17,9 +17,9 @@ const surfaceCardClass =
   'theme-card relative overflow-hidden rounded-[2.25rem] border bg-[linear-gradient(180deg,rgba(252,248,234,0.98),rgba(247,241,221,0.9))] shadow-[0_22px_50px_rgba(37,79,34,0.08)]';
 const fieldCardClass =
   'min-w-0 rounded-[1.4rem] border border-[rgba(220,205,166,0.52)] bg-[rgba(255,255,255,0.4)] px-4 py-4';
-const fieldLabelClass = 'theme-text-muted text-xs font-medium leading-snug tracking-[0.04em]';
-const fieldValueClass = 'theme-heading mt-2 break-words text-lg font-semibold leading-tight';
-const fieldValueStrongClass = 'theme-heading mt-2 break-words text-[1.35rem] font-bold leading-tight';
+const fieldLabelClass = 'theme-text-muted type-label';
+const fieldValueClass = 'theme-heading mt-2 break-words text-base font-semibold leading-tight';
+const fieldValueStrongClass = 'theme-heading type-card-title mt-2 break-words';
 const heroSummaryGridClass = 'grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-3';
 
 interface ProfileSectionHeaderProps {
@@ -30,13 +30,13 @@ interface ProfileSectionHeaderProps {
 
 function ProfileSectionHeader({ icon: Icon, title, description }: ProfileSectionHeaderProps) {
   return (
-    <div className="mb-6 flex items-start gap-3">
+      <div className="mb-6 flex items-start gap-3">
       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(37,79,34,0.1)] text-[color:var(--theme-primary)]">
         <Icon className="h-5 w-5" />
       </div>
       <div className="space-y-1">
-        <h5 className="theme-heading text-sm font-bold tracking-[0.04em]">{title}</h5>
-        <p className="theme-text-muted text-sm leading-relaxed">{description}</p>
+        <h5 className="theme-heading type-card-title">{title}</h5>
+        <p className="theme-text-muted type-body-sm">{description}</p>
       </div>
     </div>
   );
@@ -154,11 +154,11 @@ const StudentProfilePanel: React.FC<StudentProfilePanelProps> = ({
             />
             <div className="w-full flex-1 space-y-4 md:min-w-[18rem]">
               <div className="min-w-0 space-y-2">
-                <p className="theme-text-muted text-sm font-medium tracking-[0.08em]">Student profile</p>
-                <h4 className="theme-heading font-rounded break-words text-3xl font-black tracking-tight md:text-4xl">
+                <p className="theme-text-muted type-label">Student profile</p>
+                <h4 className="theme-heading type-page-title break-words">
                   {student.student.fullName}
                 </h4>
-                <p className="theme-text-muted max-w-2xl break-words text-base leading-relaxed md:text-lg">
+                <p className="theme-text-muted type-body max-w-2xl break-words">
                   {programLine || 'Program and university details will appear here once available.'}
                 </p>
               </div>

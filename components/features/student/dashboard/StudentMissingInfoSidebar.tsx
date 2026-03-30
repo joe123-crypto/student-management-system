@@ -139,7 +139,7 @@ const StudentMissingInfoSidebar: React.FC<StudentMissingInfoSidebarProps> = ({
                   >
                     {hasItems ? <WarningIcon className="h-5 w-5" /> : <CheckIcon className="h-5 w-5" />}
                     {hasItems ? (
-                      <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--theme-primary-soft)] px-1 text-[10px] font-black text-white">
+                      <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--theme-primary-soft)] px-1 text-[11px] font-bold text-white">
                         {items.length}
                       </span>
                     ) : null}
@@ -157,7 +157,7 @@ const StudentMissingInfoSidebar: React.FC<StudentMissingInfoSidebarProps> = ({
                         </span>
                       ))
                     ) : (
-                      <span className="rounded-full border border-[rgba(37,79,34,0.18)] bg-white/78 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[color:var(--theme-primary)]">
+                      <span className="type-label rounded-full border border-[rgba(37,79,34,0.18)] bg-white/78 px-3 py-1 text-[color:var(--theme-primary)]">
                         Clear
                       </span>
                     )}
@@ -165,7 +165,7 @@ const StudentMissingInfoSidebar: React.FC<StudentMissingInfoSidebarProps> = ({
                 </div>
 
                 <div className="relative z-10 flex items-center gap-3 md:mt-auto md:flex-col">
-                  <span className="rounded-full border border-[rgba(220,205,166,0.55)] bg-white/78 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[color:var(--theme-text)]">
+                  <span className="type-label rounded-full border border-[rgba(220,205,166,0.55)] bg-white/78 px-3 py-1 text-[color:var(--theme-text)]">
                     {hasItems ? `${items.length} open` : 'All clear'}
                   </span>
                   <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[rgba(220,205,166,0.65)] bg-white/82 text-[color:var(--theme-text)]">

@@ -23,18 +23,18 @@ export default function ActionCard({
       <div className="relative z-10 min-w-0">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="theme-text-muted mb-2 text-[10px] font-black uppercase tracking-[0.18em]">
+            <p className="theme-text-muted type-label mb-2">
               Action Center
             </p>
-            <h4 className="theme-heading break-words text-2xl font-black leading-tight">{title}</h4>
-            <p className="theme-text-muted mt-2 text-sm leading-relaxed">
+            <h4 className="theme-heading type-section-title break-words">{title}</h4>
+            <p className="theme-text-muted type-body-sm mt-2">
               {hasItems
                 ? 'Keep attention on the remaining items that block a complete profile.'
                 : 'No further action is needed right now.'}
             </p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
-            <div className="rounded-full border border-[rgba(220,205,166,0.65)] bg-white/70 px-3 py-1.5 text-[11px] font-bold text-[color:var(--theme-text)]">
+            <div className="type-meta rounded-full border border-[rgba(220,205,166,0.65)] bg-white/70 px-3 py-1.5 font-semibold text-[color:var(--theme-text)]">
               {hasItems ? `${items.length} open` : 'All clear'}
             </div>
             {actionSlot}
@@ -77,10 +77,10 @@ export default function ActionCard({
 
         {hasItems ? (
           <div className="mt-6 flex items-center justify-between gap-4 border-t border-[rgba(220,205,166,0.55)] pt-5">
-            <span className="theme-text-muted text-[10px] font-black uppercase tracking-[0.14em]">
+            <span className="theme-text-muted type-label">
               {priorityLabel}
             </span>
-            <span className="theme-heading text-sm font-semibold">Review the profile tabs to resolve these items.</span>
+            <span className="theme-heading type-body-sm font-semibold">Review the profile tabs to resolve these items.</span>
           </div>
         ) : null}
       </div>

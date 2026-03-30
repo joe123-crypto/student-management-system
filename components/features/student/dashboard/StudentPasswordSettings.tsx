@@ -71,8 +71,8 @@ export default function StudentPasswordSettings({
     <div className="mx-auto w-full max-w-2xl">
       <div className="theme-card rounded-3xl border p-8 md:p-10">
         <div className="mb-8 space-y-2">
-          <h3 className="theme-heading text-2xl font-black">Change Password</h3>
-          <p className="theme-text-muted text-sm">Update the password associated with your student account.</p>
+          <h3 className="theme-heading type-section-title">Change Password</h3>
+          <p className="theme-text-muted type-body-sm">Update the password associated with your student account.</p>
         </div>
 
         <form onSubmit={handlePasswordSubmit} className="space-y-5">

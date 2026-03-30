@@ -82,7 +82,7 @@ export default function FileUploadDropzone({
           <svg className="h-12 w-12 text-[color:var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm font-bold uppercase tracking-widest text-[color:var(--theme-primary)]">{uploadedLabel}</span>
+          <span className="type-label text-[color:var(--theme-primary)]">{uploadedLabel}</span>
           {onClear && (
             <button
               type="button"
@@ -91,7 +91,7 @@ export default function FileUploadDropzone({
                 event.stopPropagation();
                 onClear();
               }}
-              className="mt-2 text-[10px] font-black uppercase text-[color:var(--theme-text-muted)] hover:text-[color:var(--theme-danger)]"
+              className="type-label mt-2 text-[color:var(--theme-text-muted)] hover:text-[color:var(--theme-danger)]"
             >
               Replace
             </button>
@@ -104,8 +104,8 @@ export default function FileUploadDropzone({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
-          <span className="theme-heading text-sm font-bold">{emptyTitle}</span>
-          <span className="theme-text-muted mt-1 text-xs font-medium">
+          <span className="theme-heading type-card-title text-center">{emptyTitle}</span>
+          <span className="theme-text-muted type-meta mt-1 text-center">
             {isUploading ? 'Uploading...' : emptySubtitle}
           </span>
         </>

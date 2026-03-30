@@ -23,9 +23,9 @@ interface StudentDetailViewProps {
 
 const surfaceCardClass =
   'theme-card relative overflow-hidden rounded-[2.25rem] border bg-[linear-gradient(180deg,rgba(252,248,234,0.98),rgba(247,241,221,0.9))] shadow-[0_22px_50px_rgba(37,79,34,0.08)]';
-const fieldLabelClass = 'theme-text-muted text-xs font-medium tracking-[0.04em]';
-const fieldValueClass = 'theme-heading mt-2 text-lg font-semibold leading-tight';
-const fieldValueStrongClass = 'theme-heading mt-2 text-[1.35rem] font-bold leading-tight';
+const fieldLabelClass = 'theme-text-muted type-label';
+const fieldValueClass = 'theme-heading mt-2 text-base font-semibold leading-tight';
+const fieldValueStrongClass = 'theme-heading type-card-title mt-2';
 
 function DetailSectionHeader({
   icon: Icon,
@@ -42,8 +42,8 @@ function DetailSectionHeader({
         <Icon className="h-5 w-5" />
       </div>
       <div className="space-y-1">
-        <h5 className="theme-heading text-sm font-bold tracking-[0.04em]">{title}</h5>
-        <p className="theme-text-muted text-sm leading-relaxed">{description}</p>
+        <h5 className="theme-heading type-card-title">{title}</h5>
+        <p className="theme-text-muted type-body-sm">{description}</p>
       </div>
     </div>
   );
@@ -124,7 +124,7 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="theme-text-muted text-3xl font-black">
+                <span className="theme-text-muted text-3xl font-bold">
                   {student.student.fullName.charAt(0)}
                 </span>
               )}
@@ -132,11 +132,11 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
 
             <div className="space-y-4 text-center md:text-left">
               <div className="space-y-2">
-                <p className="theme-text-muted text-sm font-medium tracking-[0.08em]">Student profile</p>
-                <h4 className="theme-heading font-rounded text-3xl font-black tracking-tight md:text-4xl">
+                <p className="theme-text-muted type-label">Student profile</p>
+                <h4 className="theme-heading type-page-title">
                   {student.student.fullName}
                 </h4>
-                <p className="theme-text-muted max-w-2xl text-base leading-relaxed md:text-lg">
+                <p className="theme-text-muted type-body max-w-2xl">
                   {programLine || 'Program and university details will appear here once available.'}
                 </p>
               </div>
@@ -262,7 +262,7 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className={fieldLabelClass}>Latest yearly moyenne</p>
-                  <p className="theme-heading text-3xl font-black tracking-tight">
+                  <p className="theme-heading type-metric">
                     {latestAcademicEntry ? `${latestAcademicEntry.grade}/20` : '---'}
                   </p>
                 </div>

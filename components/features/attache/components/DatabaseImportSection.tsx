@@ -111,14 +111,14 @@ export default function DatabaseImportSection({
             <Database className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="theme-heading text-xl font-bold">Database Import</h3>
-            <p className="theme-text-muted text-sm">Upload students to your records using CSV.</p>
+            <h3 className="theme-heading type-card-title">Database Import</h3>
+            <p className="theme-text-muted type-body-sm">Upload students to your records using CSV.</p>
           </div>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
-            <label className="theme-text-muted block text-xs font-black uppercase tracking-widest">
+            <label className="theme-text-muted type-label block">
               Import File
             </label>
             <div className="theme-card-muted rounded-2xl border border-dashed p-5">
@@ -142,12 +142,12 @@ export default function DatabaseImportSection({
           </div>
 
           <div className="space-y-4">
-            <label className="theme-text-muted block text-xs font-black uppercase tracking-widest">
+            <label className="theme-text-muted type-label block">
               CSV Options
             </label>
             <div className="theme-card-muted space-y-4 rounded-2xl border p-5">
               <div className="grid gap-2">
-                <label className="theme-heading text-sm font-semibold">Delimiter</label>
+                <label className="theme-text-muted type-label">Delimiter</label>
                 <select
                   value={csvDelimiter}
                   onChange={(e) => setCsvDelimiter(e.target.value as CsvDelimiterOption)}
@@ -161,7 +161,7 @@ export default function DatabaseImportSection({
               </div>
 
               <div className="grid gap-2">
-                <label className="theme-heading text-sm font-semibold">Import Mode</label>
+                <label className="theme-text-muted type-label">Import Mode</label>
                 <select
                   value={importMode}
                   onChange={(e) => setImportMode(e.target.value as 'append' | 'replace')}
@@ -182,8 +182,8 @@ export default function DatabaseImportSection({
         </div>
 
         <div className="theme-card-muted mt-6 rounded-2xl border p-4">
-          <p className="theme-text-muted text-xs font-black uppercase tracking-widest">Supported CSV Columns</p>
-          <p className="theme-text-muted mt-2 text-sm">
+          <p className="theme-text-muted type-label">Supported CSV Columns</p>
+          <p className="theme-text-muted type-body-sm mt-2">
             Required: <span className="font-semibold">fullName</span>, <span className="font-semibold">email</span>.
             Recommended: inscriptionNumber, universityName, major, degreeLevel, status, phone, nationality, gender.
           </p>
