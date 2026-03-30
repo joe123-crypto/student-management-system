@@ -36,7 +36,7 @@ export default function StudentAdvancedFilters({
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="theme-text-muted inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:text-[color:var(--theme-primary-soft)]"
+          className="theme-text-muted type-label inline-flex items-center gap-2 hover:text-[color:var(--theme-primary-soft)]"
           aria-expanded={isOpen}
         >
           Advanced Filtering
@@ -53,7 +53,7 @@ export default function StudentAdvancedFilters({
         <div className={contentClass}>
           <div className={`grid gap-4 ${compact ? 'grid-cols-1' : 'md:grid-cols-2 xl:grid-cols-3'}`}>
             <div>
-              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">University</label>
+              <label className="theme-text-muted type-label mb-2 block">University</label>
               <select
                 className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.university}
@@ -69,7 +69,7 @@ export default function StudentAdvancedFilters({
             </div>
 
             <div>
-              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Program</label>
+              <label className="theme-text-muted type-label mb-2 block">Program</label>
               <select
                 className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.program}
@@ -85,7 +85,7 @@ export default function StudentAdvancedFilters({
             </div>
 
             <div>
-              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Academic Year</label>
+              <label className="theme-text-muted type-label mb-2 block">Academic Year</label>
               <select
                 className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.academicYear}
@@ -101,7 +101,7 @@ export default function StudentAdvancedFilters({
             </div>
 
             <div>
-              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Missing Data</label>
+              <label className="theme-text-muted type-label mb-2 block">Missing Data</label>
               <select
                 className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.missingData}
@@ -116,7 +116,7 @@ export default function StudentAdvancedFilters({
             </div>
 
             <div>
-              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Document Status</label>
+              <label className="theme-text-muted type-label mb-2 block">Document Status</label>
               <select
                 className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
                 value={query.documentStatus}
@@ -141,7 +141,7 @@ export default function StudentAdvancedFilters({
 
           <div className={`grid gap-4 ${compact ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
             <div>
-              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Program Start Date From</label>
+              <label className="theme-text-muted type-label mb-2 block">Program Start Date From</label>
               <input
                 type="date"
                 className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"
@@ -150,7 +150,7 @@ export default function StudentAdvancedFilters({
               />
             </div>
             <div>
-              <label className="theme-text-muted mb-2 block text-[10px] font-black uppercase tracking-widest">Program Start Date To</label>
+              <label className="theme-text-muted type-label mb-2 block">Program Start Date To</label>
               <input
                 type="date"
                 className="theme-input w-full rounded-xl border px-3 py-2.5 outline-none"

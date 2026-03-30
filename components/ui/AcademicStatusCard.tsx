@@ -73,9 +73,9 @@ export default function AcademicStatusCard({
     >
       <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4 sm:gap-6">
-          <h4 className="theme-heading font-rounded text-2xl font-black">{title}</h4>
+          <h4 className="theme-heading type-section-title">{title}</h4>
           {actionLabel && onAction ? (
-            <Button size="sm" className="text-[10px] uppercase tracking-widest" onClick={onAction}>
+            <Button size="sm" className="type-label" onClick={onAction}>
               {actionLabel}
             </Button>
           ) : null}
@@ -91,12 +91,12 @@ export default function AcademicStatusCard({
       <div className="space-y-8 sm:space-y-12">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
           <div className="theme-card-muted rounded-2xl border p-6">
-            <p className="theme-text-muted mb-1 text-xs font-bold uppercase">{metricLabel}</p>
-            <p className="theme-heading text-3xl font-black tracking-tight">{metricValue}</p>
+            <p className="theme-text-muted type-label mb-1">{metricLabel}</p>
+            <p className="theme-heading type-metric">{metricValue}</p>
           </div>
 
           <div className="rounded-2xl border border-[rgba(220,205,166,0.55)] bg-[rgba(255,255,255,0.64)] p-6">
-            <p className="theme-text-muted mb-3 text-xs font-bold uppercase">Status</p>
+            <p className="theme-text-muted type-label mb-3">Status</p>
             <div className="flex items-center justify-between gap-4">
               <StatusBadge status={status} className="px-3 py-1.5 text-[11px] font-semibold" />
               <p className="theme-text-muted text-sm font-semibold">Managed by administration</p>
@@ -181,7 +181,7 @@ export default function AcademicStatusCard({
 
         {history && history.length > 0 ? (
           <div className="space-y-4">
-            <h5 className="theme-text-muted px-1 text-[10px] font-black uppercase tracking-widest">
+            <h5 className="theme-text-muted type-label px-1">
               {historyTitle}
             </h5>
             <div className="grid gap-4">

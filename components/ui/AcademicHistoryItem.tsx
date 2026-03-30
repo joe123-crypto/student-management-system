@@ -16,7 +16,7 @@ export default function AcademicHistoryItem({ entry }: AcademicHistoryItemProps)
         <p className="theme-text-muted text-xs font-medium">Submitted on {entry.date}</p>
       </div>
       <div className="space-y-1 text-left sm:text-right">
-        <p className="theme-accent text-xl font-black sm:text-lg">{entry.grade}/20</p>
+        <p className="theme-accent type-card-title sm:text-lg">{entry.grade}/20</p>
         <StatusBadge status={entry.status} />
       </div>
     </div>

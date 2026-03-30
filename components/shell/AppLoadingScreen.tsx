@@ -23,7 +23,7 @@ export default function AppLoadingScreen({
             />
           ))}
         </div>
-        <p className="theme-text-muted mt-6 text-center text-lg font-medium uppercase tracking-[0.18em]">
+        <p className="theme-text-muted type-label mt-6 text-center">
           {label}
         </p>
       </div>

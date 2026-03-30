@@ -20,7 +20,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
   isSubmitting,
 }) => (
   <div className="space-y-8">
-    <h2 className="theme-heading font-rounded flex items-center gap-2 text-2xl font-bold">
+    <h2 className="theme-heading type-section-title flex items-center gap-2">
       <MapPin className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
       Review Record
     </h2>

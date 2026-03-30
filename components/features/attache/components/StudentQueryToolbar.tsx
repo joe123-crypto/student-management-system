@@ -47,7 +47,7 @@ export default function StudentQueryToolbar({
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="theme-card flex items-center gap-2 rounded-xl border px-4 py-2">
-          <span className="theme-text-muted text-[10px] font-bold uppercase tracking-widest">Sort:</span>
+          <span className="theme-text-muted type-label">Sort:</span>
           <select
             className="theme-heading cursor-pointer bg-transparent text-xs font-bold outline-none"
             value={query.sortBy}
@@ -58,7 +58,7 @@ export default function StudentQueryToolbar({
           </select>
         </div>
         <div className="theme-card flex items-center gap-2 rounded-xl border px-4 py-2">
-          <span className="theme-text-muted text-[10px] font-bold uppercase tracking-widest">Status:</span>
+          <span className="theme-text-muted type-label">Status:</span>
           <select
             className="theme-heading cursor-pointer bg-transparent text-xs font-bold outline-none"
             value={query.status}

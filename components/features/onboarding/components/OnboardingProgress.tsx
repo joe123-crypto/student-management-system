@@ -8,8 +8,8 @@ interface OnboardingProgressProps {
 const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ step, totalSteps }) => (
   <div className="mb-12">
     <div className="flex items-center justify-between mb-8">
-      <h1 className="theme-heading text-3xl font-black">Account Onboarding</h1>
-      <span className="theme-text-muted font-medium">
+      <h1 className="theme-heading type-section-title">Account Onboarding</h1>
+      <span className="theme-text-muted type-meta font-medium">
         Step {step} of {totalSteps}
       </span>
     </div>

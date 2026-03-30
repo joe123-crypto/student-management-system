@@ -12,7 +12,7 @@ interface PersonalDetailsStepProps {
 
 const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({ student, readOnlyInputClass, onNext }) => (
   <div className="space-y-8">
-    <h2 className="theme-heading font-rounded flex items-center gap-2 text-2xl font-bold">
+    <h2 className="theme-heading type-section-title flex items-center gap-2">
       <UserIcon className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
       Personal & Passport
     </h2>

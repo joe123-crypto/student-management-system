@@ -18,19 +18,19 @@ export default function StatCard({
   return (
     <div className="theme-card flex min-h-[160px] flex-col justify-between rounded-[2rem] border p-6 shadow-[0_18px_36px_rgba(37,79,34,0.06)] sm:p-8">
       <div className="space-y-2">
-        <p className="theme-text-muted text-[11px] font-black uppercase tracking-[0.16em]">{label}</p>
+        <p className="theme-text-muted type-label">{label}</p>
         {supportingText ? (
-          <p className="theme-text-muted max-w-[18rem] text-sm leading-relaxed">{supportingText}</p>
+          <p className="theme-text-muted type-body-sm max-w-[18rem]">{supportingText}</p>
         ) : null}
       </div>
 
       <div className="mt-6 flex items-end gap-3 sm:gap-4">
         <span
-          className={`text-4xl font-black tracking-[-0.04em] sm:text-5xl ${valueClassName || 'text-[color:var(--theme-text)]'}`}
+          className={`type-metric ${valueClassName || 'text-[color:var(--theme-text)]'}`}
         >
           {value}
         </span>
-        {suffix ? <span className="theme-text-muted pb-1 text-base font-semibold sm:text-lg">{suffix}</span> : null}
+        {suffix ? <span className="theme-text-muted type-body pb-1 font-semibold">{suffix}</span> : null}
       </div>
     </div>
   );

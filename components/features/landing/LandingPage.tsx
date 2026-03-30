@@ -67,13 +67,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
   };
 
   return (
-    <div className="theme-page min-h-screen overflow-x-hidden font-['Inter'] text-[color:var(--theme-text)]">
+    <div className="theme-page min-h-screen overflow-x-hidden text-[color:var(--theme-text)]">
 
       <div className="fixed top-6 left-0 right-0 z-50 px-6">
         <nav className="theme-card mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full border px-6">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--theme-primary)] text-lg font-bold text-white">S</div>
-            <span className="text-xl font-bold tracking-tight">ScholarsAlger</span>
+            <span className="theme-heading type-brand text-xl">ScholarsAlger</span>
           </div>
 
           <div className="theme-text-muted hidden items-center gap-8 text-sm font-medium md:flex">
@@ -112,14 +112,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                 <div className="relative z-10 space-y-8">
                   <div className="theme-accent-subtle inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
                     <Globe2 className="h-3.5 w-3.5" />
-                    <span className="text-xs font-bold uppercase tracking-widest">trusted by 400+ students</span>
+                    <span className="type-label">trusted by 400+ students</span>
                   </div>
 
-                  <h1 className="theme-heading font-quicksand text-4xl font-bold leading-[1.2] tracking-tight md:text-6xl">
+                  <h1 className="theme-heading type-page-title">
                     The <span className="text-[color:var(--theme-primary)]">Central</span> support platform for students in Algeria
                   </h1>
 
-                  <p className="theme-text-muted max-w-lg text-lg font-medium leading-relaxed">
+                  <p className="theme-text-muted type-body-lg max-w-lg">
                     The fastest way to manage your academic profile, banking details, and university progress in one place.
                   </p>
 
@@ -155,8 +155,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                       <DollarSign className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="theme-text-muted mb-1 text-[10px] font-black uppercase tracking-widest">Deposit Status</p>
-                      <p className="theme-heading text-2xl font-black tracking-tight">+$2,450.00</p>
+                      <p className="theme-text-muted type-label mb-1">Deposit Status</p>
+                      <p className="theme-heading type-section-title">+$2,450.00</p>
                     </div>
                   </div>
                 </div>
@@ -170,7 +170,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                     </div>
                   </div>
                   <div className="mb-2 h-1.5 w-full rounded-full bg-[color:var(--theme-primary-soft)]" />
-                  <p className="theme-text-muted text-xs font-bold uppercase tracking-[0.22em]">Progress to Degree</p>
+                  <p className="theme-text-muted type-label">Progress to Degree</p>
                 </div>
               </div>
             </div>
@@ -187,13 +187,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                 </div>
 
                 <div className="space-y-5">
-                  <span className="theme-chip-warm inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em]">
+                  <span className="theme-chip-warm type-label inline-flex items-center rounded-full border px-3 py-1">
                     Product Tour
                   </span>
-                  <h2 className="theme-heading font-quicksand text-3xl font-black leading-tight">
+                  <h2 className="theme-heading type-section-title">
                     See how ScholarsAlger works in under two minutes
                   </h2>
-                  <p className="theme-text-muted font-medium leading-relaxed">
+                  <p className="theme-text-muted type-body">
                     Watch a quick walkthrough of login, profile setup, scholarship tracking, and announcements in one place.
                   </p>
                   <Button
@@ -210,7 +210,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
           </div>
 
           <div ref={toolsRef} className="mb-24 scroll-mt-24">
-            <h2 className="theme-heading mb-10 font-quicksand text-3xl font-black">Explore Tools</h2>
+            <h2 className="theme-heading type-section-title mb-10">Explore Tools</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {tools.map((tool, i) => (
                 <div
@@ -222,7 +222,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                     <div className="theme-icon-well flex h-10 w-10 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--theme-border)_58%,white)] transition-transform group-hover:rotate-12">
                       {getIcon(tool.icon)}
                     </div>
-                    <span className="theme-text-muted text-center text-[10px] font-black uppercase tracking-[0.2em]">{tool.name}</span>
+                    <span className="theme-text-muted type-label text-center">{tool.name}</span>
                   </div>
                 </div>
               ))}
@@ -231,9 +231,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
 
           <div ref={announcementsRef} className="scroll-mt-24 mb-12">
             <div className="flex items-center justify-between mb-10">
-              <h2 className="theme-heading font-quicksand text-3xl font-black">Announcements</h2>
+              <h2 className="theme-heading type-section-title">Announcements</h2>
               <div className="theme-divider mx-8 hidden h-[2px] flex-1 md:block" />
-              <span className="theme-text-muted text-[10px] font-black uppercase tracking-[0.2em]">Latest Updates</span>
+              <span className="theme-text-muted type-label">Latest Updates</span>
             </div>
 
             <div className="theme-panel-glass group relative overflow-hidden rounded-[3rem] border p-8 md:p-12">
@@ -247,12 +247,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                 <div className="max-w-3xl">
                   <div className="theme-chip-success mb-6 inline-flex items-center gap-2 rounded-full border px-3 py-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--theme-primary)]" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">New Announcement</span>
+                    <span className="type-label">New Announcement</span>
                   </div>
 
-                  <h3 className="theme-heading mb-6 text-3xl font-black leading-tight transition-colors group-hover:text-[color:var(--theme-primary)] md:text-4xl">{latestAnnouncement.title}</h3>
+                  <h3 className="theme-heading type-section-title mb-6 transition-colors group-hover:text-[color:var(--theme-primary)]">{latestAnnouncement.title}</h3>
 
-                  <p className="theme-text-muted mb-8 text-lg font-medium leading-relaxed">{latestAnnouncement.content}</p>
+                  <p className="theme-text-muted type-body-lg mb-8">{latestAnnouncement.content}</p>
 
                   <div className="flex items-center gap-6 border-t border-[color:color-mix(in_srgb,var(--theme-border)_52%,white)] pt-8">
                     <div className="flex items-center gap-3">
@@ -260,13 +260,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                         <User className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="theme-text-muted text-xs font-black uppercase tracking-widest">Posted by</p>
+                        <p className="theme-text-muted type-label">Posted by</p>
                         <p className="theme-heading text-sm font-bold">{latestAnnouncement.author}</p>
                       </div>
                     </div>
                     <div className="theme-divider h-8 w-[1px]" />
                     <div>
-                      <p className="theme-text-muted text-xs font-black uppercase tracking-widest">Published on</p>
+                      <p className="theme-text-muted type-label">Published on</p>
                       <p className="theme-heading flex items-center gap-2 text-sm font-bold">
                         <CalendarDays className="theme-text-muted h-4 w-4" />
                         {latestAnnouncement.date}
@@ -278,14 +278,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                 <div className="max-w-3xl">
                   <div className="theme-chip-muted mb-6 inline-flex items-center gap-2 rounded-full border px-3 py-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--theme-text-muted)]" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Announcements Feed</span>
+                    <span className="type-label">Announcements Feed</span>
                   </div>
 
-                  <h3 className="theme-heading mb-6 text-3xl font-black leading-tight md:text-4xl">
+                  <h3 className="theme-heading type-section-title mb-6">
                     Announcements will appear here once they are published
                   </h3>
 
-                  <p className="theme-text-muted text-lg font-medium leading-relaxed">
+                  <p className="theme-text-muted type-body-lg">
                     The live announcement feed is empty right now. Attache updates will show up here as soon as they are available.
                   </p>
                 </div>

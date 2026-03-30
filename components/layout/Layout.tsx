@@ -52,7 +52,7 @@ const Layout: React.FC<LayoutProps> = ({
 
   return (
     <div
-      className="theme-shell flex min-h-screen font-['Inter'] text-[color:var(--theme-text)]"
+      className="theme-shell flex min-h-screen text-[color:var(--theme-text)]"
       style={
         {
           '--sidebar-width': sidebarWidth,
@@ -69,7 +69,7 @@ const Layout: React.FC<LayoutProps> = ({
               <span className={`${isSidebarExpanded ? 'text-xl' : 'text-lg'} text-white font-bold`}>S</span>
             </div>
             {isSidebarExpanded ? (
-              <h1 className="theme-heading font-rounded text-xl font-bold tracking-tight">ScholarsAlger</h1>
+              <h1 className="theme-heading type-brand text-xl">ScholarsAlger</h1>
             ) : null}
           </div>
           {isSidebarExpanded ? (
@@ -96,7 +96,7 @@ const Layout: React.FC<LayoutProps> = ({
 
         <div className={`${isSidebarExpanded ? 'mt-4 px-4' : 'mt-4 px-1'}`}>
           {isSidebarExpanded ? (
-            <div className="theme-text-muted mb-2 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em]">Main Menu</div>
+            <div className="theme-text-muted type-label mb-2 px-4 py-2">Main Menu</div>
           ) : null}
         </div>
 
@@ -136,7 +136,7 @@ const Layout: React.FC<LayoutProps> = ({
                       {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
                     </div>
                     <div className="overflow-hidden">
-                      <p className="theme-text-muted mb-1 text-[10px] font-black uppercase tracking-widest leading-none">Role</p>
+                      <p className="theme-text-muted type-label mb-1 leading-none">Role</p>
                       <p className="theme-heading text-sm font-bold uppercase">{role}</p>
                     </div>
                   </div>
@@ -182,7 +182,7 @@ const Layout: React.FC<LayoutProps> = ({
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--theme-primary)]">
                 <span className="text-white font-bold">S</span>
               </div>
-              <h1 className="theme-heading font-rounded text-lg font-bold tracking-tight">ScholarsAlger</h1>
+              <h1 className="theme-heading type-brand text-lg">ScholarsAlger</h1>
             </div>
             <Button onClick={onLogout} variant="ghost" className="p-2 text-[color:var(--theme-danger)] hover:bg-[rgba(183,76,45,0.08)] hover:text-[color:var(--theme-danger-strong)]">
               <LogOut className="w-6 h-6" />
@@ -194,12 +194,12 @@ const Layout: React.FC<LayoutProps> = ({
           <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-12">
             <div className="mb-8 sm:mb-10">
               <div>
-                <nav className="theme-text-muted mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+                <nav className="theme-text-muted type-label mb-3 flex items-center gap-2">
                   <span>{breadcrumbLeft}</span>
                   <ChevronRight className="w-3 h-3" />
                   <span className="theme-accent-soft">{breadcrumbRight}</span>
                 </nav>
-                <h2 className="theme-heading font-rounded break-words text-4xl font-black tracking-tight sm:text-5xl">
+                <h2 className="theme-heading type-page-title break-words">
                   {title}
                 </h2>
               </div>
@@ -209,7 +209,7 @@ const Layout: React.FC<LayoutProps> = ({
         </main>
 
         <footer className="py-10 text-center">
-          <p className="theme-text-muted text-sm font-medium">&copy; {new Date().getFullYear()} ScholarsAlger. All rights reserved.</p>
+          <p className="theme-text-muted type-meta">&copy; {new Date().getFullYear()} ScholarsAlger. All rights reserved.</p>
         </footer>
       </div>
 

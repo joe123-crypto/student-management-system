@@ -30,17 +30,17 @@ function AssistantMarkdown({ content }: { content: string }) {
       remarkPlugins={[remarkGfm]}
       components={{
         h1: ({ children }) => (
-          <h1 className="mb-3 mt-6 text-[1.35rem] font-black leading-tight text-[color:var(--theme-text)] first:mt-0">
+          <h1 className="theme-heading type-section-title mb-3 mt-6 first:mt-0">
             {children}
           </h1>
         ),
         h2: ({ children }) => (
-          <h2 className="mb-3 mt-5 text-[1.2rem] font-black leading-tight text-[color:var(--theme-text)] first:mt-0">
+          <h2 className="theme-heading type-card-title mb-3 mt-5 first:mt-0">
             {children}
           </h2>
         ),
         h3: ({ children }) => (
-          <h3 className="mb-2 mt-5 text-[1.05rem] font-bold leading-tight text-[color:var(--theme-text)] first:mt-0">
+          <h3 className="theme-heading mb-2 mt-5 text-base font-bold leading-tight first:mt-0">
             {children}
           </h3>
         ),
@@ -81,7 +81,7 @@ function AssistantMarkdown({ content }: { content: string }) {
           );
         },
         pre: ({ children }) => <pre className="mb-4 last:mb-0">{children}</pre>,
-        strong: ({ children }) => <strong className="font-black text-[color:var(--theme-text)]">{children}</strong>,
+        strong: ({ children }) => <strong className="font-semibold text-[color:var(--theme-text)]">{children}</strong>,
         em: ({ children }) => <em className="italic text-[color:var(--theme-text)]">{children}</em>,
       }}
     >
@@ -187,7 +187,7 @@ export default function FloatingChatWidget({
 
           <div className="relative flex items-start justify-between gap-4 border-b border-[color:rgba(220,205,166,0.72)] px-5 py-5 sm:px-6">
             <div className="min-w-0">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[color:rgba(160,58,19,0.2)] bg-[color:rgba(255,255,255,0.65)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-[color:var(--theme-primary-soft)]">
+              <div className="type-label mb-3 inline-flex items-center gap-2 rounded-full border border-[color:rgba(160,58,19,0.2)] bg-[color:rgba(255,255,255,0.65)] px-3 py-1 text-[color:var(--theme-primary-soft)]">
                 <Sparkles className="h-3.5 w-3.5" />
                 Assistant
               </div>
@@ -218,7 +218,7 @@ export default function FloatingChatWidget({
           </div>
 
           <div ref={scrollContainerRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
-            <div className="theme-text-muted text-center text-[11px] font-bold uppercase tracking-[0.22em]">
+            <div className="theme-text-muted type-label text-center">
               Start a conversation
             </div>
 
@@ -253,7 +253,7 @@ export default function FloatingChatWidget({
               if (!isUser) {
                 return (
                   <div key={message.id} className="w-full px-1 py-1">
-                    <div className="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-[color:var(--theme-primary)]">
+                    <div className="type-label mb-3 flex items-center gap-2 text-[color:var(--theme-primary)]">
                       <Bot className="h-3.5 w-3.5" />
                       <span>Assistant</span>
                       <span className="h-1 w-1 rounded-full bg-current/60" />
@@ -271,7 +271,7 @@ export default function FloatingChatWidget({
                   <div
                     className="max-w-[85%] rounded-[1.6rem] border border-[color:rgba(160,58,19,0.18)] bg-[color:var(--theme-primary-soft)] px-4 py-3 text-white shadow-[0_18px_36px_-30px_rgba(37,79,34,0.7)]"
                   >
-                    <div className="mb-2 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em]">
+                    <div className="type-label mb-2 flex items-center gap-2">
                       <span>You</span>
                       <span className="h-1 w-1 rounded-full bg-current/60" />
                       <span className="text-white/75">{sentAt}</span>
@@ -285,7 +285,7 @@ export default function FloatingChatWidget({
             {pendingMessage ? (
               <div className="flex justify-end">
                 <div className="max-w-[85%] rounded-[1.6rem] border border-[color:rgba(160,58,19,0.18)] bg-[color:var(--theme-primary-soft)] px-4 py-3 text-white shadow-[0_18px_36px_-30px_rgba(37,79,34,0.7)] opacity-80">
-                  <div className="mb-2 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em]">
+                  <div className="type-label mb-2 flex items-center gap-2">
                     <span>You</span>
                   </div>
                   <p className="text-sm leading-6 text-white">{pendingMessage}</p>
@@ -343,7 +343,7 @@ export default function FloatingChatWidget({
         <div className="absolute inset-0 rounded-[1.6rem] bg-[radial-gradient(circle_at_top,rgba(245,130,74,0.28),transparent_60%)]" />
         <div className="relative flex w-[2.85rem] flex-col items-center">
           <Bot className="h-6 w-6 shrink-0" />
-          <span className="mt-1 block max-w-full text-center text-[0.5rem] font-black uppercase tracking-[0.08em] leading-none">
+          <span className="mt-1 block max-w-full text-center text-[0.5rem] font-bold uppercase tracking-[0.08em] leading-none">
             Assistant
           </span>
         </div>

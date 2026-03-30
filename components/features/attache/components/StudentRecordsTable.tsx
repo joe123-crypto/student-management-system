@@ -88,7 +88,7 @@ export default function StudentRecordsTable({
                     <p className="theme-text-muted text-xs">{student.program.major}</p>
                   </div>
 
-                  {isReviewed ? <span className="theme-success rounded-full px-2 py-1 text-[10px] font-black uppercase">Reviewed</span> : null}
+                  {isReviewed ? <span className="theme-success type-label rounded-full px-2 py-1">Reviewed</span> : null}
                 </article>
               );
             })}
@@ -96,7 +96,7 @@ export default function StudentRecordsTable({
 
           <table className="hidden min-w-[760px] w-full text-left md:table">
             <thead className="sticky top-0 z-10">
-              <tr className="theme-card-muted theme-text-muted text-xs font-bold uppercase tracking-wider">
+              <tr className="theme-card-muted theme-text-muted type-label">
                 <th className="px-4 py-4">
                   <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
                 </th>
@@ -118,7 +118,7 @@ export default function StudentRecordsTable({
                     <td className="px-6 py-4">
                       <div className="theme-heading flex items-center gap-2 font-bold">
                         {student.student.fullName}
-                        {isReviewed ? <span className="theme-success rounded-full px-2 py-1 text-[10px] font-black uppercase">Reviewed</span> : null}
+                        {isReviewed ? <span className="theme-success type-label rounded-full px-2 py-1">Reviewed</span> : null}
                       </div>
                       <div className="theme-text-muted text-xs">{student.contact.email}</div>
                     </td>

@@ -35,12 +35,12 @@ export default function CommunicationCenter({
 
   return (
     <div className="theme-card space-y-4 rounded-2xl border p-5">
-      <p className="theme-text-muted text-[10px] font-black uppercase tracking-widest">
+      <p className="theme-text-muted type-label">
         Communication Center
       </p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="theme-text-muted mb-1 block text-[10px] font-black uppercase tracking-widest">
+          <label className="theme-text-muted type-label mb-1 block">
             Channel
           </label>
           <select
@@ -53,7 +53,7 @@ export default function CommunicationCenter({
           </select>
         </div>
         <div>
-          <label className="theme-text-muted mb-1 block text-[10px] font-black uppercase tracking-widest">
+          <label className="theme-text-muted type-label mb-1 block">
             Recipients
           </label>
           <select
@@ -67,7 +67,7 @@ export default function CommunicationCenter({
         </div>
       </div>
       <div>
-        <label className="theme-text-muted mb-1 block text-[10px] font-black uppercase tracking-widest">
+        <label className="theme-text-muted type-label mb-1 block">
           Template
         </label>
         <select
@@ -83,7 +83,7 @@ export default function CommunicationCenter({
         </select>
       </div>
       <div>
-        <label className="theme-text-muted mb-1 block text-[10px] font-black uppercase tracking-widest">
+        <label className="theme-text-muted type-label mb-1 block">
           Extra Message (optional)
         </label>
         <textarea
@@ -106,7 +106,7 @@ export default function CommunicationCenter({
       </div>
       {logs.length > 0 ? (
         <div className="space-y-2 border-t border-[rgba(220,205,166,0.55)] pt-3">
-          <p className="theme-text-muted text-[10px] font-black uppercase tracking-widest">
+          <p className="theme-text-muted type-label">
             Recent Dispatches
           </p>
           {logs.slice(0, 3).map((entry) => (

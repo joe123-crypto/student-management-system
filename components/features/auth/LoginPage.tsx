@@ -15,7 +15,7 @@ const roleOptions = [
 const studentLoginPlaceholder = 'STUDENT123';
 const attacheLoginPlaceholder = 'admin@scholarsalger.dz';
 const passwordPlaceholder = 'Enter your password';
-const fieldLabelClass = 'theme-text-muted mb-2 text-xs font-black uppercase tracking-[0.18em]';
+const fieldLabelClass = 'mb-2';
 const fieldRowClass = 'theme-input flex items-center gap-3 rounded-2xl border px-4 py-3';
 const inputClass =
   'w-full bg-transparent text-sm font-medium text-[color:var(--theme-text)] outline-none placeholder:text-[color:var(--theme-text-muted)]';
@@ -71,12 +71,12 @@ const LoginPage: React.FC = () => {
       <div className="theme-card relative z-10 w-full max-w-xl rounded-[2rem] border p-8 shadow-[0_28px_90px_-36px_rgba(37,79,34,0.32)] md:p-10">
         <div className="mx-auto w-full max-w-md">
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="theme-accent-subtle mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em]">
+            <div className="theme-accent-subtle type-label mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
               <ShieldCheck className="h-3.5 w-3.5" />
               Secure access
             </div>
-            <h1 className="theme-heading font-rounded text-4xl font-black tracking-tight">Sign in</h1>
-            <p className="theme-text-muted mt-2 text-sm">Sign in to access your ScholarsAlger account.</p>
+            <h1 className="theme-heading type-page-title">Sign in</h1>
+            <p className="theme-text-muted type-body-sm mt-2">Sign in to access your ScholarsAlger account.</p>
           </div>
 
           <SegmentedControl
@@ -92,7 +92,7 @@ const LoginPage: React.FC = () => {
                 <LogIn className="w-4 h-4" />
                 Use Google account
               </Button>
-              <div className="theme-text-muted my-5 text-center text-xs uppercase tracking-[0.16em]">or continue with credentials</div>
+              <div className="theme-text-muted type-label my-5 text-center">or continue with credentials</div>
             </>
           ) : null}
 
