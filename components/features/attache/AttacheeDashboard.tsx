@@ -127,7 +127,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
     <Layout
       role={UserRole.ATTACHE}
       user={user}
-      title={section === 'dashboard' ? 'Attache Management Console' : 'Settings'}
+      title={section === 'dashboard' ? 'Attache Dashboard' : 'Settings'}
       onLogout={onLogout}
       activeTab={section === 'dashboard' ? 'home' : 'settings'}
       setActiveTab={(tab: string) => onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')}

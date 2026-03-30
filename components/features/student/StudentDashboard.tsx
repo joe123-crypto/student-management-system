@@ -59,6 +59,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [isProfileDataLoading, setIsProfileDataLoading] = useState(true);
   const [isUploadingProfilePicture, setIsUploadingProfilePicture] = useState(false);
   const [isUploadingProofDocument, setIsUploadingProofDocument] = useState(false);
+  const [isActionCenterExpanded, setIsActionCenterExpanded] = useState(true);
   const [newProgress, setNewProgress] = useState<Partial<ProgressDetails>>({
     year: '',
     level: '',
@@ -189,6 +190,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const missingItems = getMissingItems();
   const currentPicture =
     isEditing && editData ? editData.student.profilePicture : visibleStudent?.student.profilePicture;
+  const dashboardLayoutClassName = isActionCenterExpanded
+    ? 'relative grid gap-8 pb-24 md:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]'
+    : 'relative grid gap-8 pb-24 md:grid-cols-[minmax(0,1fr)_5.75rem]';
 
   const handleTabChange = (tab: ActiveTab) => {
     setActiveTab(tab);
@@ -290,8 +294,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         <>
           <Tabs items={tabItems} activeTab={activeTab} onChange={handleTabChange} className="mb-10" />
 
-          <div className="relative grid gap-8 pb-24 md:grid-cols-3">
-            <div className="space-y-10 md:col-span-2">
+          <div className={dashboardLayoutClassName}>
+            <div className="min-w-0 space-y-10">
               {activeTab === 'overview' ? (
                 <StudentDashboardOverview
                   student={visibleStudent}
@@ -354,7 +358,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
               ) : null}
             </div>
 
-            <StudentMissingInfoSidebar items={missingItems} loading={isStudentDataPending} />
+            <StudentMissingInfoSidebar
+              items={missingItems}
+              loading={isStudentDataPending}
+              isExpanded={isActionCenterExpanded}
+              onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
+            />
           </div>
         </>
       ) : (

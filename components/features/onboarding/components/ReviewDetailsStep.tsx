@@ -1,11 +1,10 @@
 import React from 'react';
 import { ArrowLeft, MapPin } from 'lucide-react';
-import { StudentProfile, User } from '@/types';
+import { StudentProfile } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 
 interface ReviewDetailsStepProps {
-  user: User;
   student: StudentProfile;
   readOnlyInputClass: string;
   onBack: () => void;
@@ -14,7 +13,6 @@ interface ReviewDetailsStepProps {
 }
 
 const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
-  user,
   student,
   readOnlyInputClass,
   onBack,
@@ -22,8 +20,8 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
   isSubmitting,
 }) => (
   <div className="space-y-8">
-    <h2 className="text-2xl font-bold text-slate-900 font-rounded flex items-center gap-2">
-      <MapPin className="w-6 h-6 text-indigo-600" />
+    <h2 className="theme-heading font-rounded flex items-center gap-2 text-2xl font-bold">
+      <MapPin className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
       Review Record
     </h2>
     <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
@@ -51,7 +49,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
           onClick={onBack}
           disabled={isSubmitting}
           variant="secondary"
-          className="px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-600"
+          className="rounded-2xl px-8 py-3"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -62,8 +60,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
               void onComplete();
             }}
             disabled={isSubmitting}
-            variant="success"
-            className="px-12 py-4 rounded-2xl"
+            className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
           >
             {isSubmitting ? 'Saving...' : 'Complete and Continue'}
           </Button>

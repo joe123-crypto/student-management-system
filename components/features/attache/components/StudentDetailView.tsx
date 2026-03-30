@@ -319,13 +319,13 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
                           r: 4,
                           strokeWidth: 2,
                           stroke: 'var(--theme-primary)',
-                          fill: 'var(--theme-surface, #fff)',
+                          fill: 'var(--theme-surface)',
                         }}
                         activeDot={{
                           r: 6,
                           strokeWidth: 2,
                           stroke: 'var(--theme-primary)',
-                          fill: 'var(--theme-surface, #fff)',
+                          fill: 'var(--theme-surface)',
                         }}
                       />
                     </AreaChart>

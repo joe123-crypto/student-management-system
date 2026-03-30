@@ -5,6 +5,7 @@ interface ActionCardProps {
   items: string[];
   emptyMessage?: string;
   priorityLabel?: string;
+  actionSlot?: React.ReactNode;
 }
 
 export default function ActionCard({
@@ -12,6 +13,7 @@ export default function ActionCard({
   items,
   emptyMessage = 'Everything is up to date.',
   priorityLabel = 'Priority High',
+  actionSlot,
 }: ActionCardProps) {
   const hasItems = items.length > 0;
 
@@ -31,8 +33,11 @@ export default function ActionCard({
                 : 'No further action is needed right now.'}
             </p>
           </div>
-          <div className="rounded-full border border-[rgba(220,205,166,0.65)] bg-white/70 px-3 py-1.5 text-[11px] font-bold text-[color:var(--theme-text)]">
-            {hasItems ? `${items.length} open` : 'All clear'}
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <div className="rounded-full border border-[rgba(220,205,166,0.65)] bg-white/70 px-3 py-1.5 text-[11px] font-bold text-[color:var(--theme-text)]">
+              {hasItems ? `${items.length} open` : 'All clear'}
+            </div>
+            {actionSlot}
           </div>
         </div>
 
