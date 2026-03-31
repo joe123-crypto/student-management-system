@@ -140,7 +140,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                   title="Academic Status"
                   status="ACTIVE"
                   metricLabel="Moyenne"
-                  metricValue="3.92"
+                  metricValue="19.92"
                   chartData={PROGRESS_DATA}
                   chartDataKey="gpa"
                   chartSeriesLabel="Moyenne"

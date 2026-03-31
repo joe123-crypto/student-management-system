@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
-import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
+import StudentQueryToolbar, { StudentSearchInput } from '@/components/features/attache/components/StudentQueryToolbar';
 import StudentAdvancedFilters from '@/components/features/attache/components/StudentAdvancedFilters';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
 import StudentRecordsTable from '@/components/features/attache/components/StudentRecordsTable';
@@ -188,21 +188,29 @@ export default function StudentsSection({
           onQueryChange={updateQuery}
         />
 
-        <BulkActionsBar
-          selectedCount={selectedStudentIds.size}
-          onMarkReviewed={handleMarkReviewed}
-          onRequestMissingDocs={handleRequestMissingDocsBulk}
-          onExportSelected={handleExportSelected}
-          onOpenExportOptions={() => setExportPopupOpen(true)}
-          onOpenAdvancedFilters={() => setAdvancedFiltersOpen(true)}
-          onOpenQuerySummary={() => setQuerySummaryOpen(true)}
-          onOpenDataQuality={() => setDataQualityOpen(true)}
-          onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
-          onClearSelection={clearSelection}
-          onDeleteSelected={handleDeleteSelected}
-          isExportDisabled={isLoading}
-          isInsightsDisabled={isLoading}
-        />
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_28rem] xl:items-center">
+          <BulkActionsBar
+            selectedCount={selectedStudentIds.size}
+            onMarkReviewed={handleMarkReviewed}
+            onRequestMissingDocs={handleRequestMissingDocsBulk}
+            onExportSelected={handleExportSelected}
+            onOpenExportOptions={() => setExportPopupOpen(true)}
+            onOpenAdvancedFilters={() => setAdvancedFiltersOpen(true)}
+            onOpenQuerySummary={() => setQuerySummaryOpen(true)}
+            onOpenDataQuality={() => setDataQualityOpen(true)}
+            onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
+            onClearSelection={clearSelection}
+            onDeleteSelected={handleDeleteSelected}
+            isExportDisabled={isLoading}
+            isInsightsDisabled={isLoading}
+          />
+
+          <StudentSearchInput
+            value={query.searchQuery}
+            onChange={(value) => updateQuery({ searchQuery: value })}
+            className="relative w-full"
+          />
+        </div>
 
         <StudentRecordsTable
           students={paginatedTableStudents}

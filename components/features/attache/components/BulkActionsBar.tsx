@@ -1,6 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '@/components/ui/Button';
-import { BarChart3, ChevronLeft, ChevronRight, FileDown, Filter, Mail, ShieldAlert, Trash2 } from 'lucide-react';
+import {
+  BarChart3,
+  CheckCheck,
+  ChevronLeft,
+  ChevronRight,
+  Eraser,
+  FileDown,
+  Filter,
+  LucideIcon,
+  Mail,
+  ScanSearch,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react';
 
 interface BulkActionsBarProps {
   selectedCount: number;
@@ -16,6 +29,38 @@ interface BulkActionsBarProps {
   onDeleteSelected: () => void;
   isExportDisabled?: boolean;
   isInsightsDisabled?: boolean;
+}
+
+interface ActionIconButtonProps {
+  icon: LucideIcon;
+  label: string;
+  variant: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+function ActionIconButton({
+  icon: Icon,
+  label,
+  variant,
+  onClick,
+  disabled = false,
+}: ActionIconButtonProps) {
+  return (
+    <div className="group/action relative shrink-0">
+      <Button
+        size="sm"
+        variant={variant}
+        onClick={onClick}
+        disabled={disabled}
+        className="h-11 w-11 px-0"
+        aria-label={label}
+        title={label}
+      >
+        <Icon className="h-6 w-6 stroke-[2.25]" />
+      </Button>
+    </div>
+  );
 }
 
 export default function BulkActionsBar({
@@ -83,103 +128,24 @@ export default function BulkActionsBar({
   };
 
   return (
-    <div className="theme-accent-subtle group relative inline-block max-w-full rounded-2xl border px-4 py-3">
+    <div className="theme-accent-subtle group relative flex h-14 w-full max-w-full items-center rounded-2xl border px-3">
       <div
         ref={scrollRef}
-        className="max-w-full overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
+        className="w-full overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         onScroll={updateScrollState}
       >
-        <div className="flex min-w-max items-center gap-2">
-          <Button size="sm" variant="secondary" onClick={onOpenAdvancedFilters} className="shrink-0 whitespace-nowrap">
-            <Filter className="w-4 h-4" />
-            Advanced Filtering
-          </Button>
-          <Button
-            size="sm"
-            variant="success"
-            onClick={onOpenExportOptions}
-            disabled={isExportDisabled}
-            className="shrink-0 whitespace-nowrap"
-          >
-            <FileDown className="w-4 h-4" />
-            Export
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onOpenQuerySummary}
-            disabled={isInsightsDisabled}
-            className="shrink-0 whitespace-nowrap"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Query Summary
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onOpenDataQuality}
-            disabled={isInsightsDisabled}
-            className="shrink-0 whitespace-nowrap"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Data Quality
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onOpenDuplicateDetection}
-            disabled={isInsightsDisabled}
-            className="shrink-0 whitespace-nowrap"
-          >
-            <ShieldAlert className="w-4 h-4" />
-            Duplicate Detection
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onMarkReviewed}
-            disabled={!hasSelection}
-            className="shrink-0 whitespace-nowrap"
-          >
-            Mark Reviewed
-          </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={onRequestMissingDocs}
-            disabled={!hasSelection}
-            className="shrink-0 px-3"
-            title="Request Missing Docs"
-            aria-label="Request Missing Docs"
-          >
-            <Mail className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="success"
-            onClick={onExportSelected}
-            disabled={!hasSelection}
-            className="shrink-0 px-3"
-            title="Export Selected"
-            aria-label="Export Selected"
-          >
-            <FileDown className="w-4 h-4" />
-          </Button>
-          <Button size="sm" variant="ghost" onClick={onClearSelection} disabled={!hasSelection} className="shrink-0 whitespace-nowrap">
-            Clear
-          </Button>
-          <Button
-            size="sm"
-            variant="danger"
-            onClick={onDeleteSelected}
-            disabled={!hasSelection}
-            className="shrink-0 px-3"
-            title="Delete Selected"
-            aria-label="Delete Selected"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+        <div className="flex w-max min-w-full items-center justify-center gap-2 px-1">
+          <ActionIconButton icon={Filter} label="Advanced Filtering" variant="secondary" onClick={onOpenAdvancedFilters} />
+          <ActionIconButton icon={FileDown} label="Export" variant="success" onClick={onOpenExportOptions} disabled={isExportDisabled} />
+          <ActionIconButton icon={BarChart3} label="Query Summary" variant="secondary" onClick={onOpenQuerySummary} disabled={isInsightsDisabled} />
+          <ActionIconButton icon={ShieldCheck} label="Data Quality" variant="secondary" onClick={onOpenDataQuality} disabled={isInsightsDisabled} />
+          <ActionIconButton icon={ScanSearch} label="Duplicate Detection" variant="secondary" onClick={onOpenDuplicateDetection} disabled={isInsightsDisabled} />
+          <ActionIconButton icon={CheckCheck} label="Mark Reviewed" variant="secondary" onClick={onMarkReviewed} disabled={!hasSelection} />
+          <ActionIconButton icon={Mail} label="Request Missing Docs" variant="primary" onClick={onRequestMissingDocs} disabled={!hasSelection} />
+          <ActionIconButton icon={FileDown} label="Export Selected" variant="success" onClick={onExportSelected} disabled={!hasSelection} />
+          <ActionIconButton icon={Eraser} label="Clear Selection" variant="ghost" onClick={onClearSelection} disabled={!hasSelection} />
+          <ActionIconButton icon={Trash2} label="Delete Selected" variant="danger" onClick={onDeleteSelected} disabled={!hasSelection} />
         </div>
       </div>
 
