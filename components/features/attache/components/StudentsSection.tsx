@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
-import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
+import StudentQueryToolbar, { StudentSearchInput } from '@/components/features/attache/components/StudentQueryToolbar';
 import StudentAdvancedFilters from '@/components/features/attache/components/StudentAdvancedFilters';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
 import StudentRecordsTable from '@/components/features/attache/components/StudentRecordsTable';
 import StudentTablePagination from '@/components/features/attache/components/StudentTablePagination';
-import DataInsightsPanel from '@/components/features/attache/components/DataInsightsPanel';
+import {
+  DataQualityCard,
+  DuplicateDetectionCard,
+  QuerySummaryCard,
+} from '@/components/features/attache/components/DataInsightsPanel';
 import StudentDetailView from '@/components/features/attache/components/StudentDetailView';
 import ExportRecordsModal from '@/components/features/attache/components/ExportRecordsModal';
 import useStudentFilters from '@/components/features/attache/hooks/useStudentFilters';
@@ -46,6 +50,10 @@ export default function StudentsSection({
 }: StudentsSectionProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [exportPopupOpen, setExportPopupOpen] = useState(false);
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
+  const [querySummaryOpen, setQuerySummaryOpen] = useState(false);
+  const [dataQualityOpen, setDataQualityOpen] = useState(false);
+  const [duplicateDetectionOpen, setDuplicateDetectionOpen] = useState(false);
 
   const {
     query,
@@ -174,73 +182,58 @@ export default function StudentsSection({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] items-start">
-        <div className="space-y-6">
-          <StudentQueryToolbar
-            query={query}
-            onQueryChange={updateQuery}
-            onOpenExportOptions={() => setExportPopupOpen(true)}
-            isExportDisabled={isLoading}
-          />
+      <div className="space-y-6">
+        <StudentQueryToolbar
+          query={query}
+          onQueryChange={updateQuery}
+        />
 
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_28rem] xl:items-center">
           <BulkActionsBar
             selectedCount={selectedStudentIds.size}
             onMarkReviewed={handleMarkReviewed}
             onRequestMissingDocs={handleRequestMissingDocsBulk}
             onExportSelected={handleExportSelected}
+            onOpenExportOptions={() => setExportPopupOpen(true)}
+            onOpenAdvancedFilters={() => setAdvancedFiltersOpen(true)}
+            onOpenQuerySummary={() => setQuerySummaryOpen(true)}
+            onOpenDataQuality={() => setDataQualityOpen(true)}
+            onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
             onClearSelection={clearSelection}
             onDeleteSelected={handleDeleteSelected}
+            isExportDisabled={isLoading}
+            isInsightsDisabled={isLoading}
           />
 
-          <StudentRecordsTable
-            students={paginatedTableStudents}
-            isLoading={isLoading || isStudentTableLoading}
-            selectedStudentIds={selectedStudentIds}
-            reviewedStudentIds={reviewedStudentIds}
-            onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
-            onToggleSelectOne={handleToggleSelectOne}
-            onManage={setSelectedStudentId}
+          <StudentSearchInput
+            value={query.searchQuery}
+            onChange={(value) => updateQuery({ searchQuery: value })}
+            className="relative w-full"
           />
-          {!isLoading && !isStudentTableLoading ? (
-            <StudentTablePagination
-              totalItems={tableStudents.length}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              pageSizeOptions={PAGE_SIZE_OPTIONS}
-              onPageChange={(page) => setCurrentPage(Math.min(Math.max(page, 1), totalPages))}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }}
-            />
-          ) : null}
         </div>
 
-        <aside className="hidden md:block xl:sticky xl:top-24 space-y-4">
-          <StudentAdvancedFilters
-            query={query}
-            universities={uniqueUniversities}
-            programs={uniquePrograms}
-            academicYears={uniqueAcademicYears}
-            onQueryChange={updateQuery}
-            onReset={resetAdvancedFilters}
-            compact
+        <StudentRecordsTable
+          students={paginatedTableStudents}
+          isLoading={isLoading || isStudentTableLoading}
+          selectedStudentIds={selectedStudentIds}
+          reviewedStudentIds={reviewedStudentIds}
+          onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
+          onToggleSelectOne={handleToggleSelectOne}
+          onManage={setSelectedStudentId}
+        />
+        {!isLoading && !isStudentTableLoading ? (
+          <StudentTablePagination
+            totalItems={tableStudents.length}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            pageSizeOptions={PAGE_SIZE_OPTIONS}
+            onPageChange={(page) => setCurrentPage(Math.min(Math.max(page, 1), totalPages))}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
           />
-          {isLoading ? (
-            <>
-              <Skeleton className="h-72" />
-              <Skeleton className="h-48" />
-            </>
-          ) : (
-            <DataInsightsPanel
-              totalCount={students.length}
-              filteredStudents={filteredStudents}
-              searchQuery={query.searchQuery}
-              duplicateGroups={duplicateGroups}
-              qualityIssueCount={qualityIssueCount}
-            />
-          )}
-        </aside>
+        ) : null}
       </div>
 
       <ExportRecordsModal
@@ -253,6 +246,83 @@ export default function StudentsSection({
         onToggleReportColumn={onToggleReportColumn}
         onQuickExport={handleQuickExport}
       />
+
+      {advancedFiltersOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="theme-overlay absolute inset-0" onClick={() => setAdvancedFiltersOpen(false)} />
+          <div className="theme-card relative z-10 w-full max-w-5xl rounded-2xl border p-6 shadow-xl">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="theme-heading text-lg font-bold">Advanced Filtering</h3>
+                <p className="theme-text-muted mt-1 text-sm">Apply more specific filters to narrow the student records table.</p>
+              </div>
+              <div className="flex gap-2">
+                <button type="button" onClick={resetAdvancedFilters} className="theme-link text-sm font-bold">
+                  Reset
+                </button>
+                <button type="button" onClick={() => setAdvancedFiltersOpen(false)} className="theme-link text-sm font-bold">
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <StudentAdvancedFilters
+              query={query}
+              universities={uniqueUniversities}
+              programs={uniquePrograms}
+              academicYears={uniqueAcademicYears}
+              onQueryChange={updateQuery}
+              className="max-h-[70vh] overflow-y-auto pr-1"
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {querySummaryOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="theme-overlay absolute inset-0" onClick={() => setQuerySummaryOpen(false)} />
+          <div className="relative z-10 w-full max-w-2xl">
+            {isLoading ? (
+              <Skeleton className="h-72 rounded-2xl" />
+            ) : (
+              <QuerySummaryCard
+                totalCount={students.length}
+                filteredStudents={filteredStudents}
+                searchQuery={query.searchQuery}
+              />
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {dataQualityOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="theme-overlay absolute inset-0" onClick={() => setDataQualityOpen(false)} />
+          <div className="relative z-10 w-full max-w-2xl">
+            {isLoading ? (
+              <Skeleton className="h-72 rounded-2xl" />
+            ) : (
+              <DataQualityCard
+                filteredStudents={filteredStudents}
+                qualityIssueCount={qualityIssueCount}
+              />
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {duplicateDetectionOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="theme-overlay absolute inset-0" onClick={() => setDuplicateDetectionOpen(false)} />
+          <div className="relative z-10 w-full max-w-2xl">
+            {isLoading ? (
+              <Skeleton className="h-72 rounded-2xl" />
+            ) : (
+              <DuplicateDetectionCard duplicateGroups={duplicateGroups} />
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
