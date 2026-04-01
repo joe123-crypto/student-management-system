@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   }
 
   const clientIp = getClientIp(request.headers) ?? 'unknown';
-  const rateLimit = takeRateLimitToken({
+  const rateLimit = await takeRateLimitToken({
     bucket: 'change-password',
     key: `${session.user.id}:${clientIp}`,
     limit: 5,

@@ -27,7 +27,7 @@ export const credentialsProvider = Credentials({
       return null;
     }
 
-    const rateLimit = takeRateLimitToken({
+    const rateLimit = await takeRateLimitToken({
       bucket: 'signin',
       key: ip || loginId,
       limit: 10,

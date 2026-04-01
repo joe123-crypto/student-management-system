@@ -32,7 +32,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const clientIp = getClientIp(request.headers) ?? 'unknown';
-  const rateLimit = takeRateLimitToken({
+  const rateLimit = await takeRateLimitToken({
     bucket: 'permission-request',
     key: clientIp,
     limit: 5,
