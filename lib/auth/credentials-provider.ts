@@ -102,6 +102,7 @@ export const credentialsProvider = Credentials({
       loginId: authUser.loginId,
       subject,
       authProvider: authUser.authProvider,
+      sessionVersion: authUser.sessionVersion,
     };
   },
 });

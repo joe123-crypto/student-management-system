@@ -60,6 +60,34 @@ test('session callback exposes auth claims on session.user', async () => {
   });
 });
 
+test('session callback clears auth claims when a token has been revoked', async () => {
+  assert.ok(authCallbacks?.session);
+
+  const session = await authCallbacks.session({
+    session: { user: { name: 'Jean' }, expires: '2099-01-01T00:00:00.000Z' } as Session,
+    token: {
+      sub: 'user-2',
+      role: UserRole.STUDENT,
+      loginId: 'STUDENT123',
+      subject: 'Computer Science',
+      authProvider: 'student_inscription',
+      revoked: true,
+    } as JWT,
+    user: undefined,
+    newSession: undefined,
+    trigger: 'update',
+  } as unknown as Parameters<NonNullable<typeof authCallbacks.session>>[0]);
+
+  assert.deepEqual(session.user, {
+    name: 'Jean',
+    id: undefined,
+    role: undefined,
+    loginId: undefined,
+    subject: undefined,
+    authProvider: undefined,
+  });
+});
+
 test('session callback leaves auth claims undefined when token claims are missing', async () => {
   assert.ok(authCallbacks?.session);
 

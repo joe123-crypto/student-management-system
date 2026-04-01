@@ -63,6 +63,7 @@ model AuthUser {
   loginId           String
   authProvider      AuthProvider
   passwordHash      String
+  sessionVersion    Int                 @default(0)
   isActive          Boolean             @default(true)
   failedSignInCount Int                 @default(0)
   lockedUntil       DateTime?

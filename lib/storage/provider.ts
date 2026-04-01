@@ -21,6 +21,7 @@ export interface ObjectStorageProvider {
     sizeBytes: number;
     etag?: string;
   } | null>;
+  getObjectBytes(objectKey: string, maxBytes: number): Promise<Uint8Array | null>;
   createSignedDownload(input: {
     objectKey: string;
     filename?: string;

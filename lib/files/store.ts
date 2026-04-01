@@ -4,9 +4,9 @@ import { prisma } from '@/lib/db';
 import { recordAuditLog } from '@/lib/auth/store';
 import { FILE_POLICIES, assertPurposeSupportedForPhaseOne, validateFileInput } from '@/lib/files/policies';
 import { buildFileObjectKey, normalizeUploadedFilename } from '@/lib/files/object-key';
+import { sniffMimeTypeFromFileSignature } from '@/lib/files/signatures';
 import {
   buildFileContentPath,
-  buildFileUploadPath,
   extractFileIdFromReference,
 } from '@/lib/files/reference';
 import { getObjectStorageBucket, getObjectStorageProvider, getSignedUrlTtlSeconds } from '@/lib/storage';
@@ -66,16 +66,6 @@ function serializeFileAsset(file: NonNullable<FileAssetRow>) {
     createdAt: file.createdAt.toISOString(),
     uploadedAt: file.uploadedAt?.toISOString() || null,
     expiresAt: file.expiresAt?.toISOString() || null,
-  };
-}
-
-function buildServerUploadPayload(fileId: string, mimeType: string): SignedUploadPayload {
-  return {
-    method: 'PUT',
-    url: buildFileUploadPath(fileId),
-    headers: {
-      'Content-Type': mimeType,
-    },
   };
 }
 
@@ -182,6 +172,28 @@ async function getAuthorizedFileOrThrow(fileId: string, actor: FileActor) {
   return file;
 }
 
+async function quarantineFile(params: {
+  file: NonNullable<FileAssetRow>;
+  sizeBytes: number;
+  etag?: string;
+  reason: string;
+  details?: Record<string, unknown>;
+}) {
+  await prisma.fileAsset.update({
+    where: { id: params.file.id },
+    data: {
+      status: FileStatus.QUARANTINED,
+      sizeBytes: params.sizeBytes,
+      etag: params.etag,
+      scanStatus: 'FAILED_VALIDATION',
+      scanDetails: {
+        reason: params.reason,
+        ...(params.details || {}),
+      } as Prisma.InputJsonValue,
+    },
+  });
+}
+
 export async function createUploadIntent(params: {
   actor: FileActor;
   purpose: FilePurpose;
@@ -245,7 +257,26 @@ export async function createUploadIntent(params: {
 
   return {
     file: serializeFileAsset(file),
-    upload: buildServerUploadPayload(file.id, file.mimeType),
+    upload: await getObjectStorageProvider().createSignedUpload({
+      objectKey: file.objectKey,
+      mimeType: file.mimeType,
+      sizeBytes: file.sizeBytes,
+    }),
+  };
+}
+
+export async function getPendingUploadConstraints(params: {
+  fileId: string;
+  actor: FileActor;
+}): Promise<{ maxSizeBytes: number; mimeType: string }> {
+  const file = await getAuthorizedFileOrThrow(params.fileId, params.actor);
+  if (file.status !== FileStatus.PENDING_UPLOAD) {
+    throw new Error('This file cannot accept uploads.');
+  }
+
+  return {
+    maxSizeBytes: FILE_POLICIES[file.purpose].maxSizeBytes,
+    mimeType: file.mimeType,
   };
 }
 
@@ -322,12 +353,30 @@ export async function completeUpload(params: {
 
   const policy = FILE_POLICIES[file.purpose];
   if (head.sizeBytes <= 0 || head.sizeBytes > policy.maxSizeBytes) {
-    await prisma.fileAsset.update({
-      where: { id: file.id },
-      data: {
-        status: FileStatus.QUARANTINED,
-        sizeBytes: head.sizeBytes,
-        etag: head.etag,
+    await quarantineFile({
+      file,
+      sizeBytes: head.sizeBytes,
+      etag: head.etag,
+      reason: 'size_out_of_bounds',
+      details: {
+        maxSizeBytes: policy.maxSizeBytes,
+      },
+    });
+    throw new Error('Uploaded file failed validation.');
+  }
+
+  const objectBytes = await getObjectStorageProvider().getObjectBytes(file.objectKey, 64);
+  const detectedMimeType = objectBytes ? sniffMimeTypeFromFileSignature(objectBytes) : null;
+
+  if (!detectedMimeType || detectedMimeType !== file.mimeType) {
+    await quarantineFile({
+      file,
+      sizeBytes: head.sizeBytes,
+      etag: head.etag,
+      reason: 'signature_mismatch',
+      details: {
+        declaredMimeType: file.mimeType,
+        detectedMimeType,
       },
     });
     throw new Error('Uploaded file failed validation.');
@@ -339,6 +388,12 @@ export async function completeUpload(params: {
       status: FileStatus.ACTIVE,
       sizeBytes: head.sizeBytes,
       etag: head.etag,
+      mimeType: detectedMimeType,
+      scanStatus: 'SIGNATURE_VALIDATED',
+      scanDetails: {
+        declaredMimeType: file.mimeType,
+        detectedMimeType,
+      } as Prisma.InputJsonValue,
       uploadedAt: new Date(),
     },
   });

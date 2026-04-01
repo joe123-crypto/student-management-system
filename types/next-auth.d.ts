@@ -17,6 +17,7 @@ declare module 'next-auth' {
     loginId: string;
     subject: string;
     authProvider: 'student_inscription' | 'attache_email';
+    sessionVersion?: number;
   }
 }
 
@@ -26,5 +27,7 @@ declare module 'next-auth/jwt' {
     loginId?: string;
     subject?: string;
     authProvider?: 'student_inscription' | 'attache_email';
+    revoked?: boolean;
+    sessionVersion?: number;
   }
 }
