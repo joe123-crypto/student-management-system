@@ -19,7 +19,7 @@ Copy `.env.example` into `.env` and configure:
 - optional `TRUST_PROXY_PROVIDER` (`generic`, `vercel`, or `cloudflare`)
 - `SEED_AUTH_PASSWORD`
 
-Sign-in uses the Prisma auth users created by [`prisma/seed.ts`](/c:/Users/Joe/Documents/workspace/Student%20Platform/prisma/seed.ts). `NEXT_PUBLIC_USE_MOCK_DB` only controls the remaining mock data surfaces, not authentication.
+Sign-in uses the Prisma auth users created by [`prisma/seed.ts`](../../prisma/seed.ts). `NEXT_PUBLIC_USE_MOCK_DB` only controls the remaining mock data surfaces, not authentication.
 
 With `NEXT_PUBLIC_USE_MOCK_DB=false`, the runtime now also persists announcements, permission requests, and password changes through the Prisma-backed API routes.
 

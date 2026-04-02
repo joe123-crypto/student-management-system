@@ -4,7 +4,7 @@
 
 This application uses a warm academic palette built around deep green, burnt orange, and soft parchment neutrals. The system is intentionally light-first and uses color semantically rather than decoratively.
 
-The source of truth for these colors is [`app/globals.css`](/Users/Joe/Documents/workspace/Student Platform ui/app/globals.css).
+The source of truth for these colors is [`app/globals.css`](../../app/globals.css).
 
 ## Core Palette
 
@@ -57,7 +57,7 @@ This ratio keeps the interface calm and readable while making interactive and se
 
 ### 1. Color is token-driven
 
-Use CSS variables from [`app/globals.css`](/Users/Joe/Documents/workspace/Student Platform ui/app/globals.css) instead of introducing ad hoc hex values in components. Most components already follow this pattern through utility classes such as `theme-card`, `theme-input`, `theme-success`, and `theme-danger`.
+Use CSS variables from [`app/globals.css`](../../app/globals.css) instead of introducing ad hoc hex values in components. Most components already follow this pattern through utility classes such as `theme-card`, `theme-input`, `theme-success`, and `theme-danger`.
 
 ### 2. Neutrals carry the layout
 
@@ -77,7 +77,7 @@ Use `--theme-primary` and `--theme-primary-strong` for:
 - Main chart strokes
 - Strong headings and anchors
 
-Reference: [`components/ui/Button.tsx`](/Users/Joe/Documents/workspace/Student Platform ui/components/ui/Button.tsx), [`components/layout/Layout.tsx`](/Users/Joe/Documents/workspace/Student Platform ui/components/layout/Layout.tsx), [`components/ui/AcademicStatusCard.tsx`](/Users/Joe/Documents/workspace/Student Platform ui/components/ui/AcademicStatusCard.tsx)
+Reference: [`components/ui/Button.tsx`](../../components/ui/Button.tsx), [`components/layout/Layout.tsx`](../../components/layout/Layout.tsx), [`components/ui/AcademicStatusCard.tsx`](../../components/ui/AcademicStatusCard.tsx)
 
 ### 4. Warm orange is for emphasis, not for base structure
 
@@ -102,7 +102,7 @@ They should not appear in normal success, navigation, or informational flows.
 
 ### 6. States are tinted, not saturated blocks
 
-Status colors are softened with `color-mix(...)` so badges and alerts remain readable inside the warm UI. This rule is visible in the shared state classes and in [`components/ui/StatusBadge.tsx`](/Users/Joe/Documents/workspace/Student Platform ui/components/ui/StatusBadge.tsx).
+Status colors are softened with `color-mix(...)` so badges and alerts remain readable inside the warm UI. This rule is visible in the shared state classes and in [`components/ui/StatusBadge.tsx`](../../components/ui/StatusBadge.tsx).
 
 ### 7. Text contrast stays disciplined
 
@@ -165,12 +165,12 @@ This avoids blue default browser focus colors and keeps interaction feedback on-
 
 Primary implementation points:
 
-- [`app/globals.css`](/Users/Joe/Documents/workspace/Student Platform ui/app/globals.css)
-- [`components/ui/Button.tsx`](/Users/Joe/Documents/workspace/Student Platform ui/components/ui/Button.tsx)
-- [`components/ui/StatusBadge.tsx`](/Users/Joe/Documents/workspace/Student Platform ui/components/ui/StatusBadge.tsx)
-- [`components/layout/Layout.tsx`](/Users/Joe/Documents/workspace/Student Platform ui/components/layout/Layout.tsx)
-- [`components/ui/AcademicStatusCard.tsx`](/Users/Joe/Documents/workspace/Student Platform ui/components/ui/AcademicStatusCard.tsx)
+- [`app/globals.css`](../../app/globals.css)
+- [`components/ui/Button.tsx`](../../components/ui/Button.tsx)
+- [`components/ui/StatusBadge.tsx`](../../components/ui/StatusBadge.tsx)
+- [`components/layout/Layout.tsx`](../../components/layout/Layout.tsx)
+- [`components/ui/AcademicStatusCard.tsx`](../../components/ui/AcademicStatusCard.tsx)
 
 ## Maintenance Rule
 
-If the palette changes, update the tokens in [`app/globals.css`](/Users/Joe/Documents/workspace/Student Platform ui/app/globals.css) first, then adjust any component-level exceptions. The documentation in this file should be updated immediately after any token change so design intent and implementation stay aligned.
+If the palette changes, update the tokens in [`app/globals.css`](../../app/globals.css) first, then adjust any component-level exceptions. The documentation in this file should be updated immediately after any token change so design intent and implementation stay aligned.
