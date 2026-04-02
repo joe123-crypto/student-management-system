@@ -55,7 +55,7 @@ test('jwt callback preserves legacy tokens that do not have a session version ye
     trigger: 'update',
     isNewUser: false,
     session: undefined,
-  } as Parameters<NonNullable<typeof authCallbacks.jwt>>[0]);
+  } as unknown as Parameters<NonNullable<typeof authCallbacks.jwt>>[0]);
 
   assert.equal(result, token);
 });
