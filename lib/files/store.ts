@@ -369,6 +369,8 @@ export async function completeUpload(params: {
   const detectedMimeType = objectBytes ? sniffMimeTypeFromFileSignature(objectBytes) : null;
 
   if (!detectedMimeType || detectedMimeType !== file.mimeType) {
+    // Fail closed when the signature is unknown instead of trusting the client-supplied
+    // Content-Type header for activation.
     await quarantineFile({
       file,
       sizeBytes: head.sizeBytes,

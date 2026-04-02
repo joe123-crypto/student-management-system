@@ -9,13 +9,18 @@ test('jwt callback copies auth claims from the authenticated user', async () => 
   assert.ok(authCallbacks?.jwt);
 
   const token = await authCallbacks.jwt({
-    token: { sub: 'existing-user' } as JWT,
+    token: {
+      sub: 'existing-user',
+      revoked: true,
+      sessionVersion: 3,
+    } as JWT,
     user: {
       id: 'user-1',
       role: UserRole.ATTACHE,
       loginId: 'admin@example.com',
       subject: 'Administration',
       authProvider: 'attache_email',
+      sessionVersion: 4,
     },
     account: null,
     profile: undefined,
@@ -30,7 +35,29 @@ test('jwt callback copies auth claims from the authenticated user', async () => 
     loginId: 'admin@example.com',
     subject: 'Administration',
     authProvider: 'attache_email',
+    sessionVersion: 4,
   });
+});
+
+test('jwt callback preserves legacy tokens that do not have a session version yet', async () => {
+  assert.ok(authCallbacks?.jwt);
+
+  const token = {
+    sub: 'legacy-user',
+    loginId: 'STUDENT123',
+  } as JWT;
+
+  const result = await authCallbacks.jwt({
+    token,
+    user: undefined,
+    account: null,
+    profile: undefined,
+    trigger: 'update',
+    isNewUser: false,
+    session: undefined,
+  } as Parameters<NonNullable<typeof authCallbacks.jwt>>[0]);
+
+  assert.equal(result, token);
 });
 
 test('session callback exposes auth claims on session.user', async () => {

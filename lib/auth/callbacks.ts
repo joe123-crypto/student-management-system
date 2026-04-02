@@ -30,6 +30,8 @@ export const authCallbacks: NextAuthOptions['callbacks'] = {
           : undefined;
 
       if (!userId || sessionVersion === undefined) {
+        // Preserve legacy or pre-session-version tokens until the user signs in again
+        // and receives a versioned token we can compare against the database record.
         return token;
       }
 
@@ -46,8 +48,9 @@ export const authCallbacks: NextAuthOptions['callbacks'] = {
       return token;
     }
 
-    const { revoked: _revoked, sessionVersion: _existingSessionVersion, ...restToken } =
-      token as AppJwt;
+    const restToken = { ...(token as AppJwt) };
+    delete restToken.revoked;
+    delete restToken.sessionVersion;
     const sessionVersion =
       typeof (user as { sessionVersion?: unknown }).sessionVersion === 'number'
         ? (user as { sessionVersion: number }).sessionVersion
