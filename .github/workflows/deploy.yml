@@ -85,6 +85,12 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Verify preview Prisma schema
+        run: printf 'SELECT 1 FROM "RateLimitBucket" LIMIT 1;' | vercel env run -e preview --git-branch=${{ github.head_ref }} --token=${{ secrets.VERCEL_TOKEN }} -- npx prisma db execute --stdin --schema prisma/schema.prisma
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
       - name: Build preview artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
         env:
@@ -94,7 +100,15 @@ jobs:
       - name: Deploy preview
         id: deploy_preview
         run: |
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt --yes --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tail -n 1)
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --yes \
+            -m githubDeployment=1 \
+            -m githubCommitRef=${{ github.head_ref }} \
+            -m githubCommitSha=${{ github.event.pull_request.head.sha }} \
+            -m githubCommitOrg=${{ github.repository_owner }} \
+            -m githubCommitRepo=${{ github.event.repository.name }} \
+            -m githubOrg=${{ github.repository_owner }} \
+            -m githubRepo=${{ github.event.repository.name }} \
+            --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tail -n 1)
           echo "Preview URL: $DEPLOYMENT_URL"
           echo "deployment_url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
 
@@ -144,6 +158,12 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Verify production Prisma schema
+        run: printf 'SELECT 1 FROM "RateLimitBucket" LIMIT 1;' | vercel env run -e production --token=${{ secrets.VERCEL_TOKEN }} -- npx prisma db execute --stdin --schema prisma/schema.prisma
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
       - name: Build production artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
@@ -153,7 +173,15 @@ jobs:
       - name: Deploy to production
         id: deploy_production
         run: |
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --yes --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tail -n 1)
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --yes \
+            -m githubDeployment=1 \
+            -m githubCommitRef=${{ github.ref_name }} \
+            -m githubCommitSha=${{ github.sha }} \
+            -m githubCommitOrg=${{ github.repository_owner }} \
+            -m githubCommitRepo=${{ github.event.repository.name }} \
+            -m githubOrg=${{ github.repository_owner }} \
+            -m githubRepo=${{ github.event.repository.name }} \
+            --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tail -n 1)
           echo "Production URL: $DEPLOYMENT_URL"
           echo "deployment_url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
 
