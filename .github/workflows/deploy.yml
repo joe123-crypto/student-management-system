@@ -135,10 +135,10 @@ jobs:
       - name: Smoke check preview
         run: |
           BASE_URL="${{ steps.deploy_preview.outputs.deployment_url }}"
-          test "$(vercel curl / --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -sS -L -o /dev/null -w '%{http_code}')" = "200"
-          test "$(vercel curl /login --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -sS -L -o /dev/null -w '%{http_code}')" = "200"
-          test "$(vercel curl /onboarding --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -sS -L -o /dev/null -w '%{http_code}')" = "200"
-          test "$(vercel curl /attache --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -sS -L -o /dev/null -w '%{http_code}')" = "200"
+          test "$(vercel curl / --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -s -L -o /dev/null -w '%{http_code}')" = "200"
+          test "$(vercel curl /login --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -s -L -o /dev/null -w '%{http_code}')" = "200"
+          test "$(vercel curl /onboarding --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -s -L -o /dev/null -w '%{http_code}')" = "200"
+          test "$(vercel curl /attache --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -s -L -o /dev/null -w '%{http_code}')" = "200"
 
   production:
     name: Production Deploy (main)
@@ -224,7 +224,7 @@ jobs:
       - name: Smoke check production
         run: |
           BASE_URL="${{ steps.deploy_production.outputs.deployment_url }}"
-          test "$(vercel curl / --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -sS -L -o /dev/null -w '%{http_code}')" = "200"
-          test "$(vercel curl /login --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -sS -L -o /dev/null -w '%{http_code}')" = "200"
-          test "$(vercel curl /onboarding --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -sS -L -o /dev/null -w '%{http_code}')" = "200"
-          test "$(vercel curl /attache --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -sS -L -o /dev/null -w '%{http_code}')" = "200"
+          test "$(vercel curl / --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -s -L -o /dev/null -w '%{http_code}')" = "200"
+          test "$(vercel curl /login --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -s -L -o /dev/null -w '%{http_code}')" = "200"
+          test "$(vercel curl /onboarding --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -s -L -o /dev/null -w '%{http_code}')" = "200"
+          test "$(vercel curl /attache --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} -s -L -o /dev/null -w '%{http_code}')" = "200"
