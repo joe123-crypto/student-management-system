@@ -135,10 +135,10 @@ jobs:
       - name: Smoke check preview
         run: |
           BASE_URL="${{ steps.deploy_preview.outputs.deployment_url }}"
-          curl -f "$BASE_URL/"
-          curl -f "$BASE_URL/login"
-          curl -f "$BASE_URL/onboarding"
-          curl -f "$BASE_URL/attache"
+          vercel curl / --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} --fail --silent --show-error --location > /dev/null
+          vercel curl /login --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} --fail --silent --show-error --location > /dev/null
+          vercel curl /onboarding --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} --fail --silent --show-error --location > /dev/null
+          vercel curl /attache --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} --fail --silent --show-error --location > /dev/null
 
   production:
     name: Production Deploy (main)
@@ -224,7 +224,7 @@ jobs:
       - name: Smoke check production
         run: |
           BASE_URL="${{ steps.deploy_production.outputs.deployment_url }}"
-          curl -f "$BASE_URL/"
-          curl -f "$BASE_URL/login"
-          curl -f "$BASE_URL/onboarding"
-          curl -f "$BASE_URL/attache"
+          vercel curl / --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} --fail --silent --show-error --location > /dev/null
+          vercel curl /login --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} --fail --silent --show-error --location > /dev/null
+          vercel curl /onboarding --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} --fail --silent --show-error --location > /dev/null
+          vercel curl /attache --deployment "$BASE_URL" --token=${{ secrets.VERCEL_TOKEN }} --fail --silent --show-error --location > /dev/null
