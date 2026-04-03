@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import AuthSessionProvider from '@/components/providers/AuthSessionProvider';
 
 export const metadata: Metadata = {
   title: 'ScholarsAlger',
@@ -17,9 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <AuthSessionProvider>
-          <div id="root">{children}</div>
-        </AuthSessionProvider>
+        <div id="root">{children}</div>
       </body>
     </html>
   );

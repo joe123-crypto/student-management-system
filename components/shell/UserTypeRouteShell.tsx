@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import AppShell from '@/components/shell/AppShell';
+import ProtectedAppShell from '@/components/shell/ProtectedAppShell';
 
 interface UserTypeRouteShellProps {
   userType: 'student' | 'attache';
@@ -16,10 +16,10 @@ export default function UserTypeRouteShell({ userType }: UserTypeRouteShellProps
   }
 
   if (userType === 'student') {
-    return <AppShell route={section === 'settings' ? '/student/settings' : '/student/dashboard'} />;
+    return <ProtectedAppShell route={section === 'settings' ? '/student/settings' : '/student/dashboard'} />;
   }
 
-  return <AppShell route={section === 'settings' ? '/attache/settings' : '/attache/dashboard'} />;
+  return <ProtectedAppShell route={section === 'settings' ? '/attache/settings' : '/attache/dashboard'} />;
 }
 
 

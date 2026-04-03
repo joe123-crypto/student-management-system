@@ -1,6 +1,6 @@
-import AppShell from '@/components/shell/AppShell';
+import ProtectedAppShell from '@/components/shell/ProtectedAppShell';
 
 export default function OnboardingRoutePage() {
-  return <AppShell route="/onboarding" />;
+  return <ProtectedAppShell route="/onboarding" />;
 }
 
