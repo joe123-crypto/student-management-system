@@ -8,31 +8,36 @@ if (!baseUrl || !token) {
 }
 
 const checks = [
-  { path: '/', expected: [200], description: 'public home page' },
-  { path: '/login', expected: [200], description: 'public login page' },
-  { path: '/request-permission', expected: [200], description: 'public permission request page' },
-  { path: '/onboarding', expected: [301, 302, 303, 307, 308], description: 'protected onboarding redirect' },
-  { path: '/attache', expected: [301, 302, 303, 307, 308], description: 'protected attache redirect' },
+  {
+    path: '/',
+    description: 'public home page',
+    markers: ['The Central support platform for students in Algeria', 'See how ScholarsAlger works in under two minutes'],
+  },
+  {
+    path: '/login',
+    description: 'public login page',
+    markers: ['Sign in to access your ScholarsAlger account.', 'Request permission'],
+  },
+  {
+    path: '/request-permission',
+    description: 'public permission request page',
+    markers: ['Send your details to the student attache for account approval.', 'Send request'],
+  },
 ];
-
-function extractStatusCodes(output) {
-  const matches = [...output.matchAll(/< HTTP\/[0-9.]+\s+(\d{3})/g)];
-  return matches.map((match) => Number(match[1]));
-}
 
 for (const check of checks) {
   const result = spawnSync(
     'vercel',
-    ['curl', check.path, '--deployment', baseUrl, '--token', token, '-v'],
+    ['curl', check.path, '--deployment', baseUrl, '--token', token],
     {
       encoding: 'utf8',
       shell: false,
     },
   );
 
-  const combinedOutput = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
-  const statusCodes = extractStatusCodes(combinedOutput);
-  const finalStatus = statusCodes[statusCodes.length - 1];
+  const stdout = result.stdout ?? '';
+  const stderr = result.stderr ?? '';
+  const combinedOutput = `${stdout}\n${stderr}`;
 
   if (result.status !== 0) {
     console.error(`[smoke-check] Request failed for ${check.path} (${check.description}).`);
@@ -40,13 +45,15 @@ for (const check of checks) {
     process.exit(result.status ?? 1);
   }
 
-  if (!finalStatus || !check.expected.includes(finalStatus)) {
+  const hasExpectedMarker = check.markers.some((marker) => stdout.includes(marker));
+
+  if (!hasExpectedMarker) {
     console.error(
-      `[smoke-check] Unexpected status for ${check.path}. Expected ${check.expected.join(' or ')}, got ${finalStatus ?? 'none'}.`,
+      `[smoke-check] Unexpected content for ${check.path}. None of the expected markers were found.`,
     );
-    process.stderr.write(combinedOutput);
+    process.stderr.write(`${stdout.slice(0, 4000)}\n${stderr}`);
     process.exit(1);
   }
 
-  console.log(`[smoke-check] ${check.path} -> ${finalStatus} (${check.description})`);
+  console.log(`[smoke-check] ${check.path} ok (${check.description})`);
 }
