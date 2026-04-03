@@ -117,7 +117,9 @@ jobs:
       - name: Deploy preview
         id: deploy_preview
         run: |
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt --yes \
+          set -eo pipefail
+          DEPLOY_LOG=$(mktemp)
+          vercel deploy --prebuilt --yes \
             -m githubDeployment=1 \
             -m githubCommitRef="$VERCEL_GIT_BRANCH" \
             -m githubCommitSha="$VERCEL_GIT_SHA" \
@@ -125,13 +127,14 @@ jobs:
             -m githubCommitRepo=${{ github.event.repository.name }} \
             -m githubOrg=${{ github.repository_owner }} \
             -m githubRepo=${{ github.event.repository.name }} \
-            --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tail -n 1)
+            --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tee "$DEPLOY_LOG"
+          DEPLOYMENT_URL=$(node scripts/extract-vercel-deployment-url.mjs < "$DEPLOY_LOG")
           echo "Preview URL: $DEPLOYMENT_URL"
           echo "deployment_url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
 
       - name: Smoke check preview
         run: |
-          BASE_URL=${{ steps.deploy_preview.outputs.deployment_url }}
+          BASE_URL="${{ steps.deploy_preview.outputs.deployment_url }}"
           curl -f "$BASE_URL/"
           curl -f "$BASE_URL/login"
           curl -f "$BASE_URL/onboarding"
@@ -203,7 +206,9 @@ jobs:
       - name: Deploy to production
         id: deploy_production
         run: |
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --yes \
+          set -eo pipefail
+          DEPLOY_LOG=$(mktemp)
+          vercel deploy --prebuilt --prod --yes \
             -m githubDeployment=1 \
             -m githubCommitRef=${{ github.ref_name }} \
             -m githubCommitSha=${{ github.sha }} \
@@ -211,13 +216,14 @@ jobs:
             -m githubCommitRepo=${{ github.event.repository.name }} \
             -m githubOrg=${{ github.repository_owner }} \
             -m githubRepo=${{ github.event.repository.name }} \
-            --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tail -n 1)
+            --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tee "$DEPLOY_LOG"
+          DEPLOYMENT_URL=$(node scripts/extract-vercel-deployment-url.mjs < "$DEPLOY_LOG")
           echo "Production URL: $DEPLOYMENT_URL"
           echo "deployment_url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
 
       - name: Smoke check production
         run: |
-          BASE_URL=${{ steps.deploy_production.outputs.deployment_url }}
+          BASE_URL="${{ steps.deploy_production.outputs.deployment_url }}"
           curl -f "$BASE_URL/"
           curl -f "$BASE_URL/login"
           curl -f "$BASE_URL/onboarding"
