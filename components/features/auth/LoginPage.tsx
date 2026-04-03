@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { UserRole } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
@@ -41,6 +40,7 @@ const LoginPage: React.FC = () => {
       return;
     }
 
+    const { signIn } = await import('next-auth/react');
     const result = await signIn('credentials', {
       role,
       loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail,

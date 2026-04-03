@@ -2,7 +2,6 @@
 
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
 import AuthSessionProvider from '@/components/providers/AuthSessionProvider';
 import { clearCacheByPrefix, getRuntimeCachePrefix } from '@/components/shell/shared/browser-cache';
 import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
@@ -52,6 +51,7 @@ function ProtectedAppShellInner({ route }: { route: ProtectedRoute }) {
       } catch (error) {
         console.error('[CACHE] Failed to clear runtime browser cache during logout:', error);
       } finally {
+        const { signOut } = await import('next-auth/react');
         await signOut({ callbackUrl: '/login' });
       }
     })();
