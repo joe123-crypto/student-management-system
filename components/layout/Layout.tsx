@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { AttacheAgentContext, User } from '../../types';
 import { UserRole } from '../../types';
@@ -133,7 +134,18 @@ const Layout: React.FC<LayoutProps> = ({
                 <div className="theme-card-muted space-y-4 rounded-3xl border p-5">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--theme-primary)] shadow-lg shadow-[rgba(37,79,34,0.16)]">
-                      {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
+                      {profilePicture ? (
+                        <Image
+                          src={profilePicture}
+                          alt="Profile"
+                          width={40}
+                          height={40}
+                          unoptimized
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-5 h-5 bg-white/20 rounded-md" />
+                      )}
                     </div>
                     <div className="overflow-hidden">
                       <p className="theme-text-muted type-label mb-1 leading-none">Role</p>
@@ -160,7 +172,18 @@ const Layout: React.FC<LayoutProps> = ({
                   title={role}
                   className="mx-auto flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--theme-primary)] shadow-lg shadow-[rgba(37,79,34,0.16)]"
                 >
-                  {profilePicture ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <div className="w-5 h-5 bg-white/20 rounded-md" />}
+                  {profilePicture ? (
+                    <Image
+                      src={profilePicture}
+                      alt="Profile"
+                      width={40}
+                      height={40}
+                      unoptimized
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-5 h-5 bg-white/20 rounded-md" />
+                  )}
                 </div>
               ) : null}
               <button

@@ -4,6 +4,13 @@ import { spawn } from 'node:child_process';
 
 const repoRoot = realpathSync.native(process.cwd());
 const [, , command = 'dev', ...restArgs] = process.argv;
+const emptyAsUnsetEnvKeys = [
+  'NEXTAUTH_URL',
+  'NEXTAUTH_URL_INTERNAL',
+  'AUTH_URL',
+  'AUTH_URL_INTERNAL',
+  'VERCEL_URL',
+];
 
 const nextBin = path.join(repoRoot, 'node_modules', 'next', 'dist', 'bin', 'next');
 const env = {
@@ -11,6 +18,12 @@ const env = {
   INIT_CWD: repoRoot,
   PWD: repoRoot,
 };
+
+for (const key of emptyAsUnsetEnvKeys) {
+  if (typeof env[key] === 'string' && env[key].trim().length === 0) {
+    delete env[key];
+  }
+}
 
 const child = spawn(process.execPath, [nextBin, command, ...restArgs], {
   cwd: repoRoot,

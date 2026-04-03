@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import {
   Building2,
   GraduationCap,
@@ -118,9 +119,12 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
           <div className="flex flex-col items-center gap-6 md:flex-row md:items-center md:text-left">
             <div className="theme-card-muted flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2rem] border shadow-[0_18px_35px_rgba(37,79,34,0.08)]">
               {student.student.profilePicture ? (
-                <img
+                <Image
                   src={student.student.profilePicture}
                   alt={`${student.student.fullName} profile`}
+                  width={112}
+                  height={112}
+                  unoptimized
                   className="h-full w-full object-cover"
                 />
               ) : (

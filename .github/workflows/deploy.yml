@@ -93,6 +93,9 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Debug auth/base URL inputs (temporary)
+        run: node scripts/report-auth-url-env-status.mjs .vercel/.env.preview.local
+
       - name: Apply preview Prisma migrations
         run: vercel env run -e preview --git-branch="$VERCEL_GIT_BRANCH" --token=${{ secrets.VERCEL_TOKEN }} -- npm run prisma:migrate:deploy
         env:
@@ -175,6 +178,9 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Debug auth/base URL inputs (temporary)
+        run: node scripts/report-auth-url-env-status.mjs .vercel/.env.production.local
 
       - name: Apply production Prisma migrations
         run: vercel env run -e production --token=${{ secrets.VERCEL_TOKEN }} -- npm run prisma:migrate:deploy

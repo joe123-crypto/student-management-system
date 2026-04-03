@@ -29,7 +29,7 @@
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-plus-jakarta-sans), sans-serif;
   background:
     radial-gradient(circle at top, rgba(245, 130, 74, 0.18), transparent 28%),
     linear-gradient(180deg, var(--theme-page-start) 0%, var(--theme-page) 100%);
@@ -48,18 +48,18 @@ body {
 }
 
 .font-rounded {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-plus-jakarta-sans), sans-serif;
 }
 
 .type-brand {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-plus-jakarta-sans), sans-serif;
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
 
 .type-page-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-plus-jakarta-sans), sans-serif;
   font-size: clamp(1.875rem, 3vw, 2.375rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -67,7 +67,7 @@ body {
 }
 
 .type-section-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-plus-jakarta-sans), sans-serif;
   font-size: clamp(1.25rem, 1.9vw, 1.5rem);
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -75,7 +75,7 @@ body {
 }
 
 .type-card-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-plus-jakarta-sans), sans-serif;
   font-size: clamp(1rem, 1.2vw, 1.125rem);
   font-weight: 600;
   letter-spacing: -0.015em;

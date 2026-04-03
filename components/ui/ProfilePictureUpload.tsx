@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import Image from 'next/image';
 import Button from './Button';
 
 interface ProfilePictureUploadProps {
@@ -33,7 +34,14 @@ export default function ProfilePictureUpload({
       <div className="relative group">
         <div className="theme-card flex h-32 w-32 items-center justify-center overflow-hidden rounded-[2.5rem] border-4 border-[rgba(252,248,234,0.95)] shadow-xl">
           {imageSrc ? (
-            <img src={imageSrc} alt="Profile" className="w-full h-full object-cover" />
+            <Image
+              src={imageSrc}
+              alt="Profile"
+              width={128}
+              height={128}
+              unoptimized
+              className="h-full w-full object-cover"
+            />
           ) : (
             <svg className="h-12 w-12 text-[rgba(37,79,34,0.22)]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
