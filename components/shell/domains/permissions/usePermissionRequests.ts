@@ -6,6 +6,8 @@ import { mockPermissionsService } from '@/test/mock/services/permissionsService'
 import type { PermissionRequest, User } from '@/types';
 import { UserRole } from '@/types';
 
+const EMPTY_PERMISSION_REQUESTS: PermissionRequest[] = [];
+
 function upsertPermissionRequest(
   requests: PermissionRequest[],
   nextRequest: PermissionRequest,
@@ -23,7 +25,7 @@ function upsertPermissionRequest(
 
 export function usePermissionRequests(
   user: User | null,
-  initialPermissionRequests: PermissionRequest[] = [],
+  initialPermissionRequests: PermissionRequest[] = EMPTY_PERMISSION_REQUESTS,
 ) {
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const [permissionRequests, setPermissionRequests] = useState<PermissionRequest[]>(

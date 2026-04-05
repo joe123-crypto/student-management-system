@@ -12,13 +12,17 @@ import type { Announcement, User } from '@/types';
 import { UserRole } from '@/types';
 
 const ANNOUNCEMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
+const EMPTY_ANNOUNCEMENTS: Announcement[] = [];
 
 function prependAnnouncement(announcements: Announcement[], nextAnnouncement: Announcement): Announcement[] {
   const withoutExisting = announcements.filter((announcement) => announcement.id !== nextAnnouncement.id);
   return [nextAnnouncement, ...withoutExisting];
 }
 
-export function useAnnouncements(user: User | null, initialAnnouncements: Announcement[] = []) {
+export function useAnnouncements(
+  user: User | null,
+  initialAnnouncements: Announcement[] = EMPTY_ANNOUNCEMENTS,
+) {
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements);
   const [hydratedKey, setHydratedKey] = useState<string | null>(

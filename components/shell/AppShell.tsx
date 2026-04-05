@@ -16,13 +16,17 @@ import StudentAppRouter from '@/components/shell/routers/StudentAppRouter';
 import type { Announcement } from '@/types';
 import type { PermissionRequest, StudentProfile, User } from '@/types';
 
+const EMPTY_ANNOUNCEMENTS: Announcement[] = [];
+const EMPTY_PERMISSION_REQUESTS: PermissionRequest[] = [];
+const EMPTY_STUDENTS: StudentProfile[] = [];
+
 export default function AppShell({
   route,
   latestAnnouncement = null,
-  initialAnnouncements = [],
+  initialAnnouncements = EMPTY_ANNOUNCEMENTS,
   initialCurrentStudent = null,
-  initialPermissionRequests = [],
-  initialStudents = [],
+  initialPermissionRequests = EMPTY_PERMISSION_REQUESTS,
+  initialStudents = EMPTY_STUDENTS,
   initialUser = null,
 }: {
   route: AppRoute;
