@@ -29,10 +29,14 @@ export const authCallbacks: NextAuthOptions['callbacks'] = {
           ? (token as AppJwt).sessionVersion
           : undefined;
 
-      if (!userId || sessionVersion === undefined) {
-        // Preserve legacy or pre-session-version tokens until the user signs in again
-        // and receives a versioned token we can compare against the database record.
+      if (!userId) {
         return token;
+      }
+
+      // Force legacy pre-migration sessions through a fresh sign-in so every
+      // authenticated JWT carries a version we can validate on each request.
+      if (sessionVersion === undefined) {
+        return revokeToken(token);
       }
 
       const authUser = await findAuthUserById(userId);

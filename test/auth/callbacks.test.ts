@@ -39,7 +39,7 @@ test('jwt callback copies auth claims from the authenticated user', async () => 
   });
 });
 
-test('jwt callback preserves legacy tokens that do not have a session version yet', async () => {
+test('jwt callback revokes legacy tokens that do not have a session version yet', async () => {
   assert.ok(authCallbacks?.jwt);
 
   const token = {
@@ -57,7 +57,10 @@ test('jwt callback preserves legacy tokens that do not have a session version ye
     session: undefined,
   } as unknown as Parameters<NonNullable<typeof authCallbacks.jwt>>[0]);
 
-  assert.equal(result, token);
+  assert.deepEqual(result, {
+    sub: 'legacy-user',
+    revoked: true,
+  });
 });
 
 test('session callback exposes auth claims on session.user', async () => {
