@@ -57,6 +57,10 @@ function getStudentDashboardStateKey(studentId: string) {
   return `student-dashboard-state:${studentDashboardStateVersion}:${studentId}`;
 }
 
+function cloneStudentProfile(profile: StudentProfile | null): StudentProfile | null {
+  return profile ? (JSON.parse(JSON.stringify(profile)) as StudentProfile) : null;
+}
+
 const inputClass =
   'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none transition-all';
 
@@ -75,8 +79,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [optimisticStudent, setOptimisticStudent] = useState<StudentProfile | null>(student);
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdatingAcademic, setIsUpdatingAcademic] = useState(false);
-  const [editData, setEditData] = useState<StudentProfile | null>(null);
-  const [isProfileDataLoading, setIsProfileDataLoading] = useState(true);
+  const [editData, setEditData] = useState<StudentProfile | null>(() => cloneStudentProfile(student));
+  const [isProfileDataLoading, setIsProfileDataLoading] = useState(false);
   const [isUploadingProfilePicture, setIsUploadingProfilePicture] = useState(false);
   const [isUploadingProofDocument, setIsUploadingProofDocument] = useState(false);
   const [isActionCenterExpanded, setIsActionCenterExpanded] = useState(false);
@@ -116,7 +120,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       setActiveTab('overview');
       setIsEditing(false);
       setIsUpdatingAcademic(false);
-      setEditData(null);
+      setEditData(cloneStudentProfile(student ?? null));
       setNewProgress({
         year: '',
         level: '',
@@ -126,6 +130,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       setIsActionCenterExpanded(false);
     }
 
+    setIsProfileDataLoading(false);
     setHasHydratedPersistedState(true);
   }, [student?.id]);
 
@@ -141,13 +146,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       return;
     }
 
-    setIsProfileDataLoading(true);
-    const timerId = window.setTimeout(() => {
-      setEditData(JSON.parse(JSON.stringify(visibleStudent)));
-      setIsProfileDataLoading(false);
-    }, 0);
-
-    return () => window.clearTimeout(timerId);
+    setEditData(cloneStudentProfile(visibleStudent));
+    setIsProfileDataLoading(false);
   }, [visibleStudent, isEditing]);
 
   useEffect(() => {
@@ -165,8 +165,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       !newProgress.year &&
       !newProgress.level &&
       !newProgress.grade &&
-      !newProgress.proofDocument &&
-      !editData
+      !newProgress.proofDocument
     ) {
       removeFromStorage(storageKey);
       return;
@@ -176,7 +175,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       activeTab,
       isEditing,
       isUpdatingAcademic,
-      editData,
+      editData: isEditing ? editData : null,
       newProgress,
       isActionCenterExpanded,
     });
@@ -307,7 +306,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       return;
     }
 
-    setEditData(JSON.parse(JSON.stringify(visibleStudent)));
+    setEditData(cloneStudentProfile(visibleStudent));
   };
 
   const uploadProfilePicture = async (file: File) => {
