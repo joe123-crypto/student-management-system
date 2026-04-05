@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
-import UserTypeRouteShell from '@/components/shell/UserTypeRouteShell';
 
 interface UserTypeLayoutProps {
   children: ReactNode;
@@ -16,11 +15,6 @@ export default async function UserTypeLayout({ children, params }: UserTypeLayou
     notFound();
   }
 
-  return (
-    <>
-      {children}
-      <UserTypeRouteShell userType={userType as 'student' | 'attache'} />
-    </>
-  );
+  return children;
 }
 

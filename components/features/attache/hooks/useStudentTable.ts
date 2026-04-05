@@ -20,26 +20,13 @@ export default function useStudentTable(
   duplicateStudentIds: Set<string>,
   defaultPageSize: number,
 ): UseStudentTableResult {
-  const [tableStudents, setTableStudents] = useState<StudentProfile[]>([]);
-  const [isStudentTableLoading, setIsStudentTableLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
 
-  useEffect(() => {
-    let isActive = true;
-    setIsStudentTableLoading(true);
-
-    const timerId = window.setTimeout(() => {
-      if (!isActive) return;
-      setTableStudents(applyStudentQuery(students, query, duplicateStudentIds));
-      setIsStudentTableLoading(false);
-    }, 0);
-
-    return () => {
-      isActive = false;
-      window.clearTimeout(timerId);
-    };
-  }, [students, query, duplicateStudentIds]);
+  const tableStudents = useMemo(
+    () => applyStudentQuery(students, query, duplicateStudentIds),
+    [students, query, duplicateStudentIds],
+  );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -60,7 +47,7 @@ export default function useStudentTable(
 
   return {
     tableStudents,
-    isStudentTableLoading,
+    isStudentTableLoading: false,
     currentPage,
     pageSize,
     totalPages,

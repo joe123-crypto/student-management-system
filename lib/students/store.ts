@@ -5,6 +5,7 @@ import {
   attachResultSlipToProgressTx,
   clearStudentProfileImageTx,
   extractFileIdFromReference,
+  listStudentFileLinksBatch,
   listStudentFileLinks,
   resolveFileIdFromReferenceOrThrow,
 } from '@/lib/files/store';
@@ -106,6 +107,11 @@ const universityInclude = Prisma.validator<Prisma.UniversityInclude>()({
 type StudentRow = Prisma.StudentGetPayload<{ include: typeof studentInclude }>;
 type UniversityRow = Prisma.UniversityGetPayload<{ include: typeof universityInclude }>;
 type StudentFileLinks = Awaited<ReturnType<typeof listStudentFileLinks>>;
+type UniversityLookup = {
+  byAddressId: Map<number, UniversityRow>;
+  byProvinceId: Map<number, UniversityRow>;
+  fallback: UniversityRow | null;
+};
 
 function buildStudentProfileId(studentId: number): string {
   return `student-${studentId}`;
@@ -199,21 +205,43 @@ function getContactValue(contacts: StudentRow['person']['contacts'], type: strin
   return (primary || matches[0])?.value || '';
 }
 
-function selectUniversity(student: StudentRow, universities: UniversityRow[]): UniversityRow | null {
+function buildUniversityLookup(universities: UniversityRow[]): UniversityLookup {
+  const byAddressId = new Map<number, UniversityRow>();
+  const byProvinceId = new Map<number, UniversityRow>();
+
+  for (const university of universities) {
+    if (university.addressId && !byAddressId.has(university.addressId)) {
+      byAddressId.set(university.addressId, university);
+    }
+
+    const provinceId = university.address?.wilayaId;
+    if (provinceId && !byProvinceId.has(provinceId)) {
+      byProvinceId.set(provinceId, university);
+    }
+  }
+
+  return {
+    byAddressId,
+    byProvinceId,
+    fallback: universities[0] || null,
+  };
+}
+
+function selectUniversity(student: StudentRow, universityLookup: UniversityLookup): UniversityRow | null {
   const currentAddressId = student.addressId ?? null;
   const currentProvinceId = student.address?.wilayaId ?? null;
 
   return (
-    universities.find((entry) => entry.addressId === currentAddressId) ||
-    universities.find((entry) => entry.address?.wilayaId === currentProvinceId) ||
-    universities[0] ||
+    (currentAddressId ? universityLookup.byAddressId.get(currentAddressId) : null) ||
+    (currentProvinceId ? universityLookup.byProvinceId.get(currentProvinceId) : null) ||
+    universityLookup.fallback ||
     null
   );
 }
 
 function mapStudentRow(
   student: StudentRow,
-  universities: UniversityRow[],
+  universityLookup: UniversityLookup,
   fileLinks?: StudentFileLinks,
 ): StudentProfile {
   const person = student.person;
@@ -225,7 +253,7 @@ function mapStudentRow(
   const program = latestEnrollment?.program;
   const programType = program?.programType;
   const department = program?.department;
-  const university = selectUniversity(student, universities);
+  const university = selectUniversity(student, universityLookup);
 
   const fullName = buildFullName(
     person.givenName,
@@ -337,10 +365,11 @@ async function hydrateStudentRow(student: StudentRow | null, db: typeof prisma |
   }
 
   const universities = await loadUniversities(db);
+  const universityLookup = buildUniversityLookup(universities);
   const latestEnrollment = student.enrollments[0];
   const progressIds = latestEnrollment?.progressRows.map((entry) => entry.id) || [];
   const fileLinks = await listStudentFileLinks(student.id, progressIds, db);
-  return mapStudentRow(student, universities, fileLinks);
+  return mapStudentRow(student, universityLookup, fileLinks);
 }
 
 type SyncedProgressRow = {
@@ -1119,14 +1148,16 @@ export async function listStudentProfiles(): Promise<StudentProfile[]> {
     }),
     loadUniversities(),
   ]);
+  const universityLookup = buildUniversityLookup(universities);
+  const fileLinksByStudentId = await listStudentFileLinksBatch(
+    students.map((student) => ({
+      studentId: student.id,
+      progressIds: student.enrollments[0]?.progressRows.map((entry) => entry.id) || [],
+    })),
+  );
 
-  const profiles = await Promise.all(
-    students.map(async (student) => {
-      const latestEnrollment = student.enrollments[0];
-      const progressIds = latestEnrollment?.progressRows.map((entry) => entry.id) || [];
-      const fileLinks = await listStudentFileLinks(student.id, progressIds);
-      return mapStudentRow(student, universities, fileLinks);
-    }),
+  const profiles = students.map((student) =>
+    mapStudentRow(student, universityLookup, fileLinksByStudentId.get(student.id)),
   );
 
   return profiles

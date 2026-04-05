@@ -13,6 +13,11 @@ import StudentPasswordSettings from '@/components/features/student/dashboard/Stu
 import { readFileAsDataUrl, uploadManagedFile } from '@/lib/files/client';
 import { mergeStudentProfile } from '@/lib/students/profile';
 import { isMockDbEnabled } from '@/test/mock/config';
+import {
+  getFromStorage,
+  removeFromStorage,
+  setInStorage,
+} from '@/components/shell/shared/storage';
 
 interface StudentDashboardProps {
   student: StudentProfile | null;
@@ -37,6 +42,25 @@ const tabItems = [
 
 type ActiveTab = (typeof tabItems)[number]['id'];
 
+interface PersistedStudentDashboardState {
+  activeTab: ActiveTab;
+  isEditing: boolean;
+  isUpdatingAcademic: boolean;
+  editData: StudentProfile | null;
+  newProgress: Partial<ProgressDetails>;
+  isActionCenterExpanded: boolean;
+}
+
+const studentDashboardStateVersion = 'v1';
+
+function getStudentDashboardStateKey(studentId: string) {
+  return `student-dashboard-state:${studentDashboardStateVersion}:${studentId}`;
+}
+
+function cloneStudentProfile(profile: StudentProfile | null): StudentProfile | null {
+  return profile ? (JSON.parse(JSON.stringify(profile)) as StudentProfile) : null;
+}
+
 const inputClass =
   'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none transition-all';
 
@@ -55,11 +79,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [optimisticStudent, setOptimisticStudent] = useState<StudentProfile | null>(student);
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdatingAcademic, setIsUpdatingAcademic] = useState(false);
-  const [editData, setEditData] = useState<StudentProfile | null>(null);
-  const [isProfileDataLoading, setIsProfileDataLoading] = useState(true);
+  const [editData, setEditData] = useState<StudentProfile | null>(() => cloneStudentProfile(student));
+  const [isProfileDataLoading, setIsProfileDataLoading] = useState(false);
   const [isUploadingProfilePicture, setIsUploadingProfilePicture] = useState(false);
   const [isUploadingProofDocument, setIsUploadingProofDocument] = useState(false);
-  const [isActionCenterExpanded, setIsActionCenterExpanded] = useState(true);
+  const [isActionCenterExpanded, setIsActionCenterExpanded] = useState(false);
+  const [hasHydratedPersistedState, setHasHydratedPersistedState] = useState(false);
   const [newProgress, setNewProgress] = useState<Partial<ProgressDetails>>({
     year: '',
     level: '',
@@ -74,20 +99,96 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   }, [student]);
 
   useEffect(() => {
+    setHasHydratedPersistedState(false);
+    const storageKey = student?.id ? getStudentDashboardStateKey(student.id) : null;
+
+    if (!storageKey) {
+      setHasHydratedPersistedState(true);
+      return;
+    }
+
+    const persistedState = getFromStorage<PersistedStudentDashboardState | null>(storageKey, null);
+
+    if (persistedState) {
+      setActiveTab(persistedState.activeTab);
+      setIsEditing(persistedState.isEditing);
+      setIsUpdatingAcademic(persistedState.isUpdatingAcademic);
+      setEditData(persistedState.editData);
+      setNewProgress(persistedState.newProgress);
+      setIsActionCenterExpanded(persistedState.isActionCenterExpanded);
+    } else {
+      setActiveTab('overview');
+      setIsEditing(false);
+      setIsUpdatingAcademic(false);
+      setEditData(cloneStudentProfile(student ?? null));
+      setNewProgress({
+        year: '',
+        level: '',
+        grade: '',
+        proofDocument: '',
+      });
+      setIsActionCenterExpanded(false);
+    }
+
+    setIsProfileDataLoading(false);
+    setHasHydratedPersistedState(true);
+  }, [student?.id]);
+
+  useEffect(() => {
     if (!visibleStudent) {
       setEditData(null);
       setIsProfileDataLoading(false);
       return;
     }
 
-    setIsProfileDataLoading(true);
-    const timerId = window.setTimeout(() => {
-      setEditData(JSON.parse(JSON.stringify(visibleStudent)));
+    if (isEditing) {
       setIsProfileDataLoading(false);
-    }, 0);
+      return;
+    }
 
-    return () => window.clearTimeout(timerId);
-  }, [visibleStudent]);
+    setEditData(cloneStudentProfile(visibleStudent));
+    setIsProfileDataLoading(false);
+  }, [visibleStudent, isEditing]);
+
+  useEffect(() => {
+    if (!hasHydratedPersistedState || !student?.id) {
+      return;
+    }
+
+    const storageKey = getStudentDashboardStateKey(student.id);
+
+    if (
+      activeTab === 'overview' &&
+      !isEditing &&
+      !isUpdatingAcademic &&
+      !isActionCenterExpanded &&
+      !newProgress.year &&
+      !newProgress.level &&
+      !newProgress.grade &&
+      !newProgress.proofDocument
+    ) {
+      removeFromStorage(storageKey);
+      return;
+    }
+
+    setInStorage<PersistedStudentDashboardState>(storageKey, {
+      activeTab,
+      isEditing,
+      isUpdatingAcademic,
+      editData: isEditing ? editData : null,
+      newProgress,
+      isActionCenterExpanded,
+    });
+  }, [
+    activeTab,
+    editData,
+    hasHydratedPersistedState,
+    isActionCenterExpanded,
+    isEditing,
+    isUpdatingAcademic,
+    newProgress,
+    student?.id,
+  ]);
 
   if (!visibleStudent && !isStudentLoading) {
     return <LoadingSpinner fullScreen label="Loading your profile..." />;
@@ -133,6 +234,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         bankAccount: editData.bankAccount,
       });
       setIsEditing(false);
+      resetEditDataToVisibleStudent();
     } catch (error) {
       console.error('[STUDENTS] Failed to save profile:', error);
       alert((error as Error).message || 'Failed to save your profile.');
@@ -196,16 +298,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   const handleTabChange = (tab: ActiveTab) => {
     setActiveTab(tab);
-    if (tab === 'overview') {
-      setIsEditing(false);
-      setIsUpdatingAcademic(false);
+  };
+
+  const resetEditDataToVisibleStudent = () => {
+    if (!visibleStudent) {
+      setEditData(null);
+      return;
     }
-    if (tab === 'profile') {
-      setIsUpdatingAcademic(false);
-    }
-    if (tab === 'academic') {
-      setIsEditing(false);
-    }
+
+    setEditData(cloneStudentProfile(visibleStudent));
   };
 
   const uploadProfilePicture = async (file: File) => {
@@ -323,7 +424,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       isEditing={isEditing}
                       inputClassName={inputClass}
                       onToggleEdit={() => setIsEditing((prev) => !prev)}
-                      onDiscard={() => setIsEditing(false)}
+                      onDiscard={() => {
+                        setIsEditing(false);
+                        resetEditDataToVisibleStudent();
+                      }}
                       onSave={saveProfile}
                       onUpdateField={handleUpdateField}
                     />

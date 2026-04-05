@@ -505,6 +505,95 @@ export async function listStudentFileLinks(
   };
 }
 
+export async function listStudentFileLinksBatch(
+  entries: Array<{
+    studentId: number;
+    progressIds: number[];
+  }>,
+  db: DbLike = prisma,
+): Promise<
+  Map<
+    number,
+    {
+      profilePictureUrl?: string;
+      proofDocumentsByProgressId: Map<number, string>;
+    }
+  >
+> {
+  const byStudentId = new Map<
+    number,
+    {
+      profilePictureUrl?: string;
+      proofDocumentsByProgressId: Map<number, string>;
+    }
+  >();
+
+  if (entries.length === 0) {
+    return byStudentId;
+  }
+
+  const studentIds = Array.from(new Set(entries.map((entry) => entry.studentId)));
+  const progressIds = Array.from(
+    new Set(entries.flatMap((entry) => entry.progressIds)),
+  );
+
+  for (const studentId of studentIds) {
+    byStudentId.set(studentId, {
+      proofDocumentsByProgressId: new Map<number, string>(),
+    });
+  }
+
+  const files = await db.fileAsset.findMany({
+    where: {
+      studentId: {
+        in: studentIds,
+      },
+      status: FileStatus.ACTIVE,
+      OR: [
+        { purpose: FilePurpose.PROFILE_IMAGE },
+        progressIds.length > 0
+          ? {
+              purpose: FilePurpose.RESULT_SLIP,
+              progressId: {
+                in: progressIds,
+              },
+            }
+          : {
+              purpose: FilePurpose.RESULT_SLIP,
+              progressId: -1,
+            },
+      ],
+    },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+  });
+
+  for (const file of files) {
+    if (typeof file.studentId !== 'number') {
+      continue;
+    }
+
+    const bucket = byStudentId.get(file.studentId);
+    if (!bucket) {
+      continue;
+    }
+
+    if (file.purpose === FilePurpose.PROFILE_IMAGE && !bucket.profilePictureUrl) {
+      bucket.profilePictureUrl = buildFileContentPath(file.id);
+      continue;
+    }
+
+    if (
+      file.purpose === FilePurpose.RESULT_SLIP &&
+      file.progressId &&
+      !bucket.proofDocumentsByProgressId.has(file.progressId)
+    ) {
+      bucket.proofDocumentsByProgressId.set(file.progressId, buildFileContentPath(file.id));
+    }
+  }
+
+  return byStudentId;
+}
+
 export async function clearStudentProfileImageTx(tx: Prisma.TransactionClient, studentId: number): Promise<void> {
   await tx.fileAsset.updateMany({
     where: {

@@ -14,16 +14,32 @@ import AttacheAppRouter from '@/components/shell/routers/AttacheAppRouter';
 import PublicAppRouter from '@/components/shell/routers/PublicAppRouter';
 import StudentAppRouter from '@/components/shell/routers/StudentAppRouter';
 import type { Announcement } from '@/types';
+import type { PermissionRequest, StudentProfile, User } from '@/types';
+
+const EMPTY_ANNOUNCEMENTS: Announcement[] = [];
+const EMPTY_PERMISSION_REQUESTS: PermissionRequest[] = [];
+const EMPTY_STUDENTS: StudentProfile[] = [];
 
 export default function AppShell({
   route,
   latestAnnouncement = null,
+  initialAnnouncements = EMPTY_ANNOUNCEMENTS,
+  initialCurrentStudent = null,
+  initialPermissionRequests = EMPTY_PERMISSION_REQUESTS,
+  initialStudents = EMPTY_STUDENTS,
+  initialUser = null,
 }: {
   route: AppRoute;
   latestAnnouncement?: Announcement | null;
+  initialAnnouncements?: Announcement[];
+  initialCurrentStudent?: StudentProfile | null;
+  initialPermissionRequests?: PermissionRequest[];
+  initialStudents?: StudentProfile[];
+  initialUser?: User | null;
 }) {
   const router = useRouter();
   const { user, changeStudentPassword, isHydrated: isAuthHydrated } = useAuth();
+  const effectiveUser = user ?? initialUser;
   const {
     students,
     currentStudent,
@@ -31,19 +47,22 @@ export default function AppShell({
     deleteStudents,
     importStudents,
     isHydrated: isStudentsHydrated,
-  } = useStudents(user);
+  } = useStudents(effectiveUser, {
+    students: initialStudents,
+    currentStudent: initialCurrentStudent,
+  });
   const {
     announcements,
     addAnnouncement,
     deleteAnnouncement,
     isHydrated: isAnnouncementsHydrated,
-  } = useAnnouncements(user);
+  } = useAnnouncements(effectiveUser, initialAnnouncements);
   const {
     permissionRequests,
     submitPermissionRequest,
     updatePermissionRequestStatus,
     isHydrated: isPermissionRequestsHydrated,
-  } = usePermissionRequests(user);
+  } = usePermissionRequests(effectiveUser, initialPermissionRequests);
   const isProtectedRoute =
     route === '/onboarding' ||
     route === '/student/dashboard' ||
@@ -54,8 +73,8 @@ export default function AppShell({
   const handleLogout = useCallback(() => {
     void (async () => {
       try {
-        if (user) {
-          await clearCacheByPrefix(getRuntimeCachePrefix(user));
+        if (effectiveUser) {
+          await clearCacheByPrefix(getRuntimeCachePrefix(effectiveUser));
         }
       } catch (error) {
         console.error('[CACHE] Failed to clear runtime browser cache during logout:', error);
@@ -63,9 +82,9 @@ export default function AppShell({
         await signOut({ callbackUrl: '/login' });
       }
     })();
-  }, [user]);
+  }, [effectiveUser]);
 
-  if (isProtectedRoute && !isAuthHydrated) {
+  if (isProtectedRoute && !isAuthHydrated && !initialUser) {
     return <AppLoadingScreen label="Loading your application..." />;
   }
 
@@ -86,7 +105,7 @@ export default function AppShell({
       return (
         <StudentAppRouter
           route={route}
-          user={user}
+          user={effectiveUser}
           currentStudent={currentStudent}
           announcements={announcements}
           isStudentLoading={!isStudentsHydrated}
@@ -111,7 +130,7 @@ export default function AppShell({
       return (
         <AttacheAppRouter
           route={route}
-          user={user}
+          user={effectiveUser}
           students={students}
           announcements={announcements}
           permissionRequests={permissionRequests}

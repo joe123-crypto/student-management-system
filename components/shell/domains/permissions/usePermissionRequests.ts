@@ -6,6 +6,8 @@ import { mockPermissionsService } from '@/test/mock/services/permissionsService'
 import type { PermissionRequest, User } from '@/types';
 import { UserRole } from '@/types';
 
+const EMPTY_PERMISSION_REQUESTS: PermissionRequest[] = [];
+
 function upsertPermissionRequest(
   requests: PermissionRequest[],
   nextRequest: PermissionRequest,
@@ -21,11 +23,29 @@ function upsertPermissionRequest(
   return nextRequests;
 }
 
-export function usePermissionRequests(user: User | null) {
-  const [permissionRequests, setPermissionRequests] = useState<PermissionRequest[]>([]);
-  const [hydratedKey, setHydratedKey] = useState<string | null>(null);
+export function usePermissionRequests(
+  user: User | null,
+  initialPermissionRequests: PermissionRequest[] = EMPTY_PERMISSION_REQUESTS,
+) {
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
+  const [permissionRequests, setPermissionRequests] = useState<PermissionRequest[]>(
+    initialPermissionRequests,
+  );
+  const [hydratedKey, setHydratedKey] = useState<string | null>(
+    user?.role === UserRole.ATTACHE ? userKey : initialPermissionRequests.length > 0 ? 'anonymous' : null,
+  );
   const isHydrated = hydratedKey === userKey;
+
+  useEffect(() => {
+    if (user?.role !== UserRole.ATTACHE) {
+      return;
+    }
+
+    setPermissionRequests((current) =>
+      current.length > 0 ? current : initialPermissionRequests,
+    );
+    setHydratedKey((current) => current ?? userKey);
+  }, [initialPermissionRequests, user, userKey]);
 
   useEffect(() => {
     let isCancelled = false;
