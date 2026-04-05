@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   }
 
   const clientKey = session.user.id || getClientIp(request.headers) || 'unknown';
-  const rateLimit = takeRateLimitToken({
+  const rateLimit = await takeRateLimitToken({
     bucket: 'student-lookup',
     key: clientKey,
     limit: 60,

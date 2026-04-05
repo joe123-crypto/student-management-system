@@ -7,6 +7,7 @@ export type AuthUserRecord = {
   loginId: string;
   authProvider: AuthProvider;
   passwordHash: string;
+  sessionVersion: number;
   failedSignInCount: number;
   lockedUntil: Date | null;
   isActive: boolean;
@@ -109,6 +110,11 @@ export async function onSuccessfulSignIn(userId: string): Promise<void> {
 export async function updatePasswordHash(userId: string, passwordHash: string): Promise<void> {
   await prisma.authUser.update({
     where: { id: userId },
-    data: { passwordHash },
+    data: {
+      passwordHash,
+      sessionVersion: {
+        increment: 1,
+      },
+    },
   });
 }

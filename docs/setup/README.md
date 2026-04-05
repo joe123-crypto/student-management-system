@@ -15,9 +15,11 @@ Copy `.env.example` into `.env` and configure:
 - `DATABASE_URL`
 - `AUTH_SECRET`
 - `AUTH_ENABLE_MIDDLEWARE`
+- `TRUST_PROXY_HEADERS`
+- optional `TRUST_PROXY_PROVIDER` (`generic`, `vercel`, or `cloudflare`)
 - `SEED_AUTH_PASSWORD`
 
-Sign-in uses the Prisma auth users created by [`prisma/seed.ts`](/c:/Users/Joe/Documents/workspace/Student%20Platform/prisma/seed.ts). `NEXT_PUBLIC_USE_MOCK_DB` only controls the remaining mock data surfaces, not authentication.
+Sign-in uses the Prisma auth users created by [`prisma/seed.ts`](../../prisma/seed.ts). `NEXT_PUBLIC_USE_MOCK_DB` only controls the remaining mock data surfaces, not authentication.
 
 With `NEXT_PUBLIC_USE_MOCK_DB=false`, the runtime now also persists announcements, permission requests, and password changes through the Prisma-backed API routes.
 
@@ -31,6 +33,8 @@ Managed file uploads also require:
 - optional `OBJECT_STORAGE_SIGNED_URL_TTL_SECONDS`
 
 For direct browser uploads, configure the R2 bucket CORS policy to allow your frontend origin(s) to send `PUT` requests with `Content-Type`.
+
+Rate limiting and audit IP capture only trust proxy-forwarded client IP headers when `TRUST_PROXY_HEADERS=true`. Set `TRUST_PROXY_PROVIDER` to match your edge platform so the app reads the right header order.
 
 ## Run
 ```bash

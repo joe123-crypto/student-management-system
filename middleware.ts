@@ -11,8 +11,11 @@ export async function middleware(request: NextRequest) {
 
   const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
   const { pathname } = request.nextUrl;
-  const role = (token?.role as UserRole | undefined) ?? undefined;
-  const isLoggedIn = Boolean(token);
+  const role =
+    token && !(token as { revoked?: boolean }).revoked
+      ? ((token.role as UserRole | undefined) ?? undefined)
+      : undefined;
+  const isLoggedIn = Boolean(token?.sub && role);
   const decision = evaluateAccess({ pathname, isLoggedIn, role });
 
   if (decision.action === 'redirect') {

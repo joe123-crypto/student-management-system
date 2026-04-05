@@ -5,7 +5,7 @@ import {
   normalizePermissionRequestInput,
   toPermissionRequest,
 } from '@/lib/permission-requests/serializers';
-import { lookupStudentInscription } from '@/lib/students/store';
+import { findStudentProfileByInscriptionNumber } from '@/lib/students/store';
 import type { PermissionRequest } from '@/types';
 
 export class PermissionRequestConflictError extends Error {
@@ -25,6 +25,36 @@ export class PermissionRequestValidationError extends Error {
 export const GENERIC_PERMISSION_REQUEST_MESSAGE =
   'If the details match an eligible student record, the request will be reviewed.';
 
+function normalizeComparableName(value: string): string {
+  return value.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function normalizeComparablePassport(value: string): string {
+  return value.trim().replace(/\s+/g, '').toUpperCase();
+}
+
+async function matchesStudentIdentity(input: {
+  inscriptionNumber: string;
+  fullName: string;
+  passportNumber: string;
+}): Promise<boolean> {
+  const student = await findStudentProfileByInscriptionNumber(input.inscriptionNumber);
+  if (!student) {
+    return false;
+  }
+
+  const submittedName = normalizeComparableName(input.fullName);
+  const storedName = normalizeComparableName(student.student.fullName);
+  if (!submittedName || submittedName !== storedName) {
+    return false;
+  }
+
+  const submittedPassport = normalizeComparablePassport(input.passportNumber);
+  const storedPassport = normalizeComparablePassport(student.passport.passportNumber);
+
+  return Boolean(submittedPassport && storedPassport && submittedPassport === storedPassport);
+}
+
 export async function listPermissionRequests(): Promise<PermissionRequest[]> {
   const requests = await prisma.permissionRequest.findMany({
     orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }],
@@ -40,9 +70,9 @@ export async function createPermissionRequest(input: {
 }): Promise<PermissionRequest> {
   const normalized = normalizePermissionRequestInput(input);
 
-  const studentExists = await lookupStudentInscription(normalized.inscriptionNumber);
-  if (!studentExists) {
-    throw new PermissionRequestValidationError('No student record found for this inscription number.');
+  const identityMatches = await matchesStudentIdentity(normalized);
+  if (!identityMatches) {
+    throw new PermissionRequestValidationError('Submitted identity details do not match our records.');
   }
 
   const existingPendingRequest = await prisma.permissionRequest.findFirst({
@@ -76,8 +106,8 @@ export async function submitPermissionRequest(input: {
 }): Promise<boolean> {
   const normalized = normalizePermissionRequestInput(input);
 
-  const studentExists = await lookupStudentInscription(normalized.inscriptionNumber);
-  if (!studentExists) {
+  const identityMatches = await matchesStudentIdentity(normalized);
+  if (!identityMatches) {
     return false;
   }
 

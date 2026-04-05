@@ -12,6 +12,7 @@ Use this page to debug common local issues quickly.
   - `DATABASE_URL`
   - `AUTH_SECRET`
   - `AUTH_ENABLE_MIDDLEWARE`
+  - `TRUST_PROXY_HEADERS` and `TRUST_PROXY_PROVIDER` if you expect rate limiting to key off proxy client IPs
 - Confirm seeded auth users exist in `prisma/seed.ts`.
 - Verify `/api/auth/session` responds and inspect server logs for Prisma connection errors.
 

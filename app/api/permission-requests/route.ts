@@ -6,6 +6,7 @@ import {
   listPermissionRequests,
   submitPermissionRequest,
 } from '@/lib/permission-requests/store';
+import { normalizePermissionRequestInput } from '@/lib/permission-requests/serializers';
 import { takeRateLimitToken } from '@/lib/security/rate-limit';
 import { getClientIp } from '@/lib/security/request';
 import { UserRole } from '@/types';
@@ -31,26 +32,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const clientIp = getClientIp(request.headers) ?? 'unknown';
-  const rateLimit = takeRateLimitToken({
-    bucket: 'permission-request',
-    key: clientIp,
-    limit: 5,
-    windowMs: 60 * 60 * 1000,
-  });
-
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      { error: 'Too many permission requests. Please try again later.' },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(rateLimit.retryAfterSeconds),
-        },
-      },
-    );
-  }
-
   try {
     const body = (await request.json()) as {
       inscriptionNumber?: unknown;
@@ -68,10 +49,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Full name, passport number, and inscription number are required.' }, { status: 400 });
     }
 
-    await submitPermissionRequest({
+    const normalized = normalizePermissionRequestInput({
       inscriptionNumber,
       fullName,
       passportNumber,
+    });
+    const clientIp = getClientIp(request.headers);
+    const rateLimitKey =
+      clientIp ??
+      `identity:${normalized.inscriptionNumber}:${normalized.passportNumber}`;
+    const rateLimit = await takeRateLimitToken({
+      bucket: 'permission-request',
+      key: rateLimitKey,
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many permission requests. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.retryAfterSeconds),
+          },
+        },
+      );
+    }
+
+    await submitPermissionRequest({
+      inscriptionNumber: normalized.inscriptionNumber,
+      fullName: normalized.fullName,
+      passportNumber: normalized.passportNumber,
     });
 
     return NextResponse.json(
