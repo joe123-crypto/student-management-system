@@ -59,7 +59,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [isProfileDataLoading, setIsProfileDataLoading] = useState(true);
   const [isUploadingProfilePicture, setIsUploadingProfilePicture] = useState(false);
   const [isUploadingProofDocument, setIsUploadingProofDocument] = useState(false);
-  const [isActionCenterExpanded, setIsActionCenterExpanded] = useState(true);
+  const [isActionCenterExpanded, setIsActionCenterExpanded] = useState(false);
   const [newProgress, setNewProgress] = useState<Partial<ProgressDetails>>({
     year: '',
     level: '',
