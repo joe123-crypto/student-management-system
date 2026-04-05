@@ -1,12 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import {
+  getRuntimeCacheKey,
+  readCache,
+  writeCache,
+} from '@/components/shell/shared/browser-cache';
 import { mergeStudentProfile } from '@/lib/students/profile';
 import { services } from '@/services';
 import type { PrototypeDatabase } from '@/test/mock/prototypeDatabase';
 import { isMockDbEnabled } from '@/test/mock/config';
 import type { StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
+
+const STUDENTS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type StudentsPayload = {
+  student?: StudentProfile | null;
+  students?: StudentProfile[];
+};
 
 function upsertStudent(students: StudentProfile[], nextStudent: StudentProfile): StudentProfile[] {
   const existingIndex = students.findIndex((student) => student.id === nextStudent.id);
@@ -35,13 +47,41 @@ function mergeStudentPatch(
   );
 }
 
-export function useStudents(user: User | null) {
-  const [students, setStudents] = useState<StudentProfile[]>([]);
-  const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(null);
-  const [hydratedKey, setHydratedKey] = useState<string | null>(null);
-  const [mockDatabase, setMockDatabase] = useState<PrototypeDatabase | null>(null);
+export function useStudents(
+  user: User | null,
+  initialData: {
+    students?: StudentProfile[];
+    currentStudent?: StudentProfile | null;
+  } = {},
+) {
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
+  const [students, setStudents] = useState<StudentProfile[]>(initialData.students || []);
+  const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(
+    initialData.currentStudent ?? null,
+  );
+  const [hydratedKey, setHydratedKey] = useState<string | null>(
+    user ? userKey : initialData.students?.length || initialData.currentStudent ? 'anonymous' : null,
+  );
+  const [mockDatabase, setMockDatabase] = useState<PrototypeDatabase | null>(null);
   const isHydrated = hydratedKey === userKey;
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    if (user.role === UserRole.ATTACHE) {
+      setStudents((current) => (current.length > 0 ? current : initialData.students || []));
+      setCurrentStudent(null);
+    } else {
+      setStudents((current) =>
+        current.length > 0 ? current : initialData.currentStudent ? [initialData.currentStudent] : [],
+      );
+      setCurrentStudent((current) => current ?? initialData.currentStudent ?? null);
+    }
+
+    setHydratedKey((current) => current ?? userKey);
+  }, [initialData.currentStudent, initialData.students, user, userKey]);
 
   function syncMockState(database: PrototypeDatabase, nextUser: User | null) {
     const nextStudents = services.students.getProfiles(database);
@@ -71,10 +111,7 @@ export function useStudents(user: User | null) {
 
   function applyServerState(
     nextUser: User,
-    payload: {
-      student?: StudentProfile | null;
-      students?: StudentProfile[];
-    },
+    payload: StudentsPayload,
   ) {
     if (nextUser.role === UserRole.ATTACHE) {
       setStudents(payload.students || []);
@@ -87,15 +124,30 @@ export function useStudents(user: User | null) {
     setCurrentStudent(student);
   }
 
+  function getStudentsCacheKey(nextUser: User) {
+    return getRuntimeCacheKey(nextUser, 'students');
+  }
+
+  function buildPayload(nextUser: User, nextStudents: StudentProfile[], nextStudent: StudentProfile | null) {
+    if (nextUser.role === UserRole.ATTACHE) {
+      return { students: nextStudents };
+    }
+
+    return { student: nextStudent };
+  }
+
+  function persistCachedPayload(nextUser: User, payload: StudentsPayload) {
+    void writeCache(getStudentsCacheKey(nextUser), payload, STUDENTS_CACHE_TTL_MS).catch((error) => {
+      console.error('[STUDENTS] Failed to write IndexedDB student cache:', error);
+    });
+  }
+
   async function fetchStudentsFromApi(nextUser: User, signal?: AbortSignal) {
     const response = await fetch(
-      `${nextUser.role === UserRole.ATTACHE ? '/api/students' : '/api/students/me'}?ts=${Date.now()}`,
+      nextUser.role === UserRole.ATTACHE ? '/api/students' : '/api/students/me',
       {
         method: 'GET',
         cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-store',
-        },
         signal,
       },
     );
@@ -119,6 +171,7 @@ export function useStudents(user: User | null) {
 
     const payload = await fetchStudentsFromApi(nextUser);
     applyServerState(nextUser, payload);
+    persistCachedPayload(nextUser, payload);
   }
 
   useEffect(() => {
@@ -169,7 +222,21 @@ export function useStudents(user: User | null) {
         return;
       }
 
+      const cacheKey = getStudentsCacheKey(user);
+      let hasCachedStudents = false;
+
       try {
+        try {
+          const cachedPayload = await readCache<StudentsPayload>(cacheKey);
+          if (!isCancelled && cachedPayload) {
+            hasCachedStudents = true;
+            applyServerState(user, cachedPayload);
+            setHydratedKey(userKey);
+          }
+        } catch (error) {
+          console.error('[STUDENTS] Failed to read IndexedDB student cache:', error);
+        }
+
         const payload = await fetchStudentsFromApi(user, controller.signal);
 
         if (isCancelled) {
@@ -177,12 +244,13 @@ export function useStudents(user: User | null) {
         }
 
         applyServerState(user, payload);
+        persistCachedPayload(user, payload);
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           console.error('[STUDENTS] Failed to hydrate students:', error);
         }
 
-        if (!isCancelled) {
+        if (!isCancelled && !hasCachedStudents) {
           setStudents([]);
           setCurrentStudent(null);
         }
@@ -243,6 +311,17 @@ export function useStudents(user: User | null) {
       }
 
       if (user) {
+        persistCachedPayload(
+          user,
+          buildPayload(
+            user,
+            user.role === UserRole.ATTACHE ? upsertStudent(students, nextStudent) : [nextStudent],
+            user.role === UserRole.STUDENT ? nextStudent : null,
+          ),
+        );
+      }
+
+      if (user) {
         void refreshStudentsFromServer(user).catch((error) => {
           console.error('[STUDENTS] Failed to refresh students after update:', error);
         });
@@ -280,6 +359,17 @@ export function useStudents(user: User | null) {
     }
 
     setStudents((current) => current.filter((student) => !studentIds.includes(student.id)));
+
+    if (user) {
+      persistCachedPayload(
+        user,
+        buildPayload(
+          user,
+          students.filter((student) => !studentIds.includes(student.id)),
+          currentStudent && !studentIds.includes(currentStudent.id) ? currentStudent : null,
+        ),
+      );
+    }
   }
 
   async function importStudents(records: StudentProfile[], mode: 'append' | 'replace') {
@@ -305,6 +395,10 @@ export function useStudents(user: User | null) {
 
     const payload = (await response.json()) as { students: StudentProfile[] };
     setStudents(payload.students || []);
+
+    if (user) {
+      persistCachedPayload(user, buildPayload(user, payload.students || [], null));
+    }
   }
 
   return {

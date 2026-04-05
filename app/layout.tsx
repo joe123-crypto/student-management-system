@@ -1,23 +1,27 @@
 import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans } from 'next/font/google';
+import { getServerSession } from 'next-auth';
 import './globals.css';
+import authConfig from '@/auth.config';
 import AuthSessionProvider from '@/components/providers/AuthSessionProvider';
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'ScholarsAlger',
   description: 'Scholarship and student management platform',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authConfig);
+
   return (
     <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
-        <AuthSessionProvider>
+      <body className={plusJakartaSans.className}>
+        <AuthSessionProvider session={session}>
           <div id="root">{children}</div>
         </AuthSessionProvider>
       </body>

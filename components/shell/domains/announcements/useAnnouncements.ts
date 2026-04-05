@@ -18,12 +18,27 @@ function prependAnnouncement(announcements: Announcement[], nextAnnouncement: An
   return [nextAnnouncement, ...withoutExisting];
 }
 
-export function useAnnouncements(user: User | null) {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [hydratedKey, setHydratedKey] = useState<string | null>(null);
-  const announcementsRef = useRef<Announcement[]>([]);
+export function useAnnouncements(user: User | null, initialAnnouncements: Announcement[] = []) {
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
+  const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements);
+  const [hydratedKey, setHydratedKey] = useState<string | null>(
+    user ? userKey : initialAnnouncements.length > 0 ? 'anonymous' : null,
+  );
+  const announcementsRef = useRef<Announcement[]>([]);
   const isHydrated = hydratedKey === userKey;
+
+  useEffect(() => {
+    announcementsRef.current = announcements;
+  }, [announcements]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    setAnnouncements((current) => (current.length > 0 ? current : initialAnnouncements));
+    setHydratedKey((current) => current ?? userKey);
+  }, [initialAnnouncements, user, userKey]);
 
   function isAbortError(error: unknown) {
     return error instanceof Error && error.name === 'AbortError';
