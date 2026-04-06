@@ -5,6 +5,7 @@ import {
   CheckCheck,
   ChevronLeft,
   ChevronRight,
+  Database,
   Eraser,
   FileDown,
   Filter,
@@ -17,6 +18,7 @@ import {
 
 interface BulkActionsBarProps {
   selectedCount: number;
+  onOpenDatabaseQuery: () => void;
   onMarkReviewed: () => void;
   onRequestMissingDocs: () => void;
   onExportSelected: () => void;
@@ -65,6 +67,7 @@ function ActionIconButton({
 
 export default function BulkActionsBar({
   selectedCount,
+  onOpenDatabaseQuery,
   onMarkReviewed,
   onRequestMissingDocs,
   onExportSelected,
@@ -136,6 +139,7 @@ export default function BulkActionsBar({
         onScroll={updateScrollState}
       >
         <div className="flex w-max min-w-full items-center justify-center gap-2 px-1">
+          <ActionIconButton icon={Database} label="Query Database" variant="secondary" onClick={onOpenDatabaseQuery} />
           <ActionIconButton icon={Filter} label="Advanced Filtering" variant="secondary" onClick={onOpenAdvancedFilters} />
           <ActionIconButton icon={FileDown} label="Export" variant="success" onClick={onOpenExportOptions} disabled={isExportDisabled} />
           <ActionIconButton icon={BarChart3} label="Query Summary" variant="secondary" onClick={onOpenQuerySummary} disabled={isInsightsDisabled} />
