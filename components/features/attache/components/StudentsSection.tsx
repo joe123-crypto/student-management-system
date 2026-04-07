@@ -218,6 +218,7 @@ export default function StudentsSection({
         <StudentRecordsTable
           students={paginatedTableStudents}
           isLoading={isLoading || isStudentTableLoading}
+          returnFields={query.returnFields}
           selectedStudentIds={selectedStudentIds}
           reviewedStudentIds={reviewedStudentIds}
           onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
@@ -252,11 +253,17 @@ export default function StudentsSection({
 
       <DatabaseQueryModal
         open={databaseQueryOpen}
-        students={students}
+        initialQueryClauses={query.queryClauses}
+        initialReturnFields={query.returnFields}
         onClose={() => setDatabaseQueryOpen(false)}
-        onOpenStudent={(studentId) => {
-          setDatabaseQueryOpen(false);
-          setSelectedStudentId(studentId);
+        onApply={({ queryClauses, returnFields }) => {
+          updateQuery({
+            searchQuery: '',
+            queryField: 'all',
+            queryClauses,
+            returnFields,
+          });
+          setCurrentPage(1);
         }}
       />
 

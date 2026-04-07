@@ -2,11 +2,30 @@ import type { StudentProfile } from '@/types';
 
 export type StudentSortBy = 'name' | 'inscription';
 export type StudentStatusFilter = 'ALL' | StudentProfile['status'];
+export type QueryField = 'all' | 'fullName' | 'inscription' | 'email' | 'university' | 'program';
+export type StudentReturnField =
+  | 'fullName'
+  | 'inscription'
+  | 'email'
+  | 'university'
+  | 'program'
+  | 'degreeLevel'
+  | 'status'
+  | 'phone';
 export type MissingDataFilter = 'ALL' | 'ANY_MISSING' | 'MISSING_PROFILE' | 'MISSING_BANK' | 'NONE';
 export type DocumentStatusFilter = 'ALL' | 'PENDING' | 'COMPLETED' | 'MISSING';
 
+export interface DatabaseQueryClause {
+  id: string;
+  value: string;
+  field: QueryField;
+}
+
 export interface StudentQueryState {
   searchQuery: string;
+  queryField: QueryField;
+  queryClauses: DatabaseQueryClause[];
+  returnFields: StudentReturnField[];
   status: StudentStatusFilter;
   sortBy: StudentSortBy;
   university: string;

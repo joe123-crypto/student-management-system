@@ -1,14 +1,33 @@
 import type { StudentProfile } from '@/types';
 import type {
+  DatabaseQueryClause,
   DuplicateGroup,
+  QueryField,
   QualityFlagResult,
   ReportColumnOption,
+  StudentReturnField,
   StudentQueryState,
 } from '@/components/features/attache/types';
 import { getLatestAcademicEntry } from '@/lib/students/academicHistory';
 
+export const DEFAULT_DATABASE_QUERY_CLAUSE: DatabaseQueryClause = {
+  id: 'query-1',
+  value: '',
+  field: 'all',
+};
+
+export const DEFAULT_RETURN_FIELDS: StudentReturnField[] = [
+  'fullName',
+  'inscription',
+  'email',
+  'status',
+];
+
 export const DEFAULT_STUDENT_QUERY: StudentQueryState = {
   searchQuery: '',
+  queryField: 'all',
+  queryClauses: [DEFAULT_DATABASE_QUERY_CLAUSE],
+  returnFields: DEFAULT_RETURN_FIELDS,
   status: 'ALL',
   sortBy: 'name',
   university: 'ALL',
@@ -35,6 +54,44 @@ export const REPORT_COLUMNS: ReportColumnOption[] = [
 ];
 
 const normalize = (value: string) => value.trim().toLowerCase();
+
+export function createDatabaseQueryClause(
+  value = '',
+  field: QueryField = 'all',
+  id = `query-${Math.random().toString(36).slice(2, 10)}`,
+): DatabaseQueryClause {
+  return {
+    id,
+    value,
+    field,
+  };
+}
+
+function getFieldValue(student: StudentProfile, field: QueryField): string[] {
+  const fieldMap: Record<Exclude<QueryField, 'all'>, string[]> = {
+    fullName: [student.student.fullName],
+    inscription: [student.student.inscriptionNumber],
+    email: [student.contact.email],
+    university: [student.university.universityName, student.university.campus, student.university.city],
+    program: [student.program.major, student.program.degreeLevel],
+  };
+
+  if (field === 'all') {
+    return [
+      student.student.fullName,
+      student.student.inscriptionNumber,
+      student.contact.email,
+      student.university.universityName,
+      student.university.campus,
+      student.university.city,
+      student.program.major,
+      student.program.degreeLevel,
+      student.contact.phone,
+    ];
+  }
+
+  return fieldMap[field];
+}
 
 function getLatestDocumentStatus(student: StudentProfile): string {
   return getLatestAcademicEntry(student.academicHistory)?.status || 'MISSING';
@@ -98,13 +155,23 @@ export function applyStudentQuery(
   duplicateStudentIds: Set<string>,
 ): StudentProfile[] {
   const q = normalize(query.searchQuery);
+  const activeClauses = query.queryClauses
+    .map((clause) => ({
+      field: clause.field,
+      value: normalize(clause.value),
+    }))
+    .filter((clause) => clause.value.length > 0);
 
   const filtered = students.filter((student) => {
-    const matchesSearch =
+    const matchesLegacySearch =
       q.length === 0 ||
-      normalize(student.student.fullName).includes(q) ||
-      normalize(student.student.inscriptionNumber).includes(q) ||
-      normalize(student.contact.email).includes(q);
+      getFieldValue(student, query.queryField).some((value) => normalize(value).includes(q));
+    const matchesClauseSearch =
+      activeClauses.length === 0 ||
+      activeClauses.every((clause) =>
+        getFieldValue(student, clause.field).some((value) => normalize(value).includes(clause.value)),
+      );
+    const matchesSearch = matchesLegacySearch && matchesClauseSearch;
     if (!matchesSearch) return false;
 
     if (query.status !== 'ALL' && student.status !== query.status) return false;
