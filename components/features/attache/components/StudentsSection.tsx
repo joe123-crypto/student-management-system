@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
-import StudentQueryToolbar, { StudentSearchInput } from '@/components/features/attache/components/StudentQueryToolbar';
+import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
 import DatabaseQueryModal from '@/components/features/attache/components/DatabaseQueryModal';
 import StudentRecordsTable from '@/components/features/attache/components/StudentRecordsTable';
@@ -180,32 +180,24 @@ export default function StudentsSection({
           </div>
         ) : null}
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_28rem] xl:items-center">
-          <BulkActionsBar
-            selectedCount={selectedStudentIds.size}
-            onAddStudent={() => {
-              setStudentStatusMessage('');
-              setAddStudentOpen(true);
-            }}
-            onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
-            onMarkReviewed={handleMarkReviewed}
-            onRequestMissingDocs={handleRequestMissingDocsBulk}
-            onExportSelected={handleExportSelected}
-            onOpenExportOptions={() => setExportPopupOpen(true)}
-            onOpenDataQuality={() => setDataQualityOpen(true)}
-            onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
-            onClearSelection={clearSelection}
-            onDeleteSelected={handleDeleteSelected}
-            isExportDisabled={isLoading}
-            isInsightsDisabled={isLoading}
-          />
-
-          <StudentSearchInput
-            value={query.searchQuery}
-            onChange={(value) => updateQuery({ searchQuery: value })}
-            className="relative w-full"
-          />
-        </div>
+        <BulkActionsBar
+          selectedCount={selectedStudentIds.size}
+          onAddStudent={() => {
+            setStudentStatusMessage('');
+            setAddStudentOpen(true);
+          }}
+          onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
+          onMarkReviewed={handleMarkReviewed}
+          onRequestMissingDocs={handleRequestMissingDocsBulk}
+          onExportSelected={handleExportSelected}
+          onOpenExportOptions={() => setExportPopupOpen(true)}
+          onOpenDataQuality={() => setDataQualityOpen(true)}
+          onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
+          onClearSelection={clearSelection}
+          onDeleteSelected={handleDeleteSelected}
+          isExportDisabled={isLoading}
+          isInsightsDisabled={isLoading}
+        />
 
         <StudentRecordsTable
           students={paginatedTableStudents}
