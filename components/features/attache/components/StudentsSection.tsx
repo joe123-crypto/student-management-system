@@ -3,6 +3,7 @@ import type { AttacheAgentContext, StudentProfile } from '@/types';
 import StudentQueryToolbar, { StudentSearchInput } from '@/components/features/attache/components/StudentQueryToolbar';
 import StudentAdvancedFilters from '@/components/features/attache/components/StudentAdvancedFilters';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
+import DatabaseQueryModal from '@/components/features/attache/components/DatabaseQueryModal';
 import StudentRecordsTable from '@/components/features/attache/components/StudentRecordsTable';
 import StudentTablePagination from '@/components/features/attache/components/StudentTablePagination';
 import {
@@ -54,6 +55,7 @@ export default function StudentsSection({
   const [querySummaryOpen, setQuerySummaryOpen] = useState(false);
   const [dataQualityOpen, setDataQualityOpen] = useState(false);
   const [duplicateDetectionOpen, setDuplicateDetectionOpen] = useState(false);
+  const [databaseQueryOpen, setDatabaseQueryOpen] = useState(false);
 
   const {
     query,
@@ -191,6 +193,7 @@ export default function StudentsSection({
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_28rem] xl:items-center">
           <BulkActionsBar
             selectedCount={selectedStudentIds.size}
+            onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
             onMarkReviewed={handleMarkReviewed}
             onRequestMissingDocs={handleRequestMissingDocsBulk}
             onExportSelected={handleExportSelected}
@@ -215,6 +218,7 @@ export default function StudentsSection({
         <StudentRecordsTable
           students={paginatedTableStudents}
           isLoading={isLoading || isStudentTableLoading}
+          returnFields={query.returnFields}
           selectedStudentIds={selectedStudentIds}
           reviewedStudentIds={reviewedStudentIds}
           onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
@@ -245,6 +249,22 @@ export default function StudentsSection({
         onReportScopeChange={setReportScope}
         onToggleReportColumn={onToggleReportColumn}
         onQuickExport={handleQuickExport}
+      />
+
+      <DatabaseQueryModal
+        open={databaseQueryOpen}
+        initialQueryClauses={query.queryClauses}
+        initialReturnFields={query.returnFields}
+        onClose={() => setDatabaseQueryOpen(false)}
+        onApply={({ queryClauses, returnFields }) => {
+          updateQuery({
+            searchQuery: '',
+            queryField: 'all',
+            queryClauses,
+            returnFields,
+          });
+          setCurrentPage(1);
+        }}
       />
 
       {advancedFiltersOpen ? (
