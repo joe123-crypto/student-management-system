@@ -4,70 +4,116 @@ import { StudentProfile } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 
+type ReviewFieldSection = 'contact' | 'address' | 'profile';
+
 interface ReviewDetailsStepProps {
   student: StudentProfile;
-  readOnlyInputClass: string;
+  readOnlyInputClass?: string;
+  inputClass?: string;
+  mode?: 'read-only' | 'editable';
+  onUpdateField?: (section: ReviewFieldSection, field: string, value: string) => void;
   onBack: () => void;
   onComplete: () => Promise<void>;
   isSubmitting: boolean;
+  completeLabel?: string;
 }
 
 const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
   student,
-  readOnlyInputClass,
+  readOnlyInputClass = '',
+  inputClass = '',
+  mode = 'read-only',
+  onUpdateField,
   onBack,
   onComplete,
   isSubmitting,
-}) => (
-  <div className="space-y-8">
-    <h2 className="theme-heading type-section-title flex items-center gap-2">
-      <MapPin className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
-      Review Record
-    </h2>
-    <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
-      <FormField label="Email">
-        <input
-          type="text"
-          className={readOnlyInputClass}
-          value={student.contact.email || '---'}
-          readOnly
-        />
-      </FormField>
-      <FormField label="Phone Number">
-        <input type="text" className={readOnlyInputClass} value={student.contact.phone || '---'} readOnly />
-      </FormField>
-      <FormField label="Host Address" className="col-span-2">
-        <input
-          type="text"
-          className={readOnlyInputClass}
-          value={student.address.currentHostAddress || '---'}
-          readOnly
-        />
-      </FormField>
-      <div className="col-span-2 pt-6 flex items-center justify-between">
-        <Button
-          onClick={onBack}
-          disabled={isSubmitting}
-          variant="secondary"
-          className="rounded-2xl px-8 py-3"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
-        <div className="flex items-center gap-6">
+  completeLabel = 'Complete and Continue',
+}) => {
+  const isEditable = mode === 'editable';
+  const sharedInputClass = isEditable ? inputClass : readOnlyInputClass;
+
+  return (
+    <div className="space-y-8">
+      <h2 className="theme-heading type-section-title flex items-center gap-2">
+        <MapPin className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
+        Review Record
+      </h2>
+      <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
+        <FormField label="Email">
+          <input
+            type="email"
+            className={sharedInputClass}
+            value={student.contact.email || (isEditable ? '' : '---')}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('contact', 'email', event.target.value)}
+          />
+        </FormField>
+        <FormField label="Phone Number">
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.contact.phone || (isEditable ? '' : '---')}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('contact', 'phone', event.target.value)}
+          />
+        </FormField>
+        <FormField label="Host Address" className="col-span-2">
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.address.currentHostAddress || (isEditable ? '' : '---')}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('address', 'currentHostAddress', event.target.value)}
+          />
+        </FormField>
+        {isEditable ? (
+          <>
+            <FormField label="Home Country Address" className="col-span-2">
+              <input
+                type="text"
+                className={sharedInputClass}
+                value={student.address.homeCountryAddress}
+                onChange={(event) => onUpdateField?.('address', 'homeCountryAddress', event.target.value)}
+              />
+            </FormField>
+            <FormField label="Status" className="md:col-span-2">
+              <select
+                className={sharedInputClass}
+                value={student.status}
+                onChange={(event) => onUpdateField?.('profile', 'status', event.target.value)}
+              >
+                <option value="PENDING">Pending</option>
+                <option value="ACTIVE">Active</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+            </FormField>
+          </>
+        ) : null}
+        <div className="col-span-2 pt-6 flex items-center justify-between">
           <Button
-            onClick={() => {
-              void onComplete();
-            }}
+            onClick={onBack}
             disabled={isSubmitting}
-            className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
+            variant="secondary"
+            className="rounded-2xl px-8 py-3"
           >
-            {isSubmitting ? 'Saving...' : 'Complete and Continue'}
+            <ArrowLeft className="w-4 h-4" />
+            Back
           </Button>
+          <div className="flex items-center gap-6">
+            <Button
+              onClick={() => {
+                void onComplete();
+              }}
+              disabled={isSubmitting}
+              className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
+            >
+              {isSubmitting ? 'Saving...' : completeLabel}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default ReviewDetailsStep;

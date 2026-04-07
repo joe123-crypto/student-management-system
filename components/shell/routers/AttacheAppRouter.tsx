@@ -17,7 +17,7 @@ interface AttacheAppRouterProps {
   onAddAnnouncement: (input: { title: string; content: string }) => Promise<void>;
   onDeleteAnnouncement: (announcementId: string) => Promise<void>;
   onDeleteStudents: (studentIds: string[]) => void;
-  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => void;
+  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => Promise<void>;
   onUpdatePermissionRequestStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,

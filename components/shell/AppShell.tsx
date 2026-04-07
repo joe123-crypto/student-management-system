@@ -145,10 +145,13 @@ export default function AppShell({
             });
           }}
           onUpdatePermissionRequestStatus={updatePermissionRequestStatus}
-          onImportStudents={(records, mode) => {
-            void importStudents(records, mode).catch((error) => {
+          onImportStudents={async (records, mode) => {
+            try {
+              await importStudents(records, mode);
+            } catch (error) {
               console.error('[STUDENTS] Failed to import students from AppShell:', error);
-            });
+              throw error;
+            }
           }}
           onNavigateAttacheSection={(section) =>
             router.push(section === 'settings' ? '/attache/settings' : '/attache/dashboard')

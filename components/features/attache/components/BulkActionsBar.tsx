@@ -1,16 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '@/components/ui/Button';
 import {
-  BarChart3,
   CheckCheck,
   ChevronLeft,
   ChevronRight,
   Database,
   Eraser,
   FileDown,
-  Filter,
   LucideIcon,
   Mail,
+  Plus,
   ScanSearch,
   ShieldCheck,
   Trash2,
@@ -18,13 +17,12 @@ import {
 
 interface BulkActionsBarProps {
   selectedCount: number;
+  onAddStudent: () => void;
   onOpenDatabaseQuery: () => void;
   onMarkReviewed: () => void;
   onRequestMissingDocs: () => void;
   onExportSelected: () => void;
   onOpenExportOptions: () => void;
-  onOpenAdvancedFilters: () => void;
-  onOpenQuerySummary: () => void;
   onOpenDataQuality: () => void;
   onOpenDuplicateDetection: () => void;
   onClearSelection: () => void;
@@ -67,13 +65,12 @@ function ActionIconButton({
 
 export default function BulkActionsBar({
   selectedCount,
+  onAddStudent,
   onOpenDatabaseQuery,
   onMarkReviewed,
   onRequestMissingDocs,
   onExportSelected,
   onOpenExportOptions,
-  onOpenAdvancedFilters,
-  onOpenQuerySummary,
   onOpenDataQuality,
   onOpenDuplicateDetection,
   onClearSelection,
@@ -139,10 +136,9 @@ export default function BulkActionsBar({
         onScroll={updateScrollState}
       >
         <div className="flex w-max min-w-full items-center justify-center gap-2 px-1">
+          <ActionIconButton icon={Plus} label="Add Student" variant="primary" onClick={onAddStudent} />
           <ActionIconButton icon={Database} label="Query Database" variant="secondary" onClick={onOpenDatabaseQuery} />
-          <ActionIconButton icon={Filter} label="Advanced Filtering" variant="secondary" onClick={onOpenAdvancedFilters} />
           <ActionIconButton icon={FileDown} label="Export" variant="success" onClick={onOpenExportOptions} disabled={isExportDisabled} />
-          <ActionIconButton icon={BarChart3} label="Query Summary" variant="secondary" onClick={onOpenQuerySummary} disabled={isInsightsDisabled} />
           <ActionIconButton icon={ShieldCheck} label="Data Quality" variant="secondary" onClick={onOpenDataQuality} disabled={isInsightsDisabled} />
           <ActionIconButton icon={ScanSearch} label="Duplicate Detection" variant="secondary" onClick={onOpenDuplicateDetection} disabled={isInsightsDisabled} />
           <ActionIconButton icon={CheckCheck} label="Mark Reviewed" variant="secondary" onClick={onMarkReviewed} disabled={!hasSelection} />
