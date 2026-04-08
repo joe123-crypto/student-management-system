@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import type { StudentProfile } from '@/types';
 import Button from '@/components/ui/Button';
 import Checkbox from '@/components/ui/Checkbox';
-import { AlertCircle, CheckCircle2, Database, Download, FileSpreadsheet, Upload } from 'lucide-react';
+import Notice from '@/components/ui/Notice';
+import { Database, Download, FileSpreadsheet, Upload } from 'lucide-react';
 import { downloadFile } from '@/components/features/attache/utils/studentData';
 import { CsvDelimiterOption, parseCsvRows, toStudentProfile } from '@/components/features/attache/utils/csvImport';
 
@@ -204,18 +205,12 @@ export default function DatabaseImportSection({
         </div>
 
         {importStatus ? (
-          <div
-            className={`mt-5 flex items-start gap-2 rounded-xl border px-4 py-3 text-sm ${
-              importStatus.type === 'success' ? 'theme-success' : 'theme-danger'
-            }`}
-          >
-            {importStatus.type === 'success' ? (
-              <CheckCircle2 className="mt-0.5 h-4 w-4" />
-            ) : (
-              <AlertCircle className="mt-0.5 h-4 w-4" />
-            )}
-            <span>{importStatus.message}</span>
-          </div>
+          <Notice
+            tone={importStatus.type === 'success' ? 'success' : 'error'}
+            title={importStatus.type === 'success' ? 'Import completed' : 'Import failed'}
+            message={importStatus.message}
+            className="mt-5"
+          />
         ) : null}
       </div>
     </div>

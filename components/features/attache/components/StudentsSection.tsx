@@ -16,6 +16,7 @@ import useStudentFilters from '@/components/features/attache/hooks/useStudentFil
 import useStudentSelection from '@/components/features/attache/hooks/useStudentSelection';
 import useStudentTable from '@/components/features/attache/hooks/useStudentTable';
 import useStudentExports from '@/components/features/attache/hooks/useStudentExports';
+import { useNotifications } from '@/components/providers/NotificationProvider';
 import {
   applyStudentQuery,
   DEFAULT_STUDENT_QUERY,
@@ -52,13 +53,13 @@ export default function StudentsSection({
   onLogCommunication,
   onAgentContextChange,
 }: StudentsSectionProps) {
+  const notifications = useNotifications();
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [exportPopupOpen, setExportPopupOpen] = useState(false);
   const [dataQualityOpen, setDataQualityOpen] = useState(false);
   const [duplicateDetectionOpen, setDuplicateDetectionOpen] = useState(false);
   const [databaseQueryOpen, setDatabaseQueryOpen] = useState(false);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
-  const [studentStatusMessage, setStudentStatusMessage] = useState('');
 
   const {
     query,
@@ -186,16 +187,9 @@ export default function StudentsSection({
           onQueryChange={updateQuery}
         />
 
-        {studentStatusMessage ? (
-          <div className="theme-success rounded-2xl border px-4 py-3 text-sm font-semibold">
-            {studentStatusMessage}
-          </div>
-        ) : null}
-
         <BulkActionsBar
           selectedCount={selectedStudentIds.size}
           onAddStudent={() => {
-            setStudentStatusMessage('');
             setAddStudentOpen(true);
           }}
           onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
@@ -269,8 +263,12 @@ export default function StudentsSection({
         onClose={() => setAddStudentOpen(false)}
         onSubmit={async (student) => {
           await onImportStudents([student], 'append');
-          setStudentStatusMessage(`Added ${student.student.fullName || student.student.inscriptionNumber} to student records.`);
           setAddStudentOpen(false);
+          notifications.notify({
+            tone: 'success',
+            title: 'Student record created',
+            message: `Added ${student.student.fullName || student.student.inscriptionNumber} to student records.`,
+          });
         }}
       />
 

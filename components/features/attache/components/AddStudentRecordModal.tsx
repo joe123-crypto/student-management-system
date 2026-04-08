@@ -9,6 +9,7 @@ import BankRecordsStep from '@/components/features/onboarding/components/BankRec
 import ReviewDetailsStep from '@/components/features/onboarding/components/ReviewDetailsStep';
 import OnboardingProgress from '@/components/features/onboarding/components/OnboardingProgress';
 import { inputClass } from '@/components/features/onboarding/components/styles';
+import Notice from '@/components/ui/Notice';
 import { createEmptyStudentProfile, normalizeStudentProfile } from '@/lib/students/profile';
 
 interface AddStudentRecordModalProps {
@@ -387,9 +388,12 @@ export default function AddStudentRecordModal({
           />
 
           {submitError ? (
-            <div className="theme-danger mb-6 rounded-3xl border px-5 py-4 text-sm font-semibold">
-              {submitError}
-            </div>
+            <Notice
+              tone="error"
+              title="Student record could not be created"
+              message={submitError}
+              className="mb-6 rounded-3xl px-5 py-4"
+            />
           ) : null}
 
           <div className="theme-card rounded-[2.5rem] border p-8 md:p-10">

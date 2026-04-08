@@ -6,6 +6,7 @@ import BankRecordsStep from './components/BankRecordsStep';
 import OnboardingProgress from './components/OnboardingProgress';
 import PersonalDetailsStep from './components/PersonalDetailsStep';
 import ReviewDetailsStep from './components/ReviewDetailsStep';
+import Notice from '@/components/ui/Notice';
 import { getMissingStudentOnboardingFields, mergeStudentProfile } from '@/lib/students/profile';
 import { inputClass, readOnlyInputClass } from './components/styles';
 
@@ -91,9 +92,12 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
       <div className="mx-auto max-w-3xl">
         <OnboardingProgress step={step} totalSteps={totalSteps} />
         {submitError ? (
-          <div className="theme-danger mb-6 rounded-3xl border px-5 py-4 text-sm font-semibold">
-            {submitError}
-          </div>
+          <Notice
+            tone="error"
+            title="Onboarding details incomplete"
+            message={submitError}
+            className="mb-6 rounded-3xl px-5 py-4"
+          />
         ) : null}
 
         <div

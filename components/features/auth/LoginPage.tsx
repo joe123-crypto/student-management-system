@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { useNotifications } from '@/components/providers/NotificationProvider';
 import { UserRole } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import { Hash, HelpCircle, Lock, LogIn, Mail, ShieldCheck } from 'lucide-react';
+import { getErrorMessage } from '@/lib/errors';
 
 const roleOptions = [
   { value: UserRole.STUDENT, label: 'Student' },
@@ -26,6 +28,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const notifications = useNotifications();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,31 +39,47 @@ const LoginPage: React.FC = () => {
     const normalizedInscription = normalizedLoginId.toUpperCase();
 
     if (role === UserRole.ATTACHE && (!normalizedEmail || !normalizedEmail.includes('@'))) {
-      alert('Enter a valid attache email.');
+      notifications.notify({
+        tone: 'warning',
+        title: 'Enter a valid attache email',
+        message: 'Use the approved attache email address to continue.',
+      });
       setIsSubmitting(false);
       return;
     }
 
-    const result = await signIn('credentials', {
-      role,
-      loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('credentials', {
+        role,
+        loginId: role === UserRole.STUDENT ? normalizedInscription : normalizedEmail,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      alert('Invalid credentials.');
+      if (result?.error) {
+        notifications.notify({
+          tone: 'error',
+          title: 'Invalid credentials',
+          message: 'Check your login details and try again.',
+        });
+        return;
+      }
+
+      if (role === UserRole.STUDENT) {
+        router.push('/onboarding');
+        return;
+      }
+
+      router.push('/attache/dashboard');
+    } catch (error) {
+      notifications.notify({
+        tone: 'error',
+        title: 'Could not sign in',
+        message: getErrorMessage(error, 'Unable to sign in right now. Please try again.'),
+      });
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    if (role === UserRole.STUDENT) {
-      router.push('/onboarding');
-      return;
-    }
-
-    router.push('/attache/dashboard');
-    setIsSubmitting(false);
   };
 
   return (

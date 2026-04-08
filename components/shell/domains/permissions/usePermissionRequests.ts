@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAppError } from '@/components/providers/AppErrorProvider';
+import { isAbortError } from '@/lib/errors';
 import { isMockDbEnabled } from '@/test/mock/config';
 import { mockPermissionsService } from '@/test/mock/services/permissionsService';
 import type { PermissionRequest, User } from '@/types';
@@ -27,6 +29,7 @@ export function usePermissionRequests(
   user: User | null,
   initialPermissionRequests: PermissionRequest[] = EMPTY_PERMISSION_REQUESTS,
 ) {
+  const { reportError } = useAppError();
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const [permissionRequests, setPermissionRequests] = useState<PermissionRequest[]>(
     initialPermissionRequests,
@@ -96,8 +99,15 @@ export function usePermissionRequests(
           setPermissionRequests(payload.requests || []);
         }
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
+        if (!isAbortError(error)) {
           console.error('[PERMISSION_REQUESTS] Failed to hydrate permission requests:', error);
+
+          if (!isCancelled) {
+            reportError(error, {
+              title: 'Could not load permission requests',
+              fallback: 'Permission requests are unavailable right now. Please refresh and try again.',
+            });
+          }
         }
 
         if (!isCancelled) {
@@ -116,7 +126,7 @@ export function usePermissionRequests(
       isCancelled = true;
       controller.abort();
     };
-  }, [user, userKey]);
+  }, [reportError, user, userKey]);
 
   async function submitPermissionRequest(
     inscriptionNumber: string,

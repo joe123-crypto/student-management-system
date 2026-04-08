@@ -8,6 +8,7 @@ interface StudentContactBankPanelProps {
   student?: StudentProfile;
   editData?: StudentProfile;
   isEditing?: boolean;
+  isSaving?: boolean;
   inputClassName?: string;
   onToggleEdit?: () => void;
   onDiscard?: () => void;
@@ -73,6 +74,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
   student,
   editData,
   isEditing,
+  isSaving = false,
   inputClassName,
   onToggleEdit,
   onDiscard,
@@ -150,6 +152,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
           onClick={onToggleEdit}
           variant={isEditing ? 'secondary' : 'primary'}
           className="rounded-full"
+          disabled={isSaving}
         >
           {isEditing ? 'Cancel' : 'Edit Bank Details'}
         </Button>
@@ -182,6 +185,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
                   value={editData.bank.bankName}
                   onChange={(e) => onUpdateField('bank', 'bankName', e.target.value)}
                   className={`${inputClassName} mt-3 min-w-0`}
+                  disabled={isSaving}
                 />
               ) : (
                 <p className={fieldValueClass}>{student.bank.bankName || '---'}</p>
@@ -195,6 +199,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
                   value={editData.bankAccount.iban}
                   onChange={(e) => onUpdateField('bankAccount', 'iban', e.target.value)}
                   className={`${inputClassName} mt-3 min-w-0`}
+                  disabled={isSaving}
                 />
               ) : (
                 <p className="mt-2 break-all font-mono text-base font-semibold leading-tight text-[color:var(--theme-primary)]">
@@ -210,6 +215,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
                   value={editData.bankAccount.accountNumber}
                   onChange={(e) => onUpdateField('bankAccount', 'accountNumber', e.target.value)}
                   className={`${inputClassName} mt-3 min-w-0`}
+                  disabled={isSaving}
                 />
               ) : (
                 <p className={fieldValueClass}>{student.bankAccount.accountNumber || '---'}</p>
@@ -223,6 +229,7 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
                   value={editData.bank.branchCode || ''}
                   onChange={(e) => onUpdateField('bank', 'branchCode', e.target.value)}
                   className={`${inputClassName} mt-3 min-w-0`}
+                  disabled={isSaving}
                 />
               ) : (
                 <p className={fieldValueClass}>{student.bank.branchCode || '---'}</p>
@@ -238,11 +245,11 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
 
       {isEditing ? (
         <div className="mt-6 flex items-center justify-end gap-3 border-t border-[rgba(220,205,166,0.55)] pt-6">
-          <Button variant="ghost" onClick={onDiscard}>
+          <Button variant="ghost" onClick={onDiscard} disabled={isSaving}>
             Discard
           </Button>
-          <Button onClick={onSave} className="rounded-full px-10">
-            Save Bank Details
+          <Button onClick={onSave} className="rounded-full px-10" disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Bank Details'}
           </Button>
         </div>
       ) : null}

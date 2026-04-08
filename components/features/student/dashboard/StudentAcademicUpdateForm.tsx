@@ -12,6 +12,7 @@ interface StudentAcademicUpdateFormProps {
   onBack: () => void;
   onSubmit: () => void;
   isUploadingProofDocument?: boolean;
+  isSubmitting?: boolean;
 }
 
 const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
@@ -22,7 +23,10 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
   onBack,
   onSubmit,
   isUploadingProofDocument = false,
+  isSubmitting = false,
 }) => {
+  const isBusy = isSubmitting || isUploadingProofDocument;
+
   return (
     <div className="theme-card relative min-h-[500px] overflow-hidden rounded-[2.5rem] border p-6 transition-all sm:p-10">
       <div className="mb-8 flex items-start justify-between gap-4 sm:mb-10">
@@ -45,6 +49,7 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
               value={newProgress.year}
               onChange={(e) => onFieldChange('year', e.target.value)}
               className={inputClassName}
+              disabled={isSubmitting}
             >
               <option value="">Select Year</option>
               <option value="Year 1">Year 1</option>
@@ -60,6 +65,7 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
               value={newProgress.level}
               onChange={(e) => onFieldChange('level', e.target.value)}
               className={inputClassName}
+              disabled={isSubmitting}
             />
           </FormField>
           <FormField
@@ -73,6 +79,7 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
               value={newProgress.grade}
               onChange={(e) => onFieldChange('grade', e.target.value)}
               className={inputClassName}
+              disabled={isSubmitting}
             />
           </FormField>
         </div>
@@ -93,11 +100,11 @@ const StudentAcademicUpdateForm: React.FC<StudentAcademicUpdateFormProps> = ({
         </FormField>
 
         <div className="flex items-center justify-between border-t border-[rgba(220,205,166,0.55)] pt-6">
-          <Button variant="secondary" onClick={onBack}>
+          <Button variant="secondary" onClick={onBack} disabled={isSubmitting}>
             Back
           </Button>
-          <Button onClick={onSubmit} className="rounded-2xl px-12 py-4">
-            Submit for Validation
+          <Button onClick={onSubmit} className="rounded-2xl px-12 py-4" disabled={isBusy}>
+            {isSubmitting ? 'Submitting...' : isUploadingProofDocument ? 'Finishing upload...' : 'Submit for Validation'}
           </Button>
         </div>
       </div>

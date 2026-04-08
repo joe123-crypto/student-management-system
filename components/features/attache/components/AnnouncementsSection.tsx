@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { Announcement } from '@/types';
 import Button from '@/components/ui/Button';
+import Notice from '@/components/ui/Notice';
+import { useNotifications } from '@/components/providers/NotificationProvider';
 import {
   AnnouncementComposerCard,
   AnnouncementFeedSection,
@@ -20,6 +22,7 @@ export default function AnnouncementsSection({
   onAddAnnouncement,
   onDeleteAnnouncement,
 }: AnnouncementsSectionProps) {
+  const notifications = useNotifications();
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,6 +43,11 @@ export default function AnnouncementsSection({
       });
       setNewTitle('');
       setNewContent('');
+      notifications.notify({
+        tone: 'success',
+        title: 'Announcement posted',
+        message: 'The new update is now visible to students.',
+      });
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : 'Unable to post announcement right now.',
@@ -62,7 +70,12 @@ export default function AnnouncementsSection({
           className="theme-card sticky top-24 rounded-3xl border p-6 shadow-sm"
         />
         {errorMessage ? (
-          <p className="mt-3 text-sm text-[color:var(--theme-danger)]">{errorMessage}</p>
+          <Notice
+            tone="error"
+            title="Announcement action failed"
+            message={errorMessage}
+            className="mt-3"
+          />
         ) : null}
       </div>
       <div className="space-y-4">
@@ -93,6 +106,12 @@ export default function AnnouncementsSection({
                   setDeletingAnnouncementId(announcement.id);
                   try {
                     await onDeleteAnnouncement(announcement.id);
+                    notifications.notify({
+                      tone: 'success',
+                      title: 'Announcement deleted',
+                      message: 'The selected announcement has been removed.',
+                      durationMs: 3200,
+                    });
                   } catch (error) {
                     setErrorMessage(
                       error instanceof Error ? error.message : 'Unable to delete announcement right now.',

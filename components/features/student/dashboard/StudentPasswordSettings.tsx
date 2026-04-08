@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import FormField from '@/components/ui/FormField';
 import Button from '@/components/ui/Button';
+import Notice from '@/components/ui/Notice';
 
 const PASSWORD_REQUIREMENTS_MESSAGE =
   'Use at least 12 characters with uppercase, lowercase, a number, and a symbol.';
@@ -112,15 +113,11 @@ export default function StudentPasswordSettings({
           <p className="theme-text-muted text-xs">{PASSWORD_REQUIREMENTS_MESSAGE}</p>
 
           {passwordStatus ? (
-            <div
-              className={`rounded-xl border px-4 py-3 text-sm ${
-                passwordStatus.type === 'success'
-                  ? 'theme-success'
-                  : 'theme-danger'
-              }`}
-            >
-              {passwordStatus.message}
-            </div>
+            <Notice
+              tone={passwordStatus.type === 'success' ? 'success' : 'error'}
+              title={passwordStatus.type === 'success' ? 'Password updated' : 'Password change failed'}
+              message={passwordStatus.message}
+            />
           ) : null}
 
           <div className="pt-2">
