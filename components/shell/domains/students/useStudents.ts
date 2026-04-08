@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAppError } from '@/components/providers/AppErrorProvider';
 import {
   getRuntimeCacheKey,
   readCache,
   writeCache,
 } from '@/components/shell/shared/browser-cache';
+import { isAbortError } from '@/lib/errors';
 import { mergeStudentProfile } from '@/lib/students/profile';
 import { services } from '@/services';
 import type { PrototypeDatabase } from '@/test/mock/prototypeDatabase';
@@ -54,6 +56,7 @@ export function useStudents(
     currentStudent?: StudentProfile | null;
   } = {},
 ) {
+  const { reportError } = useAppError();
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const [students, setStudents] = useState<StudentProfile[]>(initialData.students || []);
   const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(
@@ -246,8 +249,15 @@ export function useStudents(
         applyServerState(user, payload);
         persistCachedPayload(user, payload);
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
+        if (!isAbortError(error)) {
           console.error('[STUDENTS] Failed to hydrate students:', error);
+
+          if (!isCancelled && !hasCachedStudents) {
+            reportError(error, {
+              title: 'Could not load student records',
+              fallback: 'Student records are unavailable right now. Please refresh and try again.',
+            });
+          }
         }
 
         if (!isCancelled && !hasCachedStudents) {
@@ -267,7 +277,7 @@ export function useStudents(
       isCancelled = true;
       controller.abort();
     };
-  }, [user, userKey]);
+  }, [reportError, user, userKey]);
 
   async function updateStudent(id: string, profile: Partial<StudentProfile>) {
     if (isMockDbEnabled()) {

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
+import Notice from '@/components/ui/Notice';
 import { Hash, ShieldCheck, UserRound } from 'lucide-react';
 
 interface PermissionRequestPageProps {
@@ -134,8 +135,8 @@ export default function PermissionRequestPage({
               </div>
             </FormField>
 
-            {error ? <p className="text-sm text-[color:var(--theme-danger)]">{error}</p> : null}
-            {message ? <p className="text-sm text-[color:var(--theme-primary)]">{message}</p> : null}
+            {error ? <Notice tone="error" title="Request could not be sent" message={error} /> : null}
+            {message ? <Notice tone="success" title="Request received" message={message} /> : null}
 
             <Button type="submit" disabled={isSubmitting} fullWidth className="rounded-full py-3.5">
               <ShieldCheck className="w-4 h-4" />

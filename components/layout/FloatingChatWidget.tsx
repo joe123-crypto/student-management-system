@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, SendHorizontal, ShieldCheck, Sparkles, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useAppError } from '@/components/providers/AppErrorProvider';
 import { useAgent } from '@/components/shell/domains/agent/useAgent';
 import type { AttacheAgentContext, User } from '@/types';
 import { UserRole } from '@/types';
@@ -103,6 +104,7 @@ export default function FloatingChatWidget({
   const [draft, setDraft] = useState('');
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const { reportError } = useAppError();
   const { messages, isLoading, isSending, sendMessage } = useAgent(user, context);
 
   const title = useMemo(
@@ -157,7 +159,11 @@ export default function FloatingChatWidget({
     try {
       await sendMessage(trimmedContent);
     } catch (error) {
-      console.error('[AGENT] Failed to send widget message:', error);
+      setDraft(trimmedContent);
+      reportError(error, {
+        title: 'Could not send your message',
+        fallback: 'The assistant could not send that message. Please try again.',
+      });
     } finally {
       setPendingMessage(null);
     }

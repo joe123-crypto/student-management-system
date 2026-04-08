@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { getServerSession } from 'next-auth';
 import './globals.css';
 import authConfig from '@/auth.config';
-import AuthSessionProvider from '@/components/providers/AuthSessionProvider';
+import AppProviders from '@/components/providers/AppProviders';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -21,9 +21,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className={plusJakartaSans.className}>
-        <AuthSessionProvider session={session}>
+        <AppProviders session={session}>
           <div id="root">{children}</div>
-        </AuthSessionProvider>
+        </AppProviders>
       </body>
     </html>
   );

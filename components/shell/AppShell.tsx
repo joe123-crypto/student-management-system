@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import { useAppError } from '@/components/providers/AppErrorProvider';
 import { clearCacheByPrefix, getRuntimeCachePrefix } from '@/components/shell/shared/browser-cache';
 import type { AppRoute } from '@/components/shell/routes';
 import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
@@ -38,6 +39,7 @@ export default function AppShell({
   initialUser?: User | null;
 }) {
   const router = useRouter();
+  const { reportError } = useAppError();
   const { user, changeStudentPassword, isHydrated: isAuthHydrated } = useAuth();
   const effectiveUser = user ?? initialUser;
   const {
@@ -78,11 +80,15 @@ export default function AppShell({
         }
       } catch (error) {
         console.error('[CACHE] Failed to clear runtime browser cache during logout:', error);
+        reportError(error, {
+          title: 'Logout completed with a warning',
+          fallback: 'You were signed out, but we could not clear local cached data.',
+        });
       } finally {
         await signOut({ callbackUrl: '/login' });
       }
     })();
-  }, [effectiveUser]);
+  }, [effectiveUser, reportError]);
 
   if (isProtectedRoute && !isAuthHydrated && !initialUser) {
     return <AppLoadingScreen label="Loading your application..." />;
@@ -142,6 +148,10 @@ export default function AppShell({
           onDeleteStudents={(studentIds) => {
             void deleteStudents(studentIds).catch((error) => {
               console.error('[STUDENTS] Failed to delete students from AppShell:', error);
+              reportError(error, {
+                title: 'Could not delete student records',
+                fallback: 'The selected student records could not be deleted.',
+              });
             });
           }}
           onUpdateStudent={async (id, profile) => {

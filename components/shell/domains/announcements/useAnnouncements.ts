@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useAppError } from '@/components/providers/AppErrorProvider';
 import {
   getRuntimeCacheKey,
   readCache,
   writeCache,
 } from '@/components/shell/shared/browser-cache';
+import { isAbortError } from '@/lib/errors';
 import { isMockDbEnabled } from '@/test/mock/config';
 import { mockAnnouncementsService } from '@/test/mock/services/announcementsService';
 import type { Announcement, User } from '@/types';
@@ -23,6 +25,7 @@ export function useAnnouncements(
   user: User | null,
   initialAnnouncements: Announcement[] = EMPTY_ANNOUNCEMENTS,
 ) {
+  const { reportError } = useAppError();
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements);
   const [hydratedKey, setHydratedKey] = useState<string | null>(
@@ -43,10 +46,6 @@ export function useAnnouncements(
     setAnnouncements((current) => (current.length > 0 ? current : initialAnnouncements));
     setHydratedKey((current) => current ?? userKey);
   }, [initialAnnouncements, user, userKey]);
-
-  function isAbortError(error: unknown) {
-    return error instanceof Error && error.name === 'AbortError';
-  }
 
   function setAnnouncementsState(nextAnnouncements: Announcement[]) {
     announcementsRef.current = nextAnnouncements;
@@ -130,6 +129,13 @@ export function useAnnouncements(
       } catch (error) {
         if (!isAbortError(error)) {
           console.error('[ANNOUNCEMENTS] Failed to hydrate announcements:', error);
+
+          if (!isCancelled && !hasCachedAnnouncements) {
+            reportError(error, {
+              title: 'Could not load announcements',
+              fallback: 'Announcements are unavailable right now. Please refresh and try again.',
+            });
+          }
         }
 
         if (!isCancelled && !hasCachedAnnouncements) {
@@ -150,7 +156,7 @@ export function useAnnouncements(
         controller.abort();
       }
     };
-  }, [user, userKey]);
+  }, [reportError, user, userKey]);
 
   async function addAnnouncement(input: { title: string; content: string }) {
     if (!input.title.trim() || !input.content.trim()) {

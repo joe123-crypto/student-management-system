@@ -28,16 +28,20 @@ const sizeClasses: Record<ButtonSize, string> = {
   lg: 'px-6 py-3 text-sm rounded-2xl',
 };
 
-export default function Button({
-  variant = 'primary',
-  size = 'md',
-  fullWidth = false,
-  className,
-  type = 'button',
-  ...props
-}: ButtonProps) {
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    variant = 'primary',
+    size = 'md',
+    fullWidth = false,
+    className,
+    type = 'button',
+    ...props
+  },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       type={type}
       className={cn(
         'inline-flex items-center justify-center gap-2 font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(160,58,19,0.3)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--theme-page)] active:scale-95 disabled:pointer-events-none disabled:opacity-50',
@@ -49,4 +53,8 @@ export default function Button({
       {...props}
     />
   );
-}
+});
+
+Button.displayName = 'Button';
+
+export default Button;

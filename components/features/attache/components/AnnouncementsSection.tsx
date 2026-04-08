@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import type { Announcement } from '@/types';
 import Button from '@/components/ui/Button';
+import { useNotifications } from '@/components/providers/NotificationProvider';
 import {
   AnnouncementComposerCard,
   AnnouncementFeedSection,
 } from '@/components/features/shared/announcements/AnnouncementSections';
 import Skeleton from '@/components/ui/Skeleton';
+import { getErrorMessage } from '@/lib/errors';
 
 interface AnnouncementsSectionProps {
   announcements: Announcement[];
@@ -20,9 +22,9 @@ export default function AnnouncementsSection({
   onAddAnnouncement,
   onDeleteAnnouncement,
 }: AnnouncementsSectionProps) {
+  const notifications = useNotifications();
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingAnnouncementId, setDeletingAnnouncementId] = useState<string | null>(null);
 
@@ -30,7 +32,6 @@ export default function AnnouncementsSection({
     e.preventDefault();
     if (!newTitle || !newContent) return;
 
-    setErrorMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -40,10 +41,17 @@ export default function AnnouncementsSection({
       });
       setNewTitle('');
       setNewContent('');
+      notifications.notify({
+        tone: 'success',
+        title: 'Announcement posted',
+        message: 'The new update is now visible to students.',
+      });
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Unable to post announcement right now.',
-      );
+      notifications.notify({
+        tone: 'error',
+        title: 'Could not post announcement',
+        message: getErrorMessage(error, 'Unable to post announcement right now.'),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -61,9 +69,6 @@ export default function AnnouncementsSection({
           submitLabel={isSubmitting ? 'Posting...' : 'Post Announcement'}
           className="theme-card sticky top-24 rounded-3xl border p-6 shadow-sm"
         />
-        {errorMessage ? (
-          <p className="mt-3 text-sm text-[color:var(--theme-danger)]">{errorMessage}</p>
-        ) : null}
       </div>
       <div className="space-y-4">
         {isLoading ? (
@@ -89,14 +94,21 @@ export default function AnnouncementsSection({
                 className="text-[color:var(--theme-danger)] hover:bg-[rgba(183,76,45,0.08)] hover:text-[color:var(--theme-danger-strong)]"
                 disabled={deletingAnnouncementId === announcement.id}
                 onClick={async () => {
-                  setErrorMessage(null);
                   setDeletingAnnouncementId(announcement.id);
                   try {
                     await onDeleteAnnouncement(announcement.id);
+                    notifications.notify({
+                      tone: 'success',
+                      title: 'Announcement deleted',
+                      message: 'The selected announcement has been removed.',
+                      durationMs: 3200,
+                    });
                   } catch (error) {
-                    setErrorMessage(
-                      error instanceof Error ? error.message : 'Unable to delete announcement right now.',
-                    );
+                    notifications.notify({
+                      tone: 'error',
+                      title: 'Could not delete announcement',
+                      message: getErrorMessage(error, 'Unable to delete announcement right now.'),
+                    });
                   } finally {
                     setDeletingAnnouncementId((current) =>
                       current === announcement.id ? null : current,
