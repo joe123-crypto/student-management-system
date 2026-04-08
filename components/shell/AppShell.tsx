@@ -144,6 +144,14 @@ export default function AppShell({
               console.error('[STUDENTS] Failed to delete students from AppShell:', error);
             });
           }}
+          onUpdateStudent={async (id, profile) => {
+            try {
+              await updateStudent(id, profile);
+            } catch (error) {
+              console.error('[STUDENTS] Failed to update student from Attache AppShell:', error);
+              throw error;
+            }
+          }}
           onUpdatePermissionRequestStatus={updatePermissionRequestStatus}
           onImportStudents={async (records, mode) => {
             try {

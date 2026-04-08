@@ -30,6 +30,7 @@ interface StudentsSectionProps {
   isLoading?: boolean;
   onDeleteStudents: (studentIds: string[]) => void;
   onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => Promise<void>;
+  onUpdateStudent: (id: string, profile: Partial<StudentProfile>) => Promise<void>;
   onLogCommunication?: (payload: {
     channel: 'EMAIL' | 'SMS';
     template: string;
@@ -47,6 +48,7 @@ export default function StudentsSection({
   isLoading = false,
   onDeleteStudents,
   onImportStudents,
+  onUpdateStudent,
   onLogCommunication,
   onAgentContextChange,
 }: StudentsSectionProps) {
@@ -163,7 +165,17 @@ export default function StudentsSection({
   };
 
   if (selectedStudent) {
-    return <StudentDetailView student={selectedStudent} onBack={() => setSelectedStudentId(null)} />;
+    return (
+      <StudentDetailView
+        student={selectedStudent}
+        onBack={() => setSelectedStudentId(null)}
+        onDeleteProgressRecord={async (entry) => {
+          await onUpdateStudent(selectedStudent.id, {
+            academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
+          });
+        }}
+      />
+    );
   }
 
   return (
