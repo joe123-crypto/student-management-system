@@ -3,14 +3,21 @@ import React from 'react';
 interface OnboardingProgressProps {
   step: number;
   totalSteps: number;
+  title?: string;
+  stepLabel?: string;
 }
 
-const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ step, totalSteps }) => (
+const OnboardingProgress: React.FC<OnboardingProgressProps> = ({
+  step,
+  totalSteps,
+  title = 'Account Onboarding',
+  stepLabel = 'Step',
+}) => (
   <div className="mb-12">
     <div className="flex items-center justify-between mb-8">
-      <h1 className="theme-heading type-section-title">Account Onboarding</h1>
+      <h1 className="theme-heading type-section-title">{title}</h1>
       <span className="theme-text-muted type-meta font-medium">
-        Step {step} of {totalSteps}
+        {stepLabel} {step} of {totalSteps}
       </span>
     </div>
 

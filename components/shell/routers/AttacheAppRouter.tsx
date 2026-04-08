@@ -17,7 +17,8 @@ interface AttacheAppRouterProps {
   onAddAnnouncement: (input: { title: string; content: string }) => Promise<void>;
   onDeleteAnnouncement: (announcementId: string) => Promise<void>;
   onDeleteStudents: (studentIds: string[]) => void;
-  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => void;
+  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => Promise<void>;
+  onUpdateStudent: (id: string, profile: Partial<StudentProfile>) => Promise<void>;
   onUpdatePermissionRequestStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
@@ -39,6 +40,7 @@ export default function AttacheAppRouter({
   onDeleteAnnouncement,
   onDeleteStudents,
   onImportStudents,
+  onUpdateStudent,
   onUpdatePermissionRequestStatus,
   onNavigateAttacheSection,
   onLogout,
@@ -61,6 +63,7 @@ export default function AttacheAppRouter({
       onDeleteAnnouncement={onDeleteAnnouncement}
       onDeleteStudents={onDeleteStudents}
       onImportStudents={onImportStudents}
+      onUpdateStudent={onUpdateStudent}
       onUpdatePermissionRequestStatus={onUpdatePermissionRequestStatus}
       section={section}
       onNavigateSection={onNavigateAttacheSection}

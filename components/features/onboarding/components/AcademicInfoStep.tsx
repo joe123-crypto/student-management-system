@@ -4,64 +4,144 @@ import { StudentProfile } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 
+type AcademicFieldSection = 'university' | 'program';
+
 interface AcademicInfoStepProps {
   student: StudentProfile;
-  readOnlyInputClass: string;
+  readOnlyInputClass?: string;
+  inputClass?: string;
+  mode?: 'read-only' | 'editable';
+  onUpdateField?: (section: AcademicFieldSection, field: string, value: string) => void;
   onBack: () => void;
   onNext: () => void;
+  nextLabel?: string;
 }
 
 const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
   student,
-  readOnlyInputClass,
+  readOnlyInputClass = '',
+  inputClass = '',
+  mode = 'read-only',
+  onUpdateField,
   onBack,
   onNext,
-}) => (
-  <div className="space-y-8">
-    <h2 className="theme-heading type-section-title flex items-center gap-2">
-      <GraduationCap className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
-      University & Program
-    </h2>
-    <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
-      <FormField label="University Name">
-        <input type="text" className={readOnlyInputClass} value={student.university.universityName} readOnly />
-      </FormField>
-      <FormField label="Acronym">
-        <input type="text" className={readOnlyInputClass} value={student.university.acronym} readOnly />
-      </FormField>
-      <FormField label="Program / Major">
-        <input type="text" className={readOnlyInputClass} value={student.program.major} readOnly />
-      </FormField>
-      <FormField label="Degree Level">
-        <input type="text" className={readOnlyInputClass} value={student.program.degreeLevel} readOnly />
-      </FormField>
-      <FormField label="Department" className="md:col-span-2">
-        <input
-          type="text"
-          className={readOnlyInputClass}
-          value={student.university.department || 'N/A'}
-          readOnly
-        />
-      </FormField>
-      <div className="col-span-2 pt-6 flex items-center justify-between">
-        <Button
-          onClick={onBack}
-          variant="secondary"
-          className="rounded-2xl px-8 py-3"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
-        <Button
-          onClick={onNext}
-          className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
-        >
-          <ArrowRight className="w-4 h-4" />
-          Continue
-        </Button>
+  nextLabel = 'Continue',
+}) => {
+  const isEditable = mode === 'editable';
+  const sharedInputClass = isEditable ? inputClass : readOnlyInputClass;
+
+  return (
+    <div className="space-y-8">
+      <h2 className="theme-heading type-section-title flex items-center gap-2">
+        <GraduationCap className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
+        University & Program
+      </h2>
+      <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
+        <FormField label="University Name">
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.university.universityName}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('university', 'universityName', event.target.value)}
+          />
+        </FormField>
+        <FormField label="Acronym">
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.university.acronym}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('university', 'acronym', event.target.value)}
+          />
+        </FormField>
+        {isEditable ? (
+          <>
+            <FormField label="Campus">
+              <input
+                type="text"
+                className={sharedInputClass}
+                value={student.university.campus}
+                onChange={(event) => onUpdateField?.('university', 'campus', event.target.value)}
+              />
+            </FormField>
+            <FormField label="City">
+              <input
+                type="text"
+                className={sharedInputClass}
+                value={student.university.city}
+                onChange={(event) => onUpdateField?.('university', 'city', event.target.value)}
+              />
+            </FormField>
+          </>
+        ) : null}
+        <FormField label="Program / Major">
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.program.major}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('program', 'major', event.target.value)}
+          />
+        </FormField>
+        <FormField label="Degree Level">
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.program.degreeLevel}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('program', 'degreeLevel', event.target.value)}
+          />
+        </FormField>
+        <FormField label="Department" className={isEditable ? '' : 'md:col-span-2'}>
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.university.department || (isEditable ? '' : 'N/A')}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('university', 'department', event.target.value)}
+          />
+        </FormField>
+        {isEditable ? (
+          <>
+            <FormField label="Program Start Date">
+              <input
+                type="date"
+                className={sharedInputClass}
+                value={student.program.startDate}
+                onChange={(event) => onUpdateField?.('program', 'startDate', event.target.value)}
+              />
+            </FormField>
+            <FormField label="Expected End Date" className="md:col-span-2">
+              <input
+                type="date"
+                className={sharedInputClass}
+                value={student.program.expectedEndDate}
+                onChange={(event) => onUpdateField?.('program', 'expectedEndDate', event.target.value)}
+              />
+            </FormField>
+          </>
+        ) : null}
+        <div className="col-span-2 pt-6 flex items-center justify-between">
+          <Button
+            onClick={onBack}
+            variant="secondary"
+            className="rounded-2xl px-8 py-3"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <Button
+            onClick={onNext}
+            className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
+          >
+            <ArrowRight className="w-4 h-4" />
+            {nextLabel}
+          </Button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default AcademicInfoStep;

@@ -9,7 +9,7 @@ import {
   Phone,
   UserRound,
 } from 'lucide-react';
-import type { StudentProfile } from '@/types';
+import type { ProgressDetails, StudentProfile } from '@/types';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -19,6 +19,7 @@ import { getSortedAcademicHistory } from '@/lib/students/academicHistory';
 interface StudentDetailViewProps {
   student: StudentProfile;
   onBack: () => void;
+  onDeleteProgressRecord?: (entry: ProgressDetails) => Promise<void>;
 }
 
 const surfaceCardClass =
@@ -77,8 +78,14 @@ function DetailField({
   );
 }
 
-export default function StudentDetailView({ student, onBack }: StudentDetailViewProps) {
+export default function StudentDetailView({
+  student,
+  onBack,
+  onDeleteProgressRecord,
+}: StudentDetailViewProps) {
   const [isChartReady, setIsChartReady] = React.useState(false);
+  const [deletingEntryId, setDeletingEntryId] = React.useState<string | null>(null);
+  const [actionError, setActionError] = React.useState('');
   const sortedAcademicHistory = getSortedAcademicHistory(student.academicHistory);
 
   const academicChartData = sortedAcademicHistory.map((entry) => ({
@@ -99,6 +106,28 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
 
     return () => window.cancelAnimationFrame(frameId);
   }, [academicChartData.length]);
+
+  const handleDeleteProgressRecord = async (entry: ProgressDetails) => {
+    if (!onDeleteProgressRecord || deletingEntryId) {
+      return;
+    }
+
+    setDeletingEntryId(entry.id);
+    setActionError('');
+
+    try {
+      await onDeleteProgressRecord(entry);
+    } catch (error) {
+      console.error('[STUDENTS] Failed to delete progress record:', error);
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : 'We could not delete this progress record. Please try again.',
+      );
+    } finally {
+      setDeletingEntryId(null);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -256,6 +285,11 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
           title="Academic progress"
           description="Performance history with the current standing called out first."
         />
+        {actionError ? (
+          <div className="theme-danger mb-4 rounded-2xl border px-4 py-3 text-sm font-semibold">
+            {actionError}
+          </div>
+        ) : null}
         {sortedAcademicHistory.length > 0 ? (
           <div className="space-y-6">
             <div className="theme-card-muted rounded-[1.75rem] border p-5 sm:p-6">
@@ -338,7 +372,12 @@ export default function StudentDetailView({ student, onBack }: StudentDetailView
 
             <div className="space-y-4">
               {sortedAcademicHistory.map((entry) => (
-                <AcademicHistoryItem key={entry.id} entry={entry} />
+                <AcademicHistoryItem
+                  key={entry.id}
+                  entry={entry}
+                  onDelete={onDeleteProgressRecord ? handleDeleteProgressRecord : undefined}
+                  isDeleting={deletingEntryId === entry.id}
+                />
               ))}
             </div>
           </div>

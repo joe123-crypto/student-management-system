@@ -27,7 +27,8 @@ interface AttacheDashboardProps {
   onAddAnnouncement: (input: { title: string; content: string }) => Promise<void>;
   onDeleteAnnouncement: (announcementId: string) => Promise<void>;
   onDeleteStudents: (studentIds: string[]) => void;
-  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => void;
+  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => Promise<void>;
+  onUpdateStudent: (id: string, profile: Partial<StudentProfile>) => Promise<void>;
   onUpdatePermissionRequestStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
@@ -65,6 +66,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   onDeleteAnnouncement,
   onDeleteStudents,
   onImportStudents,
+  onUpdateStudent,
   onUpdatePermissionRequestStatus,
   section,
   onNavigateSection,
@@ -143,6 +145,8 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
               students={students}
               isLoading={isStudentsLoading}
               onDeleteStudents={onDeleteStudents}
+              onImportStudents={onImportStudents}
+              onUpdateStudent={onUpdateStudent}
               onLogCommunication={appendCommunicationLog}
               onAgentContextChange={setAgentContext}
             />

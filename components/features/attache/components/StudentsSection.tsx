@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
-import StudentQueryToolbar, { StudentSearchInput } from '@/components/features/attache/components/StudentQueryToolbar';
-import StudentAdvancedFilters from '@/components/features/attache/components/StudentAdvancedFilters';
+import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
 import DatabaseQueryModal from '@/components/features/attache/components/DatabaseQueryModal';
 import StudentRecordsTable from '@/components/features/attache/components/StudentRecordsTable';
@@ -9,10 +8,10 @@ import StudentTablePagination from '@/components/features/attache/components/Stu
 import {
   DataQualityCard,
   DuplicateDetectionCard,
-  QuerySummaryCard,
 } from '@/components/features/attache/components/DataInsightsPanel';
 import StudentDetailView from '@/components/features/attache/components/StudentDetailView';
 import ExportRecordsModal from '@/components/features/attache/components/ExportRecordsModal';
+import AddStudentRecordModal from '@/components/features/attache/components/AddStudentRecordModal';
 import useStudentFilters from '@/components/features/attache/hooks/useStudentFilters';
 import useStudentSelection from '@/components/features/attache/hooks/useStudentSelection';
 import useStudentTable from '@/components/features/attache/hooks/useStudentTable';
@@ -30,6 +29,8 @@ interface StudentsSectionProps {
   students: StudentProfile[];
   isLoading?: boolean;
   onDeleteStudents: (studentIds: string[]) => void;
+  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => Promise<void>;
+  onUpdateStudent: (id: string, profile: Partial<StudentProfile>) => Promise<void>;
   onLogCommunication?: (payload: {
     channel: 'EMAIL' | 'SMS';
     template: string;
@@ -46,21 +47,22 @@ export default function StudentsSection({
   students,
   isLoading = false,
   onDeleteStudents,
+  onImportStudents,
+  onUpdateStudent,
   onLogCommunication,
   onAgentContextChange,
 }: StudentsSectionProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [exportPopupOpen, setExportPopupOpen] = useState(false);
-  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
-  const [querySummaryOpen, setQuerySummaryOpen] = useState(false);
   const [dataQualityOpen, setDataQualityOpen] = useState(false);
   const [duplicateDetectionOpen, setDuplicateDetectionOpen] = useState(false);
   const [databaseQueryOpen, setDatabaseQueryOpen] = useState(false);
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [studentStatusMessage, setStudentStatusMessage] = useState('');
 
   const {
     query,
     updateQuery,
-    resetAdvancedFilters,
   } = useStudentFilters(DEFAULT_STUDENT_QUERY);
 
   const duplicateGroups = useMemo(() => getDuplicateGroups(students), [students]);
@@ -145,22 +147,6 @@ export default function StudentsSection({
     });
   }, [filteredStudents, onAgentContextChange, query, selectedStudentIds]);
 
-  const uniqueUniversities = useMemo(
-    () => Array.from(new Set(students.map((student) => student.university.universityName))).sort(),
-    [students],
-  );
-  const uniquePrograms = useMemo(
-    () => Array.from(new Set(students.map((student) => student.program.major))).sort(),
-    [students],
-  );
-  const uniqueAcademicYears = useMemo(
-    () =>
-      Array.from(
-        new Set(students.flatMap((student) => (student.academicHistory || []).map((entry) => entry.year))),
-      ).sort(),
-    [students],
-  );
-
   const appendCommunicationLog = (channel: 'EMAIL' | 'SMS', template: string, recipientCount: number) => {
     if (recipientCount === 0) return;
     onLogCommunication?.({
@@ -179,7 +165,17 @@ export default function StudentsSection({
   };
 
   if (selectedStudent) {
-    return <StudentDetailView student={selectedStudent} onBack={() => setSelectedStudentId(null)} />;
+    return (
+      <StudentDetailView
+        student={selectedStudent}
+        onBack={() => setSelectedStudentId(null)}
+        onDeleteProgressRecord={async (entry) => {
+          await onUpdateStudent(selectedStudent.id, {
+            academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
+          });
+        }}
+      />
+    );
   }
 
   return (
@@ -190,30 +186,30 @@ export default function StudentsSection({
           onQueryChange={updateQuery}
         />
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_28rem] xl:items-center">
-          <BulkActionsBar
-            selectedCount={selectedStudentIds.size}
-            onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
-            onMarkReviewed={handleMarkReviewed}
-            onRequestMissingDocs={handleRequestMissingDocsBulk}
-            onExportSelected={handleExportSelected}
-            onOpenExportOptions={() => setExportPopupOpen(true)}
-            onOpenAdvancedFilters={() => setAdvancedFiltersOpen(true)}
-            onOpenQuerySummary={() => setQuerySummaryOpen(true)}
-            onOpenDataQuality={() => setDataQualityOpen(true)}
-            onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
-            onClearSelection={clearSelection}
-            onDeleteSelected={handleDeleteSelected}
-            isExportDisabled={isLoading}
-            isInsightsDisabled={isLoading}
-          />
+        {studentStatusMessage ? (
+          <div className="theme-success rounded-2xl border px-4 py-3 text-sm font-semibold">
+            {studentStatusMessage}
+          </div>
+        ) : null}
 
-          <StudentSearchInput
-            value={query.searchQuery}
-            onChange={(value) => updateQuery({ searchQuery: value })}
-            className="relative w-full"
-          />
-        </div>
+        <BulkActionsBar
+          selectedCount={selectedStudentIds.size}
+          onAddStudent={() => {
+            setStudentStatusMessage('');
+            setAddStudentOpen(true);
+          }}
+          onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
+          onMarkReviewed={handleMarkReviewed}
+          onRequestMissingDocs={handleRequestMissingDocsBulk}
+          onExportSelected={handleExportSelected}
+          onOpenExportOptions={() => setExportPopupOpen(true)}
+          onOpenDataQuality={() => setDataQualityOpen(true)}
+          onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
+          onClearSelection={clearSelection}
+          onDeleteSelected={handleDeleteSelected}
+          isExportDisabled={isLoading}
+          isInsightsDisabled={isLoading}
+        />
 
         <StudentRecordsTable
           students={paginatedTableStudents}
@@ -267,53 +263,16 @@ export default function StudentsSection({
         }}
       />
 
-      {advancedFiltersOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="theme-overlay absolute inset-0" onClick={() => setAdvancedFiltersOpen(false)} />
-          <div className="theme-card relative z-10 w-full max-w-5xl rounded-2xl border p-6 shadow-xl">
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h3 className="theme-heading text-lg font-bold">Advanced Filtering</h3>
-                <p className="theme-text-muted mt-1 text-sm">Apply more specific filters to narrow the student records table.</p>
-              </div>
-              <div className="flex gap-2">
-                <button type="button" onClick={resetAdvancedFilters} className="theme-link text-sm font-bold">
-                  Reset
-                </button>
-                <button type="button" onClick={() => setAdvancedFiltersOpen(false)} className="theme-link text-sm font-bold">
-                  Close
-                </button>
-              </div>
-            </div>
-
-            <StudentAdvancedFilters
-              query={query}
-              universities={uniqueUniversities}
-              programs={uniquePrograms}
-              academicYears={uniqueAcademicYears}
-              onQueryChange={updateQuery}
-              className="max-h-[70vh] overflow-y-auto pr-1"
-            />
-          </div>
-        </div>
-      ) : null}
-
-      {querySummaryOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="theme-overlay absolute inset-0" onClick={() => setQuerySummaryOpen(false)} />
-          <div className="relative z-10 w-full max-w-2xl">
-            {isLoading ? (
-              <Skeleton className="h-72 rounded-2xl" />
-            ) : (
-              <QuerySummaryCard
-                totalCount={students.length}
-                filteredStudents={filteredStudents}
-                searchQuery={query.searchQuery}
-              />
-            )}
-          </div>
-        </div>
-      ) : null}
+      <AddStudentRecordModal
+        open={addStudentOpen}
+        students={students}
+        onClose={() => setAddStudentOpen(false)}
+        onSubmit={async (student) => {
+          await onImportStudents([student], 'append');
+          setStudentStatusMessage(`Added ${student.student.fullName || student.student.inscriptionNumber} to student records.`);
+          setAddStudentOpen(false);
+        }}
+      />
 
       {dataQualityOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

@@ -8,7 +8,7 @@ import { CsvDelimiterOption, parseCsvRows, toStudentProfile } from '@/components
 
 interface DatabaseImportSectionProps {
   students: StudentProfile[];
-  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => void;
+  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => Promise<void>;
 }
 
 export default function DatabaseImportSection({
@@ -86,17 +86,20 @@ export default function DatabaseImportSection({
         return;
       }
 
-      onImportStudents(finalRecords, importMode);
+      await onImportStudents(finalRecords, importMode);
       const invalidRows = rows.length - parsed.length;
       setImportStatus({
         type: 'success',
         message: `Imported ${finalRecords.length} records. Skipped ${invalidRows} invalid row(s) and ${skippedDuplicates} duplicate row(s).`,
       });
       setCsvFile(null);
-    } catch {
+    } catch (error) {
       setImportStatus({
         type: 'error',
-        message: 'Unable to read this file. Please upload a valid UTF-8 CSV.',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to read this file. Please upload a valid UTF-8 CSV.',
       });
     } finally {
       setIsImporting(false);

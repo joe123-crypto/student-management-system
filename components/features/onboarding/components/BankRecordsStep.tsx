@@ -12,6 +12,8 @@ interface BankRecordsStepProps {
   onUpdateField: (section: 'bankAccount' | 'bank', field: string, value: string) => void;
   onBack: () => void;
   onNext: () => void;
+  primaryActionLabel?: string;
+  showSkipAction?: boolean;
 }
 
 const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
@@ -20,6 +22,8 @@ const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
   onUpdateField,
   onBack,
   onNext,
+  primaryActionLabel = 'Continue',
+  showSkipAction = true,
 }) => (
   <div className="space-y-8">
     <h2 className="theme-heading type-section-title flex items-center gap-2">
@@ -93,15 +97,17 @@ const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
           Back
         </Button>
         <div className="flex items-center gap-6">
-          <Button onClick={onNext} variant="ghost" className="text-sm font-bold hover:bg-transparent">
-            Skip for now
-          </Button>
+          {showSkipAction ? (
+            <Button onClick={onNext} variant="ghost" className="text-sm font-bold hover:bg-transparent">
+              Skip for now
+            </Button>
+          ) : null}
           <Button
             onClick={onNext}
             className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
           >
             <ArrowRight className="w-4 h-4" />
-            Continue
+            {primaryActionLabel}
           </Button>
         </div>
       </div>
