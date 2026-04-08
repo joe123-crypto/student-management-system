@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { UserPlus, X } from 'lucide-react';
 import type { StudentProfile } from '@/types';
-import Button from '@/components/ui/Button';
 import PersonalDetailsStep from '@/components/features/onboarding/components/PersonalDetailsStep';
 import AcademicInfoStep from '@/components/features/onboarding/components/AcademicInfoStep';
 import BankRecordsStep from '@/components/features/onboarding/components/BankRecordsStep';
@@ -18,6 +17,12 @@ interface AddStudentRecordModalProps {
   onClose: () => void;
   onSubmit: (student: StudentProfile) => Promise<void>;
 }
+
+type ModalStep = 1 | 2 | 3 | 4;
+type ValidationIssue = {
+  message: string;
+  step: ModalStep;
+};
 
 function createDraftStudentProfile(): StudentProfile {
   const base = createEmptyStudentProfile({ status: 'PENDING' });
@@ -61,9 +66,25 @@ function createDraftStudentProfile(): StudentProfile {
 function splitFullName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
 
+  if (parts.length <= 1) {
+    return {
+      givenName: parts[0] || '',
+      familyName: '',
+    };
+  }
+
+  if (parts.length === 2) {
+    return {
+      givenName: parts[0],
+      familyName: parts[1],
+    };
+  }
+
+  // Multi-part names are culturally ambiguous, so avoid guessing and let
+  // fullName stay authoritative unless the user explicitly edits sub-fields.
   return {
-    givenName: parts[0] || '',
-    familyName: parts.slice(1).join(' '),
+    givenName: '',
+    familyName: '',
   };
 }
 
@@ -92,24 +113,24 @@ function buildStudentRecordDraft(draft: StudentProfile): StudentProfile {
   });
 }
 
-function getValidationErrors(student: StudentProfile, students: StudentProfile[]) {
-  const errors: string[] = [];
+function getValidationIssues(student: StudentProfile, students: StudentProfile[]) {
+  const issues: ValidationIssue[] = [];
   const fullName = student.student.fullName.trim();
   const inscriptionNumber = student.student.inscriptionNumber.trim().toUpperCase();
   const email = student.contact.email.trim().toLowerCase();
 
   if (!fullName) {
-    errors.push('Full name is required.');
+    issues.push({ message: 'Full name is required.', step: 1 });
   }
 
   if (!inscriptionNumber) {
-    errors.push('Inscription number is required.');
+    issues.push({ message: 'Inscription number is required.', step: 1 });
   }
 
   if (!email) {
-    errors.push('Email is required.');
+    issues.push({ message: 'Email is required.', step: 4 });
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errors.push('Enter a valid email address.');
+    issues.push({ message: 'Enter a valid email address.', step: 4 });
   }
 
   if (
@@ -119,7 +140,10 @@ function getValidationErrors(student: StudentProfile, students: StudentProfile[]
         existingStudent.student.inscriptionNumber.trim().toUpperCase() === inscriptionNumber,
     )
   ) {
-    errors.push('A student with this inscription number already exists.');
+    issues.push({
+      message: 'A student with this inscription number already exists.',
+      step: 1,
+    });
   }
 
   if (
@@ -128,10 +152,21 @@ function getValidationErrors(student: StudentProfile, students: StudentProfile[]
       (existingStudent) => existingStudent.contact.email.trim().toLowerCase() === email,
     )
   ) {
-    errors.push('A student with this email already exists.');
+    issues.push({
+      message: 'A student with this email already exists.',
+      step: 4,
+    });
   }
 
-  return errors;
+  return issues;
+}
+
+function getFocusableElements(container: HTMLElement) {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(
+      'a[href], area[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter((element) => !element.hasAttribute('aria-hidden') && element.getClientRects().length > 0);
 }
 
 export default function AddStudentRecordModal({
@@ -140,10 +175,13 @@ export default function AddStudentRecordModal({
   onClose,
   onSubmit,
 }: AddStudentRecordModalProps) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<ModalStep>(1);
   const [draft, setDraft] = useState<StudentProfile>(createDraftStudentProfile);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
   const totalSteps = 4;
 
   useEffect(() => {
@@ -163,40 +201,86 @@ export default function AddStudentRecordModal({
     }
 
     const previousOverflow = document.body.style.overflow;
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !isSubmitting) {
         onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const modal = modalRef.current;
+      if (!modal) {
+        return;
+      }
+
+      const focusableElements = getFocusableElements(modal);
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        modal.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const focusIsInsideModal = Boolean(activeElement && modal.contains(activeElement));
+
+      if (event.shiftKey) {
+        if (!focusIsInsideModal || activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+
+        return;
+      }
+
+      if (!focusIsInsideModal || activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
       }
     };
 
     document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleEscape);
+    closeButtonRef.current?.focus();
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isSubmitting, onClose, open]);
 
   const normalizedDraft = useMemo(() => buildStudentRecordDraft(draft), [draft]);
 
   const updateNestedField = (
-    section: 'student' | 'passport' | 'university' | 'program' | 'bank' | 'bankAccount' | 'contact' | 'address',
+    sectionKey:
+      | 'student'
+      | 'passport'
+      | 'university'
+      | 'program'
+      | 'bank'
+      | 'bankAccount'
+      | 'contact'
+      | 'address',
     field: string,
     value: string,
   ) => {
     setSubmitError('');
     setDraft((current) => {
-      const currentSection = current[section];
+      const currentSection = current[sectionKey];
       const nextDraft = {
         ...current,
-        [section]: {
+        [sectionKey]: {
           ...currentSection,
           [field]: value,
         },
       } as StudentProfile;
 
-      if (section === 'student' && field === 'fullName') {
+      if (sectionKey === 'student' && field === 'fullName') {
         const currentHolderName = current.bankAccount.accountHolderName.trim();
         if (!currentHolderName || currentHolderName === current.student.fullName.trim()) {
           nextDraft.bankAccount = {
@@ -223,10 +307,15 @@ export default function AddStudentRecordModal({
       return;
     }
 
-    const validationErrors = getValidationErrors(normalizedDraft, students);
-    if (validationErrors.length > 0) {
-      setSubmitError(validationErrors.join(' '));
-      setStep(4);
+    const validationIssues = getValidationIssues(normalizedDraft, students);
+    if (validationIssues.length > 0) {
+      const earliestErrorStep = validationIssues.reduce<ModalStep>(
+        (earliest, issue) => Math.min(earliest, issue.step) as ModalStep,
+        4,
+      );
+
+      setSubmitError(validationIssues.map((issue) => issue.message).join(' '));
+      setStep(earliestErrorStep);
       return;
     }
 
@@ -254,14 +343,23 @@ export default function AddStudentRecordModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="theme-overlay absolute inset-0" onClick={() => !isSubmitting && onClose()} />
 
-      <div className="theme-panel-glass relative z-10 flex h-[min(52rem,calc(100vh-2rem))] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border p-6 shadow-xl md:p-8">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="theme-panel-glass relative z-10 flex h-[min(52rem,calc(100vh-2rem))] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border p-6 shadow-xl md:p-8"
+      >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="space-y-1.5">
             <div className="theme-icon-well inline-flex h-11 w-11 items-center justify-center rounded-xl border">
               <UserPlus className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="theme-heading text-lg font-bold md:text-[1.7rem]">Add Student Record</h2>
+              <h2 id={titleId} className="theme-heading text-lg font-bold md:text-[1.7rem]">
+                Add Student Record
+              </h2>
               <p className="theme-text-muted mt-1 max-w-2xl text-sm">
                 Reuse the onboarding steps to create a student profile directly from the attache dashboard.
               </p>
@@ -269,6 +367,7 @@ export default function AddStudentRecordModal({
           </div>
 
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={() => !isSubmitting && onClose()}
             className="theme-card-muted inline-flex h-10 w-10 items-center justify-center rounded-xl border transition hover:scale-[1.02] disabled:pointer-events-none disabled:opacity-50"
@@ -348,12 +447,6 @@ export default function AddStudentRecordModal({
               />
             ) : null}
           </div>
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
         </div>
       </div>
     </div>
