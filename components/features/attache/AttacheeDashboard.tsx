@@ -39,14 +39,14 @@ interface AttacheDashboardProps {
 }
 
 const tabItems = [
-  { id: 'students', label: 'Student Records' },
-  { id: 'announcements', label: 'Communication Center' },
-  { id: 'permission-requests', label: 'Permission Requests' },
+  { id: 'students', label: 'Student Records', shortLabel: 'Students' },
+  { id: 'announcements', label: 'Communication Center', shortLabel: 'Messages' },
+  { id: 'permission-requests', label: 'Permission Requests', shortLabel: 'Requests' },
 ] as const;
 
 const communicationTabItems = [
-  { id: 'announcements', label: 'Announcements' },
-  { id: 'messaging', label: 'Direct Messaging' },
+  { id: 'announcements', label: 'Announcements', shortLabel: 'Announcements' },
+  { id: 'messaging', label: 'Direct Messaging', shortLabel: 'Messaging' },
 ] as const;
 
 const makeId = () => Math.random().toString(36).slice(2, 11);
@@ -126,7 +126,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   };
 
   return (
-    <Layout
+        <Layout
       role={UserRole.ATTACHE}
       user={user}
       title={section === 'dashboard' ? 'Attache Dashboard' : 'Settings'}
@@ -139,7 +139,13 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
     >
       {section === 'dashboard' ? (
         <>
-          <Tabs items={tabItems} activeTab={activeView} onChange={(tab) => setActiveView(tab as ActiveView)} className="mb-8" />
+          <Tabs
+            items={tabItems}
+            activeTab={activeView}
+            onChange={(tab) => setActiveView(tab as ActiveView)}
+            className="mb-8"
+            mobileLayout="grid"
+          />
           {activeView === 'students' ? (
             <StudentsSection
               students={students}
@@ -154,25 +160,29 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
           {activeView === 'announcements' ? (
             <section className="space-y-6">
               <div className="flex justify-start sm:justify-end">
-                <div className="inline-flex w-full max-w-fit rounded-2xl border border-[rgba(220,205,166,0.7)] bg-white/80 p-1 shadow-sm">
-                  {communicationTabItems.map((item) => {
-                    const active = item.id === activeCommunicationView;
+                <div className="w-full sm:w-auto">
+                  <div className="grid min-w-0 grid-cols-2 gap-1 rounded-2xl border border-[rgba(220,205,166,0.7)] bg-white/80 p-1 shadow-sm md:inline-flex md:w-max md:min-w-0">
+                    {communicationTabItems.map((item) => {
+                      const active = item.id === activeCommunicationView;
 
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setActiveCommunicationView(item.id)}
-                        className={
-                          active
-                            ? 'rounded-xl bg-[color:var(--theme-primary)] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition'
-                            : 'rounded-xl px-4 py-2.5 text-sm font-bold text-[color:var(--theme-text-muted)] transition hover:text-[color:var(--theme-primary)]'
-                        }
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setActiveCommunicationView(item.id)}
+                          className={
+                            active
+                              ? 'min-w-0 rounded-xl bg-[color:var(--theme-primary)] px-3 py-2.5 text-center text-xs font-bold text-white shadow-sm transition md:px-4 md:text-sm'
+                              : 'min-w-0 rounded-xl px-3 py-2.5 text-center text-xs font-bold text-[color:var(--theme-text-muted)] transition hover:text-[color:var(--theme-primary)] md:px-4 md:text-sm'
+                          }
+                          aria-pressed={active}
+                        >
+                          <span className="md:hidden">{item.shortLabel}</span>
+                          <span className="hidden md:inline">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               {activeCommunicationView === 'announcements' ? (
