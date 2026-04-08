@@ -131,11 +131,11 @@ export default function BulkActionsBar({
     <div className="theme-accent-subtle group relative flex h-14 w-full max-w-full items-center rounded-2xl border px-3">
       <div
         ref={scrollRef}
-        className="w-full overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
+        className="w-full overflow-x-auto overflow-y-hidden touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         onScroll={updateScrollState}
       >
-        <div className="flex w-max min-w-full items-center justify-center gap-2 px-1">
+        <div className="flex w-max min-w-full items-center gap-2 px-1 pr-10 md:min-w-0 md:justify-center md:pr-1">
           <ActionIconButton icon={Plus} label="Add Student" variant="primary" onClick={onAddStudent} />
           <ActionIconButton icon={Database} label="Query Database" variant="secondary" onClick={onOpenDatabaseQuery} />
           <ActionIconButton icon={FileDown} label="Export" variant="success" onClick={onOpenExportOptions} disabled={isExportDisabled} />
@@ -150,10 +150,13 @@ export default function BulkActionsBar({
       </div>
 
       {canScrollLeft ? (
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex w-16 items-center justify-start rounded-l-2xl bg-gradient-to-r from-[var(--theme-page)] via-[rgba(247,240,220,0.94)] to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex w-14 items-center justify-start rounded-l-2xl bg-gradient-to-r from-[var(--theme-page)] via-[rgba(247,240,220,0.94)] to-transparent opacity-100 transition-opacity md:w-16 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+          <span className="ml-2 inline-flex text-[color:var(--theme-primary)] md:hidden">
+            <ChevronLeft className="h-4 w-4 stroke-[2.25]" />
+          </span>
           <button
             type="button"
-            className="pointer-events-auto ml-2 inline-flex items-center justify-center text-[color:var(--theme-primary)] transition-transform hover:scale-110"
+            className="pointer-events-auto ml-2 hidden items-center justify-center text-[color:var(--theme-primary)] transition-transform hover:scale-110 md:inline-flex"
             onMouseEnter={() => startAutoScroll('left')}
             onMouseLeave={stopAutoScroll}
             onFocus={() => startAutoScroll('left')}
@@ -166,10 +169,13 @@ export default function BulkActionsBar({
       ) : null}
 
       {canScrollRight ? (
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex w-16 items-center justify-end rounded-r-2xl bg-gradient-to-l from-[var(--theme-page)] via-[rgba(247,240,220,0.94)] to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center justify-end rounded-r-2xl bg-gradient-to-l from-[var(--theme-page)] via-[rgba(247,240,220,0.94)] to-transparent opacity-100 transition-opacity md:w-16 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+          <span className="mr-2 inline-flex text-[color:var(--theme-primary)] md:hidden">
+            <ChevronRight className="h-4 w-4 stroke-[2.25]" />
+          </span>
           <button
             type="button"
-            className="pointer-events-auto mr-2 inline-flex items-center justify-center text-[color:var(--theme-primary)] transition-transform hover:scale-110"
+            className="pointer-events-auto mr-2 hidden items-center justify-center text-[color:var(--theme-primary)] transition-transform hover:scale-110 md:inline-flex"
             onMouseEnter={() => startAutoScroll('right')}
             onMouseLeave={stopAutoScroll}
             onFocus={() => startAutoScroll('right')}

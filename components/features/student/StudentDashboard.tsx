@@ -36,8 +36,8 @@ interface StudentDashboardProps {
 
 const tabItems = [
   { id: 'overview', label: 'Overview' },
-  { id: 'profile', label: 'My Profile' },
-  { id: 'academic', label: 'Academic Progress' },
+  { id: 'profile', label: 'My Profile', shortLabel: 'Profile' },
+  { id: 'academic', label: 'Academic Progress', shortLabel: 'Academics' },
 ] as const;
 
 type ActiveTab = (typeof tabItems)[number]['id'];
@@ -393,7 +393,22 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     >
       {section === 'dashboard' ? (
         <>
-          <Tabs items={tabItems} activeTab={activeTab} onChange={handleTabChange} className="mb-10" />
+          <Tabs
+            items={tabItems}
+            activeTab={activeTab}
+            onChange={handleTabChange}
+            className="mb-10"
+            mobileLayout="grid"
+          />
+
+          <div className="mb-10 md:hidden">
+            <StudentMissingInfoSidebar
+              items={missingItems}
+              loading={isStudentDataPending}
+              isExpanded={isActionCenterExpanded}
+              onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
+            />
+          </div>
 
           <div className={dashboardLayoutClassName}>
             <div className="min-w-0 space-y-10">
@@ -461,13 +476,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 )
               ) : null}
             </div>
-
-            <StudentMissingInfoSidebar
-              items={missingItems}
-              loading={isStudentDataPending}
-              isExpanded={isActionCenterExpanded}
-              onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
-            />
+            <div className="hidden md:block">
+              <StudentMissingInfoSidebar
+                items={missingItems}
+                loading={isStudentDataPending}
+                isExpanded={isActionCenterExpanded}
+                onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
+              />
+            </div>
           </div>
         </>
       ) : (
