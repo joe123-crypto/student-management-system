@@ -393,15 +393,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     >
       {section === 'dashboard' ? (
         <>
-          <div className="mb-6 md:hidden">
-            <StudentMissingInfoSidebar
-              items={missingItems}
-              loading={isStudentDataPending}
-              isExpanded={isActionCenterExpanded}
-              onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
-            />
-          </div>
-
           <Tabs
             items={tabItems}
             activeTab={activeTab}
@@ -409,6 +400,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
             className="mb-10"
             mobileLayout="grid"
           />
+
+          <div className="mb-10 md:hidden">
+            <StudentMissingInfoSidebar
+              items={missingItems}
+              loading={isStudentDataPending}
+              isExpanded={isActionCenterExpanded}
+              onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
+            />
+          </div>
 
           <div className={dashboardLayoutClassName}>
             <div className="min-w-0 space-y-10">
