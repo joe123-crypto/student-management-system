@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { PermissionRequest } from '@/types';
 import { useNotifications } from '@/components/providers/NotificationProvider';
 import Skeleton from '@/components/ui/Skeleton';
-import Notice from '@/components/ui/Notice';
+import { getErrorMessage } from '@/lib/errors';
 
 interface PermissionRequestsSectionProps {
   requests: PermissionRequest[];
@@ -32,7 +32,6 @@ export default function PermissionRequestsSection({
 }: PermissionRequestsSectionProps) {
   const notifications = useNotifications();
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -59,14 +58,6 @@ export default function PermissionRequestsSection({
     <section className="theme-card rounded-2xl border p-6">
       <h2 className="theme-heading text-lg font-bold">Permission Requests</h2>
       <p className="theme-text-muted mt-1 text-sm">Student requests submitted from the login page.</p>
-      {errorMessage ? (
-        <Notice
-          tone="error"
-          title="Request update failed"
-          message={errorMessage}
-          className="mt-4"
-        />
-      ) : null}
 
       {requests.length === 0 ? (
         <p className="theme-card-muted theme-text-muted mt-6 rounded-xl border border-dashed p-4 text-sm">
@@ -106,7 +97,6 @@ export default function PermissionRequestsSection({
                           type="button"
                           disabled={activeRequestId === request.id}
                           onClick={async () => {
-                            setErrorMessage(null);
                             setActiveRequestId(request.id);
                             try {
                               await onUpdateStatus(request.id, 'APPROVED');
@@ -116,11 +106,14 @@ export default function PermissionRequestsSection({
                                 message: `${request.fullName || request.inscriptionNumber} can now continue their account access flow.`,
                               });
                             } catch (error) {
-                              setErrorMessage(
-                                error instanceof Error
-                                  ? error.message
-                                  : 'Unable to approve permission request right now.',
-                              );
+                              notifications.notify({
+                                tone: 'error',
+                                title: 'Could not approve request',
+                                message: getErrorMessage(
+                                  error,
+                                  'Unable to approve permission request right now.',
+                                ),
+                              });
                             } finally {
                               setActiveRequestId((current) => (current === request.id ? null : current));
                             }
@@ -133,7 +126,6 @@ export default function PermissionRequestsSection({
                           type="button"
                           disabled={activeRequestId === request.id}
                           onClick={async () => {
-                            setErrorMessage(null);
                             setActiveRequestId(request.id);
                             try {
                               await onUpdateStatus(request.id, 'REJECTED');
@@ -143,11 +135,14 @@ export default function PermissionRequestsSection({
                                 message: `${request.fullName || request.inscriptionNumber} has been marked as rejected.`,
                               });
                             } catch (error) {
-                              setErrorMessage(
-                                error instanceof Error
-                                  ? error.message
-                                  : 'Unable to reject permission request right now.',
-                              );
+                              notifications.notify({
+                                tone: 'error',
+                                title: 'Could not reject request',
+                                message: getErrorMessage(
+                                  error,
+                                  'Unable to reject permission request right now.',
+                                ),
+                              });
                             } finally {
                               setActiveRequestId((current) => (current === request.id ? null : current));
                             }
