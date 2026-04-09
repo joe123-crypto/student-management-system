@@ -12,6 +12,68 @@ interface LandingPageProps {
   latestAnnouncement?: Announcement | null;
 }
 
+const HOW_IT_WORKS_PORTRAIT_PATH =
+  'M38 240C38 126 124 34 236 34C322 34 390 102 390 208C390 359 327 472 214 500C109 476 38 381 38 240Z';
+
+const HOW_IT_WORKS_PORTRAIT_MASK = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 520"><path fill="white" d="${HOW_IT_WORKS_PORTRAIT_PATH}"/></svg>`,
+)}")`;
+
+const STUDENT_STEPS = [
+  {
+    number: '1',
+    title: 'Log in to your portal',
+    description: 'Start with your student credentials and open your dashboard from one secure place.',
+  },
+  {
+    number: '2',
+    title: 'Complete your profile setup',
+    description: 'Fill in your personal, academic, and banking details so your record is ready for review.',
+  },
+  {
+    number: '3',
+    title: 'Track scholarships and updates',
+    description: 'Follow announcements, monitor your scholarship progress, and stay on top of each next step.',
+  },
+] as const;
+
+function HowItWorksPortrait({ className }: { className?: string }) {
+  return (
+    <div aria-hidden="true" className={`relative ${className ?? ''}`}>
+      <div
+        className="relative h-full w-full"
+        style={{
+          WebkitMaskImage: HOW_IT_WORKS_PORTRAIT_MASK,
+          maskImage: HOW_IT_WORKS_PORTRAIT_MASK,
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          maskPosition: 'center',
+          WebkitMaskSize: '100% 100%',
+          maskSize: '100% 100%',
+        }}
+      >
+        <Image
+          src="/girlchild.webp"
+          alt=""
+          fill
+          sizes="(max-width: 1023px) 70vw, 32vw"
+          className="object-cover object-center"
+        />
+      </div>
+      <svg viewBox="0 0 420 520" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+        <path
+          d={HOW_IT_WORKS_PORTRAIT_PATH}
+          fill="none"
+          strokeWidth="2"
+          vectorEffect="non-scaling-stroke"
+          style={{ stroke: 'color-mix(in srgb, var(--theme-secondary) 56%, var(--theme-primary-soft))' }}
+        />
+      </svg>
+    </div>
+  );
+}
+
 function HeroStudentImage({ className, sizes, absolute = false }: { className?: string; sizes: string; absolute?: boolean }) {
   return (
     <div aria-hidden="true" className={`pointer-events-none isolate ${absolute ? 'absolute' : 'relative'} ${className ?? ''}`}>
@@ -193,34 +255,46 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
           </div>
 
           <div id="how-it-works" ref={howItWorksRef} className="mb-24 scroll-mt-24">
-            <div className="theme-panel-glass rounded-[2.5rem] border p-6 md:p-10">
-              <div className="grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] gap-8 items-center">
-                <div className="theme-media-frame overflow-hidden rounded-[1.75rem] border">
-                  <video controls preload="metadata" className="w-full aspect-video bg-[color:var(--theme-primary-strong)]">
-                    <source src="/videos/how-it-works.mp4" type="video/mp4" />
-                    Your browser does not support video playback.
-                  </video>
+            <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
+              <div className="relative mx-auto w-full max-w-[25rem]">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-8 top-8 h-48 rounded-full bg-[radial-gradient(circle,rgba(245,130,74,0.18),transparent_72%)] blur-3xl"
+                />
+                <div className="relative aspect-[4/5] w-full drop-shadow-[0_28px_50px_rgba(37,79,34,0.12)]">
+                  <HowItWorksPortrait className="h-full w-full" />
                 </div>
+              </div>
 
-                <div className="space-y-5">
-                  <span className="theme-chip-warm type-label inline-flex items-center rounded-full border px-3 py-1">
-                    Product Tour
-                  </span>
-                  <h2 className="theme-heading type-section-title">
-                    See how ScholarsAlger works in under two minutes
-                  </h2>
-                  <p className="theme-text-muted type-body">
-                    Watch a quick walkthrough of login, profile setup, scholarship tracking, and announcements in one place.
-                  </p>
-                  <Button
-                    onClick={() => router.push('/login')}
-                    variant="ghost"
-                    className="px-0 font-bold hover:bg-transparent hover:text-[color:var(--theme-primary)]"
-                  >
-                    Open the app
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
+              <div className="relative space-y-6 lg:ml-auto lg:max-w-3xl">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -left-8 -top-8 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(245,130,74,0.16),transparent_72%)] blur-2xl"
+                />
+                <ol className="relative space-y-6">
+                  {STUDENT_STEPS.map((step, index) => (
+                    <li
+                      key={step.number}
+                      className={`grid gap-4 pb-6 sm:grid-cols-[auto_1fr] sm:gap-6 ${
+                        index < STUDENT_STEPS.length - 1
+                          ? 'border-b border-[color:color-mix(in_srgb,var(--theme-border)_44%,white)]'
+                          : ''
+                      }`}
+                    >
+                      <div className="flex items-start">
+                        <div className="theme-heading flex h-16 w-16 items-center justify-center rounded-[1.5rem] border border-[color:color-mix(in_srgb,var(--theme-secondary)_42%,white)] bg-[color:color-mix(in_srgb,var(--theme-card)_78%,white)] text-[1.85rem] font-bold tracking-[-0.04em] shadow-[0_14px_28px_rgba(37,79,34,0.06)]">
+                          {step.number}
+                        </div>
+                      </div>
+                      <div className="space-y-2 pt-1">
+                        <h3 className="theme-heading text-[clamp(1.1rem,1.7vw,1.4rem)] font-semibold tracking-[-0.025em]">
+                          {step.title}
+                        </h3>
+                        <p className="theme-text-muted type-body max-w-xl">{step.description}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
               </div>
             </div>
           </div>
