@@ -12,25 +12,61 @@ interface LandingPageProps {
   latestAnnouncement?: Announcement | null;
 }
 
-function HowItWorksPortrait({ className }: { className?: string }) {
-  const portraitShapePath =
-    'M38 240C38 126 124 34 236 34C322 34 390 102 390 208C390 359 327 472 214 500C109 476 38 381 38 240Z';
+const HOW_IT_WORKS_PORTRAIT_PATH =
+  'M38 240C38 126 124 34 236 34C322 34 390 102 390 208C390 359 327 472 214 500C109 476 38 381 38 240Z';
 
+const HOW_IT_WORKS_PORTRAIT_MASK = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 520"><path fill="white" d="${HOW_IT_WORKS_PORTRAIT_PATH}"/></svg>`,
+)}")`;
+
+const STUDENT_STEPS = [
+  {
+    number: '1',
+    title: 'Log in to your portal',
+    description: 'Start with your student credentials and open your dashboard from one secure place.',
+  },
+  {
+    number: '2',
+    title: 'Complete your profile setup',
+    description: 'Fill in your personal, academic, and banking details so your record is ready for review.',
+  },
+  {
+    number: '3',
+    title: 'Track scholarships and updates',
+    description: 'Follow announcements, monitor your scholarship progress, and stay on top of each next step.',
+  },
+] as const;
+
+function HowItWorksPortrait({ className }: { className?: string }) {
   return (
-    <div aria-hidden="true" className={className}>
-      <svg viewBox="0 0 420 520" className="h-full w-full overflow-visible">
-        <defs>
-          <clipPath id="how-it-works-girlchild-clip" clipPathUnits="userSpaceOnUse">
-            <path d={portraitShapePath} />
-          </clipPath>
-        </defs>
-        <g clipPath="url(#how-it-works-girlchild-clip)">
-          <image href="/girlchild.png" x="0" y="0" width="420" height="520" preserveAspectRatio="xMidYMid slice" />
-        </g>
+    <div aria-hidden="true" className={`relative ${className ?? ''}`}>
+      <div
+        className="relative h-full w-full"
+        style={{
+          WebkitMaskImage: HOW_IT_WORKS_PORTRAIT_MASK,
+          maskImage: HOW_IT_WORKS_PORTRAIT_MASK,
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          maskPosition: 'center',
+          WebkitMaskSize: '100% 100%',
+          maskSize: '100% 100%',
+        }}
+      >
+        <Image
+          src="/girlchild.webp"
+          alt=""
+          fill
+          sizes="(max-width: 1023px) 70vw, 32vw"
+          className="object-cover object-center"
+        />
+      </div>
+      <svg viewBox="0 0 420 520" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
         <path
-          d={portraitShapePath}
+          d={HOW_IT_WORKS_PORTRAIT_PATH}
           fill="none"
           strokeWidth="2"
+          vectorEffect="non-scaling-stroke"
           style={{ stroke: 'color-mix(in srgb, var(--theme-secondary) 56%, var(--theme-primary-soft))' }}
         />
       </svg>
@@ -70,23 +106,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
     { name: 'DOCUMENT VAULT', icon: 'folder' },
     { name: 'ACADEMIC TRACKER', icon: 'chart' },
     { name: 'SUPPORT PORTAL', icon: 'chat' },
-  ];
-  const studentSteps = [
-    {
-      number: '1',
-      title: 'Log in to your portal',
-      description: 'Start with your student credentials and open your dashboard from one secure place.',
-    },
-    {
-      number: '2',
-      title: 'Complete your profile setup',
-      description: 'Fill in your personal, academic, and banking details so your record is ready for review.',
-    },
-    {
-      number: '3',
-      title: 'Track scholarships and updates',
-      description: 'Follow announcements, monitor your scholarship progress, and stay on top of each next step.',
-    },
   ];
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>, e: React.MouseEvent) => {
@@ -253,11 +272,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                   className="pointer-events-none absolute -left-8 -top-8 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(245,130,74,0.16),transparent_72%)] blur-2xl"
                 />
                 <ol className="relative space-y-6">
-                  {studentSteps.map((step, index) => (
+                  {STUDENT_STEPS.map((step, index) => (
                     <li
                       key={step.number}
                       className={`grid gap-4 pb-6 sm:grid-cols-[auto_1fr] sm:gap-6 ${
-                        index < studentSteps.length - 1
+                        index < STUDENT_STEPS.length - 1
                           ? 'border-b border-[color:color-mix(in_srgb,var(--theme-border)_44%,white)]'
                           : ''
                       }`}
