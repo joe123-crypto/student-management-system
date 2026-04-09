@@ -12,9 +12,9 @@ interface LandingPageProps {
   latestAnnouncement?: Announcement | null;
 }
 
-function HeroStudentImage({ className, sizes }: { className?: string; sizes: string }) {
+function HeroStudentImage({ className, sizes, absolute = false }: { className?: string; sizes: string; absolute?: boolean }) {
   return (
-    <div aria-hidden="true" className={`pointer-events-none absolute isolate ${className ?? ''}`}>
+    <div aria-hidden="true" className={`pointer-events-none isolate ${absolute ? 'absolute' : 'relative'} ${className ?? ''}`}>
       <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(245,130,74,0.16),rgba(237,228,194,0.08)_58%,transparent_82%)] blur-3xl" />
       <div className="relative h-full w-full opacity-100 saturate-[0.9]">
         <Image
@@ -69,11 +69,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
   return (
     <div className="theme-page min-h-screen overflow-x-hidden text-[color:var(--theme-text)]">
 
-      <div className="fixed top-6 left-0 right-0 z-50 px-6">
-        <nav className="theme-card mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full border px-6">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--theme-primary)] text-lg font-bold text-white">S</div>
-            <span className="theme-heading type-brand text-xl">ScholarsAlger</span>
+      <div className="fixed top-6 left-0 right-0 z-50 px-3 sm:px-6">
+        <nav className="theme-card mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 rounded-full border px-2.5 sm:h-16 sm:gap-3 sm:px-6">
+          <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 sm:gap-2" onClick={() => router.push('/')}>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--theme-primary)] text-base font-bold text-white sm:h-8 sm:w-8 sm:text-lg">S</div>
+            <span className="theme-heading type-brand truncate text-[0.95rem] sm:text-xl">ScholarsAlger</span>
           </div>
 
           <div className="theme-text-muted hidden items-center gap-8 text-sm font-medium md:flex">
@@ -88,11 +88,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
             </a>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button onClick={() => router.push('/login')} variant="ghost" size="sm" className="px-4 py-2 text-sm font-semibold">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <Button
+              onClick={() => router.push('/login')}
+              variant="ghost"
+              size="sm"
+              className="px-2 py-1.5 text-[0.7rem] font-semibold sm:px-4 sm:py-2 sm:text-sm"
+            >
               Login
             </Button>
-            <Button onClick={() => router.push('/login')} size="sm" className="text-sm py-2.5 px-6 rounded-full hover:scale-105">
+            <Button
+              onClick={() => router.push('/login')}
+              size="sm"
+              className="rounded-full px-2.5 py-2 text-[0.72rem] leading-none whitespace-nowrap hover:scale-100 sm:px-6 sm:py-2.5 sm:text-sm sm:hover:scale-105"
+            >
               Get Started
             </Button>
           </div>
@@ -105,11 +114,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
             <HeroStudentImage
               className="left-[45%] top-16 z-20 hidden h-[24rem] w-[14rem] -translate-x-1/2 lg:block xl:left-[44%] xl:top-10 xl:h-[29rem] xl:w-[20rem]"
               sizes="(max-width: 1279px) 224px, 320px"
+              absolute
             />
 
-            <div className="grid items-center gap-20 lg:grid-cols-2">
-              <div className="relative z-10 lg:pr-10 xl:pr-16">
-                <div className="relative z-10 space-y-8">
+            <div className="grid items-center gap-12 sm:gap-14 lg:grid-cols-2 lg:gap-20">
+              <div className="relative z-10 pb-20 sm:pb-24 lg:pb-0 lg:pr-10 xl:pr-16">
+                <HeroStudentImage
+                  className="right-0 -bottom-20 z-20 h-[14rem] w-[9.5rem] sm:right-6 sm:-bottom-24 sm:h-[18rem] sm:w-[12rem] lg:hidden"
+                  sizes="(max-width: 639px) 152px, 192px"
+                  absolute
+                />
+
+                <div className="relative z-10 space-y-6 sm:space-y-8">
                   <div className="theme-accent-subtle inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
                     <Globe2 className="h-3.5 w-3.5" />
                     <span className="type-label">trusted by 400+ students</span>
@@ -145,8 +161,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                   chartDataKey="gpa"
                   chartSeriesLabel="Moyenne"
                   yDomain={[0, 4]}
-                  className="shadow-[0_32px_120px_-20px_rgba(37,79,34,0.18)] transform transition-transform duration-700 hover:scale-[1.02]"
-                  chartHeightClassName="h-48"
+                  className="relative z-10 shadow-[0_32px_120px_-20px_rgba(37,79,34,0.18)] transform transition-transform duration-700 hover:scale-[1.02]"
+                  chartHeightClassName="h-32 sm:h-48"
                 />
 
                 <div className="theme-panel-soft absolute top-12 -right-16 z-20 hidden rounded-[2rem] border p-6 md:block animate-bounce-slow">
