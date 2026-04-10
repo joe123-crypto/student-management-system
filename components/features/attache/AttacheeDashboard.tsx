@@ -15,6 +15,10 @@ import CommunicationCenter from '@/components/features/attache/components/Commun
 import DatabaseImportSection from '@/components/features/attache/components/DatabaseImportSection';
 import PermissionRequestsSection from '@/components/features/attache/components/PermissionRequestsSection';
 import type { CommunicationLogEntry } from '@/components/features/attache/types';
+import {
+  isSameAgentContext,
+  pruneAgentContextStudentIds,
+} from '@/components/features/attache/utils/agentContext';
 
 interface AttacheDashboardProps {
   user: User;
@@ -66,24 +70,6 @@ function buildDefaultAgentContext(students: StudentProfile[]): AttacheAgentConte
   };
 }
 
-function areStringArraysEqual(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) return false;
-
-  return left.every((value, index) => value === right[index]);
-}
-
-function isSameAgentContext(left: AttacheAgentContext, right: AttacheAgentContext): boolean {
-  return (
-    areStringArraysEqual(left.filteredStudentIds, right.filteredStudentIds)
-    && areStringArraysEqual(left.selectedStudentIds, right.selectedStudentIds)
-    && left.searchQuery === right.searchQuery
-    && left.statusFilter === right.statusFilter
-    && left.university === right.university
-    && left.program === right.program
-    && left.duplicatesOnly === right.duplicatesOnly
-  );
-}
-
 const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   user,
   students,
@@ -108,13 +94,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   const [agentContext, setAgentContext] = useState<AttacheAgentContext>(() => buildDefaultAgentContext(students));
 
   useEffect(() => {
-    setAgentContext((current) => {
-      if (current.filteredStudentIds.length > 0 && current.filteredStudentIds.every((id) => students.some((student) => student.id === id))) {
-        return current;
-      }
-
-      return buildDefaultAgentContext(students);
-    });
+    setAgentContext((current) => pruneAgentContextStudentIds(current, students));
   }, [students]);
 
   const handleAgentContextChange = useCallback((nextContext: AttacheAgentContext) => {

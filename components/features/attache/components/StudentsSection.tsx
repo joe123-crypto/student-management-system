@@ -18,6 +18,7 @@ import useStudentSelection from '@/components/features/attache/hooks/useStudentS
 import useStudentTable from '@/components/features/attache/hooks/useStudentTable';
 import useStudentExports from '@/components/features/attache/hooks/useStudentExports';
 import { useNotifications } from '@/components/providers/NotificationProvider';
+import { isSameAgentContext } from '@/components/features/attache/utils/agentContext';
 import {
   applyStudentQuery,
   DEFAULT_STUDENT_QUERY,
@@ -44,24 +45,6 @@ interface StudentsSectionProps {
 const DEFAULT_REPORT_COLUMNS = ['fullName', 'email', 'inscriptionNumber', 'status', 'university', 'program'];
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 const DEFAULT_PAGE_SIZE = 50;
-
-function areStringArraysEqual(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) return false;
-
-  return left.every((value, index) => value === right[index]);
-}
-
-function isSameAgentContext(left: AttacheAgentContext, right: AttacheAgentContext): boolean {
-  return (
-    areStringArraysEqual(left.filteredStudentIds, right.filteredStudentIds)
-    && areStringArraysEqual(left.selectedStudentIds, right.selectedStudentIds)
-    && left.searchQuery === right.searchQuery
-    && left.statusFilter === right.statusFilter
-    && left.university === right.university
-    && left.program === right.program
-    && left.duplicatesOnly === right.duplicatesOnly
-  );
-}
 
 export default function StudentsSection({
   students,
