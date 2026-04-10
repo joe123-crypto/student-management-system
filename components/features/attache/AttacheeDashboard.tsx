@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Announcement,
   AttacheAgentContext,
@@ -54,6 +54,36 @@ const makeId = () => Math.random().toString(36).slice(2, 11);
 type ActiveView = (typeof tabItems)[number]['id'];
 type ActiveCommunicationView = (typeof communicationTabItems)[number]['id'];
 
+function buildDefaultAgentContext(students: StudentProfile[]): AttacheAgentContext {
+  return {
+    filteredStudentIds: students.map((student) => student.id),
+    selectedStudentIds: [],
+    searchQuery: '',
+    statusFilter: 'ALL',
+    university: 'ALL',
+    program: 'ALL',
+    duplicatesOnly: false,
+  };
+}
+
+function areStringArraysEqual(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return false;
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function isSameAgentContext(left: AttacheAgentContext, right: AttacheAgentContext): boolean {
+  return (
+    areStringArraysEqual(left.filteredStudentIds, right.filteredStudentIds)
+    && areStringArraysEqual(left.selectedStudentIds, right.selectedStudentIds)
+    && left.searchQuery === right.searchQuery
+    && left.statusFilter === right.statusFilter
+    && left.university === right.university
+    && left.program === right.program
+    && left.duplicatesOnly === right.duplicatesOnly
+  );
+}
+
 const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   user,
   students,
@@ -75,15 +105,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   const [activeView, setActiveView] = useState<ActiveView>('students');
   const [activeCommunicationView, setActiveCommunicationView] = useState<ActiveCommunicationView>('announcements');
   const [communicationLogs, setCommunicationLogs] = useState<CommunicationLogEntry[]>([]);
-  const [agentContext, setAgentContext] = useState<AttacheAgentContext>({
-    filteredStudentIds: students.map((student) => student.id),
-    selectedStudentIds: [],
-    searchQuery: '',
-    statusFilter: 'ALL',
-    university: 'ALL',
-    program: 'ALL',
-    duplicatesOnly: false,
-  });
+  const [agentContext, setAgentContext] = useState<AttacheAgentContext>(() => buildDefaultAgentContext(students));
 
   useEffect(() => {
     setAgentContext((current) => {
@@ -91,17 +113,13 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
         return current;
       }
 
-      return {
-        filteredStudentIds: students.map((student) => student.id),
-        selectedStudentIds: [],
-        searchQuery: '',
-        statusFilter: 'ALL',
-        university: 'ALL',
-        program: 'ALL',
-        duplicatesOnly: false,
-      };
+      return buildDefaultAgentContext(students);
     });
   }, [students]);
+
+  const handleAgentContextChange = useCallback((nextContext: AttacheAgentContext) => {
+    setAgentContext((current) => (isSameAgentContext(current, nextContext) ? current : nextContext));
+  }, []);
 
   const appendCommunicationLog = ({
     channel,
@@ -154,7 +172,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
               onImportStudents={onImportStudents}
               onUpdateStudent={onUpdateStudent}
               onLogCommunication={appendCommunicationLog}
-              onAgentContextChange={setAgentContext}
+              onAgentContextChange={handleAgentContextChange}
             />
           ) : null}
           {activeView === 'announcements' ? (

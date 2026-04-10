@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
 import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
@@ -43,6 +43,24 @@ interface StudentsSectionProps {
 const DEFAULT_REPORT_COLUMNS = ['fullName', 'email', 'inscriptionNumber', 'status', 'university', 'program'];
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 const DEFAULT_PAGE_SIZE = 50;
+
+function areStringArraysEqual(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return false;
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function isSameAgentContext(left: AttacheAgentContext, right: AttacheAgentContext): boolean {
+  return (
+    areStringArraysEqual(left.filteredStudentIds, right.filteredStudentIds)
+    && areStringArraysEqual(left.selectedStudentIds, right.selectedStudentIds)
+    && left.searchQuery === right.searchQuery
+    && left.statusFilter === right.statusFilter
+    && left.university === right.university
+    && left.program === right.program
+    && left.duplicatesOnly === right.duplicatesOnly
+  );
+}
 
 export default function StudentsSection({
   students,
@@ -136,17 +154,34 @@ export default function StudentsSection({
     ? students.find((student) => student.id === selectedStudentId) ?? null
     : null;
 
+  const agentContext = useMemo<AttacheAgentContext>(() => ({
+    filteredStudentIds: filteredStudents.map((student) => student.id),
+    selectedStudentIds: Array.from(selectedStudentIds),
+    searchQuery: query.searchQuery,
+    statusFilter: query.status,
+    university: query.university,
+    program: query.program,
+    duplicatesOnly: query.duplicatesOnly,
+  }), [
+    filteredStudents,
+    query.duplicatesOnly,
+    query.program,
+    query.searchQuery,
+    query.status,
+    query.university,
+    selectedStudentIds,
+  ]);
+  const lastSentAgentContextRef = useRef<AttacheAgentContext | null>(null);
+
   useEffect(() => {
-    onAgentContextChange?.({
-      filteredStudentIds: filteredStudents.map((student) => student.id),
-      selectedStudentIds: Array.from(selectedStudentIds),
-      searchQuery: query.searchQuery,
-      statusFilter: query.status,
-      university: query.university,
-      program: query.program,
-      duplicatesOnly: query.duplicatesOnly,
-    });
-  }, [filteredStudents, onAgentContextChange, query, selectedStudentIds]);
+    if (!onAgentContextChange) return;
+    if (lastSentAgentContextRef.current && isSameAgentContext(lastSentAgentContextRef.current, agentContext)) {
+      return;
+    }
+
+    lastSentAgentContextRef.current = agentContext;
+    onAgentContextChange(agentContext);
+  }, [agentContext, onAgentContextChange]);
 
   const appendCommunicationLog = (channel: 'EMAIL' | 'SMS', template: string, recipientCount: number) => {
     if (recipientCount === 0) return;

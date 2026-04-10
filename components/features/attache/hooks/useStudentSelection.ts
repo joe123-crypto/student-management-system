@@ -17,6 +17,16 @@ interface UseStudentSelectionResult {
   handleDeleteSelected: () => void;
 }
 
+function areSetsEqual(left: Set<string>, right: Set<string>): boolean {
+  if (left.size !== right.size) return false;
+
+  for (const value of left) {
+    if (!right.has(value)) return false;
+  }
+
+  return true;
+}
+
 export default function useStudentSelection(
   filteredStudents: StudentProfile[],
   { isReady = true, onDeleteStudents, onAfterDelete }: UseStudentSelectionOptions = {},
@@ -32,7 +42,7 @@ export default function useStudentSelection(
       prev.forEach((id) => {
         if (visibleStudentIds.has(id)) next.add(id);
       });
-      return next;
+      return areSetsEqual(prev, next) ? prev : next;
     });
   }, [filteredStudents, isReady]);
 

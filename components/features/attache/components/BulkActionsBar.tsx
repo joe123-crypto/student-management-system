@@ -135,7 +135,7 @@ export default function BulkActionsBar({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         onScroll={updateScrollState}
       >
-        <div className="flex w-max min-w-full items-center gap-2 px-1 pr-10 md:min-w-0 md:justify-center md:pr-1">
+        <div className="mx-auto flex w-max items-center gap-2 px-1 pr-10 md:pr-1">
           <ActionIconButton icon={Plus} label="Add Student" variant="primary" onClick={onAddStudent} />
           <ActionIconButton icon={Database} label="Query Database" variant="secondary" onClick={onOpenDatabaseQuery} />
           <ActionIconButton icon={FileDown} label="Export" variant="success" onClick={onOpenExportOptions} disabled={isExportDisabled} />
