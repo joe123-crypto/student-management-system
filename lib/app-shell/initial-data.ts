@@ -1,7 +1,9 @@
+import { Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import authConfig from '@/auth.config';
 import { listAnnouncements } from '@/lib/announcements/store';
 import { listPermissionRequests } from '@/lib/permission-requests/store';
+import { prisma } from '@/lib/db';
 import {
   ensureStudentProfileForIdentity,
   listStudentProfiles,
@@ -17,6 +19,58 @@ export type AppShellInitialData = {
   students: StudentProfile[];
   user: User | null;
 };
+
+const APP_SHELL_DB_MAX_ATTEMPTS = 2;
+const APP_SHELL_DB_RETRY_DELAY_MS = 750;
+
+function isRetryableDatabaseConnectionError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientInitializationError ||
+    (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P1001')
+  );
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function warmAppShellDatabaseConnection(): Promise<void> {
+  for (let attempt = 1; attempt <= APP_SHELL_DB_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      await prisma.$connect();
+      await prisma.$queryRawUnsafe('SELECT 1');
+      return;
+    } catch (error) {
+      if (!isRetryableDatabaseConnectionError(error) || attempt === APP_SHELL_DB_MAX_ATTEMPTS) {
+        throw error;
+      }
+
+      console.warn(
+        `[APP_SHELL] Retrying initial database connection (attempt ${attempt + 1}/${APP_SHELL_DB_MAX_ATTEMPTS}).`,
+        error,
+      );
+      await delay(APP_SHELL_DB_RETRY_DELAY_MS * attempt);
+    }
+  }
+}
+
+async function loadWithDatabaseRetry<T>(loader: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; attempt <= APP_SHELL_DB_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      return await loader();
+    } catch (error) {
+      if (!isRetryableDatabaseConnectionError(error) || attempt === APP_SHELL_DB_MAX_ATTEMPTS) {
+        throw error;
+      }
+
+      await delay(APP_SHELL_DB_RETRY_DELAY_MS * attempt);
+    }
+  }
+
+  throw new Error('App shell database retry exhausted unexpectedly.');
+}
 
 function toAppUser(session: Session | null): User | null {
   const sessionUser = session?.user;
@@ -57,17 +111,23 @@ export async function loadAppShellInitialData(): Promise<AppShellInitialData> {
     };
   }
 
+  await warmAppShellDatabaseConnection().catch((error) => {
+    console.error('[APP_SHELL] Failed to warm initial database connection:', error);
+  });
+
   if (user.role === UserRole.STUDENT) {
     const [announcements, currentStudent] = await Promise.all([
-      listAnnouncements().catch((error) => {
+      loadWithDatabaseRetry(() => listAnnouncements()).catch((error) => {
         console.error('[APP_SHELL] Failed to load initial announcements:', error);
         return [];
       }),
-      ensureStudentProfileForIdentity({
-        id: user.id,
-        loginId: user.loginId,
-        role: user.role,
-      }).catch((error) => {
+      loadWithDatabaseRetry(() =>
+        ensureStudentProfileForIdentity({
+          id: user.id,
+          loginId: user.loginId,
+          role: user.role,
+        }),
+      ).catch((error) => {
         console.error('[APP_SHELL] Failed to load initial student profile:', error);
         return null;
       }),
@@ -83,15 +143,15 @@ export async function loadAppShellInitialData(): Promise<AppShellInitialData> {
   }
 
   const [announcements, permissionRequests, students] = await Promise.all([
-    listAnnouncements().catch((error) => {
+    loadWithDatabaseRetry(() => listAnnouncements()).catch((error) => {
       console.error('[APP_SHELL] Failed to load initial announcements:', error);
       return [];
     }),
-    listPermissionRequests().catch((error) => {
+    loadWithDatabaseRetry(() => listPermissionRequests()).catch((error) => {
       console.error('[APP_SHELL] Failed to load initial permission requests:', error);
       return [];
     }),
-    listStudentProfiles().catch((error) => {
+    loadWithDatabaseRetry(() => listStudentProfiles()).catch((error) => {
       console.error('[APP_SHELL] Failed to load initial students:', error);
       return [];
     }),
