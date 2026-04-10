@@ -10,6 +10,7 @@ import {
   DuplicateDetectionCard,
 } from '@/components/features/attache/components/DataInsightsPanel';
 import StudentDetailView from '@/components/features/attache/components/StudentDetailView';
+import EditStudentRecordModal from '@/components/features/attache/components/EditStudentRecordModal';
 import ExportRecordsModal from '@/components/features/attache/components/ExportRecordsModal';
 import AddStudentRecordModal from '@/components/features/attache/components/AddStudentRecordModal';
 import useStudentFilters from '@/components/features/attache/hooks/useStudentFilters';
@@ -78,6 +79,7 @@ export default function StudentsSection({
   const [duplicateDetectionOpen, setDuplicateDetectionOpen] = useState(false);
   const [databaseQueryOpen, setDatabaseQueryOpen] = useState(false);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [editStudentOpen, setEditStudentOpen] = useState(false);
 
   const {
     query,
@@ -202,15 +204,36 @@ export default function StudentsSection({
 
   if (selectedStudent) {
     return (
-      <StudentDetailView
-        student={selectedStudent}
-        onBack={() => setSelectedStudentId(null)}
-        onDeleteProgressRecord={async (entry) => {
-          await onUpdateStudent(selectedStudent.id, {
-            academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
-          });
-        }}
-      />
+      <>
+        <StudentDetailView
+          student={selectedStudent}
+          onBack={() => {
+            setSelectedStudentId(null);
+            setEditStudentOpen(false);
+          }}
+          onEdit={() => setEditStudentOpen(true)}
+          onDeleteProgressRecord={async (entry) => {
+            await onUpdateStudent(selectedStudent.id, {
+              academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
+            });
+          }}
+        />
+        <EditStudentRecordModal
+          open={editStudentOpen}
+          student={selectedStudent}
+          students={students}
+          onClose={() => setEditStudentOpen(false)}
+          onSubmit={async (nextStudent) => {
+            await onUpdateStudent(selectedStudent.id, nextStudent);
+            setEditStudentOpen(false);
+            notifications.notify({
+              tone: 'success',
+              title: 'Student record updated',
+              message: `${nextStudent.student.fullName || nextStudent.student.inscriptionNumber} has been updated.`,
+            });
+          }}
+        />
+      </>
     );
   }
 
