@@ -63,6 +63,7 @@ export default function StudentsSection({
   const [databaseQueryOpen, setDatabaseQueryOpen] = useState(false);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [editStudentOpen, setEditStudentOpen] = useState(false);
+  const [inlineEditingStudentId, setInlineEditingStudentId] = useState<string | null>(null);
 
   const {
     query,
@@ -119,6 +120,13 @@ export default function StudentsSection({
     () => students.filter((student) => selectedStudentIds.has(student.id)),
     [students, selectedStudentIds],
   );
+  const singleSelectedStudent = useMemo(() => {
+    if (selectedStudentIds.size !== 1) {
+      return null;
+    }
+
+    return students.find((student) => selectedStudentIds.has(student.id)) ?? null;
+  }, [students, selectedStudentIds]);
 
   const {
     reportColumnKeys,
@@ -138,6 +146,20 @@ export default function StudentsSection({
   const selectedStudent = selectedStudentId
     ? students.find((student) => student.id === selectedStudentId) ?? null
     : null;
+
+  useEffect(() => {
+    if (!inlineEditingStudentId) {
+      return;
+    }
+
+    const hasSingleSelectedStudent =
+      selectedStudentIds.size === 1 && selectedStudentIds.has(inlineEditingStudentId);
+    const isEditedStudentOnCurrentPage = paginatedTableStudents.some((student) => student.id === inlineEditingStudentId);
+
+    if (!hasSingleSelectedStudent || !isEditedStudentOnCurrentPage) {
+      setInlineEditingStudentId(null);
+    }
+  }, [inlineEditingStudentId, paginatedTableStudents, selectedStudentIds]);
 
   const agentContext = useMemo<AttacheAgentContext>(() => ({
     filteredStudentIds: filteredStudents.map((student) => student.id),
@@ -186,23 +208,11 @@ export default function StudentsSection({
   };
 
   if (selectedStudent) {
-    return (
-      <>
-        <StudentDetailView
-          student={selectedStudent}
-          onBack={() => {
-            setSelectedStudentId(null);
-            setEditStudentOpen(false);
-          }}
-          onEdit={() => setEditStudentOpen(true)}
-          onDeleteProgressRecord={async (entry) => {
-            await onUpdateStudent(selectedStudent.id, {
-              academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
-            });
-          }}
-        />
+    if (editStudentOpen) {
+      return (
         <EditStudentRecordModal
           open={editStudentOpen}
+          mode="inline"
           student={selectedStudent}
           students={students}
           onClose={() => setEditStudentOpen(false)}
@@ -216,7 +226,23 @@ export default function StudentsSection({
             });
           }}
         />
-      </>
+      );
+    }
+
+    return (
+      <StudentDetailView
+        student={selectedStudent}
+        onBack={() => {
+          setSelectedStudentId(null);
+          setEditStudentOpen(false);
+        }}
+        onEdit={() => setEditStudentOpen(true)}
+        onDeleteProgressRecord={async (entry) => {
+          await onUpdateStudent(selectedStudent.id, {
+            academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
+          });
+        }}
+      />
     );
   }
 
@@ -233,6 +259,12 @@ export default function StudentsSection({
           onAddStudent={() => {
             setAddStudentOpen(true);
           }}
+          onEditSelected={() => {
+            if (!singleSelectedStudent) return;
+            setInlineEditingStudentId((current) => (
+              current === singleSelectedStudent.id ? null : singleSelectedStudent.id
+            ));
+          }}
           onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
           onMarkReviewed={handleMarkReviewed}
           onRequestMissingDocs={handleRequestMissingDocsBulk}
@@ -242,6 +274,8 @@ export default function StudentsSection({
           onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
           onClearSelection={clearSelection}
           onDeleteSelected={handleDeleteSelected}
+          isEditActive={inlineEditingStudentId !== null}
+          isEditDisabled={!singleSelectedStudent || isLoading || isStudentTableLoading}
           isExportDisabled={isLoading}
           isInsightsDisabled={isLoading}
         />
@@ -254,7 +288,31 @@ export default function StudentsSection({
           reviewedStudentIds={reviewedStudentIds}
           onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
           onToggleSelectOne={handleToggleSelectOne}
+          editingStudentId={inlineEditingStudentId}
+          onCancelEdit={() => setInlineEditingStudentId(null)}
           onManage={setSelectedStudentId}
+          onSaveEdit={async (studentId, patch) => {
+            await onUpdateStudent(studentId, patch);
+            setInlineEditingStudentId(null);
+            const updatedStudent = students.find((entry) => entry.id === studentId);
+            const nextFullName =
+              patch.student?.fullName ||
+              [
+                patch.student?.givenName,
+                patch.student?.familyName,
+              ]
+                .filter(Boolean)
+                .join(' ')
+                .trim() ||
+              updatedStudent?.student.fullName ||
+              updatedStudent?.student.inscriptionNumber ||
+              'student';
+            notifications.notify({
+              tone: 'success',
+              title: 'Student record updated',
+              message: `Saved changes for ${nextFullName}.`,
+            });
+          }}
         />
         {!isLoading && !isStudentTableLoading ? (
           <StudentTablePagination

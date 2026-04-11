@@ -10,6 +10,333 @@ import type {
 } from '@/components/features/attache/types';
 import { getLatestAcademicEntry } from '@/lib/students/academicHistory';
 
+type StudentFieldInputType = 'text' | 'email' | 'date' | 'select';
+type StudentFieldSection =
+  | 'student'
+  | 'passport'
+  | 'contact'
+  | 'university'
+  | 'program'
+  | 'bank'
+  | 'bankAccount'
+  | 'address';
+
+type StudentFieldDefinition = {
+  key: StudentReturnField;
+  label: string;
+  getValues: (student: StudentProfile) => string[];
+  patchTarget?: {
+    section: StudentFieldSection;
+    key: string;
+  };
+  inputType?: StudentFieldInputType;
+  options?: readonly string[];
+};
+
+const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
+  {
+    key: 'fullName',
+    label: 'Full Name',
+    getValues: (student) => [
+      student.student.fullName,
+      student.student.givenName,
+      student.student.familyName,
+    ],
+    patchTarget: { section: 'student', key: 'fullName' },
+  },
+  {
+    key: 'givenName',
+    label: 'Given Name',
+    getValues: (student) => [student.student.givenName],
+    patchTarget: { section: 'student', key: 'givenName' },
+  },
+  {
+    key: 'familyName',
+    label: 'Family Name',
+    getValues: (student) => [student.student.familyName],
+    patchTarget: { section: 'student', key: 'familyName' },
+  },
+  {
+    key: 'inscription',
+    label: 'Inscription No.',
+    getValues: (student) => [student.student.inscriptionNumber],
+    patchTarget: { section: 'student', key: 'inscriptionNumber' },
+  },
+  {
+    key: 'registrationNumber',
+    label: 'Registration No.',
+    getValues: (student) => [student.student.registrationNumber || ''],
+    patchTarget: { section: 'student', key: 'registrationNumber' },
+  },
+  {
+    key: 'dateOfBirth',
+    label: 'Date of Birth',
+    getValues: (student) => [student.student.dateOfBirth],
+    patchTarget: { section: 'student', key: 'dateOfBirth' },
+    inputType: 'date',
+  },
+  {
+    key: 'gender',
+    label: 'Gender',
+    getValues: (student) => [student.student.gender],
+    patchTarget: { section: 'student', key: 'gender' },
+    inputType: 'select',
+    options: ['M', 'F', 'Other'],
+  },
+  {
+    key: 'nationality',
+    label: 'Nationality',
+    getValues: (student) => [student.student.nationality],
+    patchTarget: { section: 'student', key: 'nationality' },
+  },
+  {
+    key: 'passportNumber',
+    label: 'Passport No.',
+    getValues: (student) => [student.passport.passportNumber],
+    patchTarget: { section: 'passport', key: 'passportNumber' },
+  },
+  {
+    key: 'passportIssueDate',
+    label: 'Passport Issue Date',
+    getValues: (student) => [student.passport.issueDate],
+    patchTarget: { section: 'passport', key: 'issueDate' },
+    inputType: 'date',
+  },
+  {
+    key: 'passportExpiryDate',
+    label: 'Passport Expiry Date',
+    getValues: (student) => [student.passport.expiryDate],
+    patchTarget: { section: 'passport', key: 'expiryDate' },
+    inputType: 'date',
+  },
+  {
+    key: 'passportIssuingCountry',
+    label: 'Passport Country',
+    getValues: (student) => [student.passport.issuingCountry],
+    patchTarget: { section: 'passport', key: 'issuingCountry' },
+  },
+  {
+    key: 'email',
+    label: 'Email',
+    getValues: (student) => [student.contact.email],
+    patchTarget: { section: 'contact', key: 'email' },
+    inputType: 'email',
+  },
+  {
+    key: 'phone',
+    label: 'Phone',
+    getValues: (student) => [student.contact.phone],
+    patchTarget: { section: 'contact', key: 'phone' },
+  },
+  {
+    key: 'emergencyContactName',
+    label: 'Emergency Contact',
+    getValues: (student) => [student.contact.emergencyContactName],
+    patchTarget: { section: 'contact', key: 'emergencyContactName' },
+  },
+  {
+    key: 'emergencyContactPhone',
+    label: 'Emergency Contact Phone',
+    getValues: (student) => [student.contact.emergencyContactPhone],
+    patchTarget: { section: 'contact', key: 'emergencyContactPhone' },
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    getValues: (student) => [student.status],
+    inputType: 'select',
+    options: ['PENDING', 'ACTIVE', 'COMPLETED'],
+  },
+  {
+    key: 'university',
+    label: 'University',
+    getValues: (student) => [
+      student.university.universityName,
+      student.university.acronym,
+      student.university.campus,
+      student.university.city,
+    ],
+    patchTarget: { section: 'university', key: 'universityName' },
+  },
+  {
+    key: 'universityAcronym',
+    label: 'University Acronym',
+    getValues: (student) => [student.university.acronym],
+    patchTarget: { section: 'university', key: 'acronym' },
+  },
+  {
+    key: 'campus',
+    label: 'Campus',
+    getValues: (student) => [student.university.campus],
+    patchTarget: { section: 'university', key: 'campus' },
+  },
+  {
+    key: 'universityCity',
+    label: 'University City',
+    getValues: (student) => [student.university.city],
+    patchTarget: { section: 'university', key: 'city' },
+  },
+  {
+    key: 'department',
+    label: 'Department',
+    getValues: (student) => [student.university.department || ''],
+    patchTarget: { section: 'university', key: 'department' },
+  },
+  {
+    key: 'program',
+    label: 'Program',
+    getValues: (student) => [
+      student.program.major,
+      student.program.degreeLevel,
+      student.program.programType || '',
+    ],
+    patchTarget: { section: 'program', key: 'major' },
+  },
+  {
+    key: 'degreeLevel',
+    label: 'Degree Level',
+    getValues: (student) => [student.program.degreeLevel],
+    patchTarget: { section: 'program', key: 'degreeLevel' },
+  },
+  {
+    key: 'programType',
+    label: 'Program Type',
+    getValues: (student) => [student.program.programType || ''],
+    patchTarget: { section: 'program', key: 'programType' },
+  },
+  {
+    key: 'startDate',
+    label: 'Program Start Date',
+    getValues: (student) => [student.program.startDate],
+    patchTarget: { section: 'program', key: 'startDate' },
+    inputType: 'date',
+  },
+  {
+    key: 'expectedEndDate',
+    label: 'Expected End Date',
+    getValues: (student) => [student.program.expectedEndDate],
+    patchTarget: { section: 'program', key: 'expectedEndDate' },
+    inputType: 'date',
+  },
+  {
+    key: 'bankName',
+    label: 'Bank Name',
+    getValues: (student) => [student.bank.bankName],
+    patchTarget: { section: 'bank', key: 'bankName' },
+  },
+  {
+    key: 'branchName',
+    label: 'Branch Name',
+    getValues: (student) => [student.bank.branchName],
+    patchTarget: { section: 'bank', key: 'branchName' },
+  },
+  {
+    key: 'branchAddress',
+    label: 'Branch Address',
+    getValues: (student) => [student.bank.branchAddress],
+    patchTarget: { section: 'bank', key: 'branchAddress' },
+  },
+  {
+    key: 'branchCode',
+    label: 'Branch Code',
+    getValues: (student) => [student.bank.branchCode],
+    patchTarget: { section: 'bank', key: 'branchCode' },
+  },
+  {
+    key: 'accountHolderName',
+    label: 'Account Holder',
+    getValues: (student) => [student.bankAccount.accountHolderName],
+    patchTarget: { section: 'bankAccount', key: 'accountHolderName' },
+  },
+  {
+    key: 'accountNumber',
+    label: 'Account No.',
+    getValues: (student) => [student.bankAccount.accountNumber],
+    patchTarget: { section: 'bankAccount', key: 'accountNumber' },
+  },
+  {
+    key: 'iban',
+    label: 'RIB / IBAN',
+    getValues: (student) => [student.bankAccount.iban],
+    patchTarget: { section: 'bankAccount', key: 'iban' },
+  },
+  {
+    key: 'swiftCode',
+    label: 'Swift Code',
+    getValues: (student) => [student.bankAccount.swiftCode],
+    patchTarget: { section: 'bankAccount', key: 'swiftCode' },
+  },
+  {
+    key: 'accountCreatedDate',
+    label: 'Account Created',
+    getValues: (student) => [student.bankAccount.dateCreated || ''],
+    patchTarget: { section: 'bankAccount', key: 'dateCreated' },
+    inputType: 'date',
+  },
+  {
+    key: 'currentHostAddress',
+    label: 'Current Host Address',
+    getValues: (student) => [student.address.currentHostAddress],
+    patchTarget: { section: 'address', key: 'currentHostAddress' },
+  },
+  {
+    key: 'homeCountryAddress',
+    label: 'Home Country Address',
+    getValues: (student) => [student.address.homeCountryAddress],
+    patchTarget: { section: 'address', key: 'homeCountryAddress' },
+  },
+  {
+    key: 'street',
+    label: 'Street',
+    getValues: (student) => [student.address.street || ''],
+    patchTarget: { section: 'address', key: 'street' },
+  },
+  {
+    key: 'addressCity',
+    label: 'Address City',
+    getValues: (student) => [student.address.city || ''],
+    patchTarget: { section: 'address', key: 'city' },
+  },
+  {
+    key: 'state',
+    label: 'State',
+    getValues: (student) => [student.address.state || ''],
+    patchTarget: { section: 'address', key: 'state' },
+  },
+  {
+    key: 'wilaya',
+    label: 'Wilaya',
+    getValues: (student) => [student.address.wilaya || ''],
+    patchTarget: { section: 'address', key: 'wilaya' },
+  },
+  {
+    key: 'countryCode',
+    label: 'Country Code',
+    getValues: (student) => [student.address.countryCode || ''],
+    patchTarget: { section: 'address', key: 'countryCode' },
+  },
+] as const;
+
+export const STUDENT_FIELD_DEFINITIONS = FIELD_DEFINITIONS;
+export const STUDENT_FIELD_DEFINITION_MAP = FIELD_DEFINITIONS.reduce(
+  (accumulator, definition) => {
+    accumulator[definition.key] = definition;
+    return accumulator;
+  },
+  {} as Record<StudentReturnField, StudentFieldDefinition>,
+);
+export const STUDENT_RETURN_FIELD_OPTIONS = FIELD_DEFINITIONS.map((definition) => ({
+  value: definition.key,
+  label: definition.label,
+}));
+export const STUDENT_QUERY_FIELD_OPTIONS: Array<{ value: QueryField; label: string }> = [
+  { value: 'all', label: 'All fields' },
+  ...STUDENT_RETURN_FIELD_OPTIONS,
+];
+export const ALL_RETURN_FIELDS = FIELD_DEFINITIONS.map(
+  (definition) => definition.key,
+) as StudentReturnField[];
+
 export const DEFAULT_DATABASE_QUERY_CLAUSE: DatabaseQueryClause = {
   id: 'query-1',
   value: '',
@@ -21,6 +348,8 @@ export const DEFAULT_RETURN_FIELDS: StudentReturnField[] = [
   'inscription',
   'email',
   'status',
+  'university',
+  'program',
 ];
 
 export const DEFAULT_STUDENT_QUERY: StudentQueryState = {
@@ -67,30 +396,25 @@ export function createDatabaseQueryClause(
   };
 }
 
-function getFieldValue(student: StudentProfile, field: QueryField): string[] {
-  const fieldMap: Record<Exclude<QueryField, 'all'>, string[]> = {
-    fullName: [student.student.fullName],
-    inscription: [student.student.inscriptionNumber],
-    email: [student.contact.email],
-    university: [student.university.universityName, student.university.campus, student.university.city],
-    program: [student.program.major, student.program.degreeLevel],
-  };
+export function getStudentFieldValues(student: StudentProfile, field: StudentReturnField): string[] {
+  return STUDENT_FIELD_DEFINITION_MAP[field]?.getValues(student) || [];
+}
 
+export function getStudentFieldValue(student: StudentProfile, field: StudentReturnField): string {
+  const values = getStudentFieldValues(student, field);
+  return values.find((value) => value.trim().length > 0) || values[0] || '';
+}
+
+export function getStudentFieldLabel(field: StudentReturnField): string {
+  return STUDENT_FIELD_DEFINITION_MAP[field]?.label || field;
+}
+
+function getFieldValue(student: StudentProfile, field: QueryField): string[] {
   if (field === 'all') {
-    return [
-      student.student.fullName,
-      student.student.inscriptionNumber,
-      student.contact.email,
-      student.university.universityName,
-      student.university.campus,
-      student.university.city,
-      student.program.major,
-      student.program.degreeLevel,
-      student.contact.phone,
-    ];
+    return ALL_RETURN_FIELDS.flatMap((key) => getStudentFieldValues(student, key));
   }
 
-  return fieldMap[field];
+  return getStudentFieldValues(student, field);
 }
 
 function getLatestDocumentStatus(student: StudentProfile): string {

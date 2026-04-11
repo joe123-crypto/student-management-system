@@ -11,8 +11,11 @@ import type {
   StudentReturnField,
 } from '@/components/features/attache/types';
 import {
+  ALL_RETURN_FIELDS,
   createDatabaseQueryClause,
   DEFAULT_RETURN_FIELDS,
+  STUDENT_QUERY_FIELD_OPTIONS,
+  STUDENT_RETURN_FIELD_OPTIONS,
 } from '@/components/features/attache/utils/studentData';
 
 interface DatabaseQueryModalProps {
@@ -25,26 +28,6 @@ interface DatabaseQueryModalProps {
     returnFields: StudentReturnField[];
   }) => void;
 }
-
-const QUERY_FIELD_OPTIONS: Array<{ value: QueryField; label: string }> = [
-  { value: 'all', label: 'All fields' },
-  { value: 'fullName', label: 'Student name' },
-  { value: 'inscription', label: 'Inscription no.' },
-  { value: 'email', label: 'Email' },
-  { value: 'university', label: 'University' },
-  { value: 'program', label: 'Program' },
-];
-
-const RETURN_FIELD_OPTIONS: Array<{ value: StudentReturnField; label: string }> = [
-  { value: 'fullName', label: 'Full Name' },
-  { value: 'inscription', label: 'Inscription No.' },
-  { value: 'email', label: 'Email' },
-  { value: 'university', label: 'University' },
-  { value: 'program', label: 'Program' },
-  { value: 'degreeLevel', label: 'Degree Level' },
-  { value: 'status', label: 'Status' },
-  { value: 'phone', label: 'Phone' },
-];
 
 export default function DatabaseQueryModal({
   open,
@@ -110,7 +93,7 @@ export default function DatabaseQueryModal({
             <div>
               <h3 className="theme-heading text-lg font-bold md:text-[1.7rem]">Query Student Database</h3>
               <p className="theme-text-muted mt-1 max-w-2xl text-[13px] leading-5 md:text-sm">
-                Search the attache student records by name, inscription number, email, university, or program.
+                Search across the full student record, including identity, passport, contact, academic, banking, and address data.
               </p>
             </div>
           </div>
@@ -185,7 +168,7 @@ export default function DatabaseQueryModal({
                         }
                         className="theme-input h-10 w-full rounded-xl border px-3.5 text-sm outline-none"
                       >
-                        {QUERY_FIELD_OPTIONS.map((option) => (
+                        {STUDENT_QUERY_FIELD_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
                           </option>
@@ -239,30 +222,46 @@ export default function DatabaseQueryModal({
               <div>
                 <p className="theme-text-muted type-label">Returned Fields</p>
                 <p className="theme-text-muted mt-1 text-[13px] leading-5 md:text-sm">
-                  Choose the columns that should be shown in the student records table for this query.
+                  Choose which database columns should be shown in the student records table for this query.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setReturnFieldsMenuOpen((current) => !current)}
-                className="theme-card-muted inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold text-[color:var(--theme-text)] transition hover:scale-[1.02]"
-                aria-expanded={returnFieldsMenuOpen}
-                aria-label="Toggle returned fields"
-              >
-                <span>{returnFields.length} selected</span>
-                <ChevronDown
-                  className={cn(
-                    'h-4 w-4 transition-transform',
-                    returnFieldsMenuOpen && 'rotate-180',
-                  )}
-                />
-              </button>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReturnFields(DEFAULT_RETURN_FIELDS)}
+                  className="theme-card-muted inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold text-[color:var(--theme-text)] transition hover:scale-[1.02]"
+                >
+                  Default view
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReturnFields(ALL_RETURN_FIELDS)}
+                  className="theme-card-muted inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold text-[color:var(--theme-text)] transition hover:scale-[1.02]"
+                >
+                  Full database
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReturnFieldsMenuOpen((current) => !current)}
+                  className="theme-card-muted inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold text-[color:var(--theme-text)] transition hover:scale-[1.02]"
+                  aria-expanded={returnFieldsMenuOpen}
+                  aria-label="Toggle returned fields"
+                >
+                  <span>{returnFields.length} selected</span>
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      returnFieldsMenuOpen && 'rotate-180',
+                    )}
+                  />
+                </button>
+              </div>
             </div>
 
             {returnFieldsMenuOpen ? (
-              <div className="absolute bottom-[calc(100%+0.5rem)] right-3 z-30 w-full max-w-[20rem] rounded-[1.25rem] border border-[color:var(--theme-border)] bg-[color:rgba(252,248,234,0.98)] p-2.5 shadow-[0_20px_56px_rgba(37,79,34,0.16)] backdrop-blur-sm">
-                <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
-                  {RETURN_FIELD_OPTIONS.map((option) => {
+              <div className="mt-3 rounded-[1.25rem] border border-[color:var(--theme-border)] bg-[color:rgba(252,248,234,0.98)] p-3 shadow-[0_20px_56px_rgba(37,79,34,0.16)] backdrop-blur-sm">
+                <div className="max-h-64 grid grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {STUDENT_RETURN_FIELD_OPTIONS.map((option) => {
                     const checked = returnFields.includes(option.value);
 
                     return (

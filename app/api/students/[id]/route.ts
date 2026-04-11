@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import authConfig from '@/auth.config';
@@ -58,6 +59,10 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     if (error instanceof StudentSelfServicePatchError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json({ error: 'That inscription number is already in use.' }, { status: 400 });
     }
 
     if (error instanceof Error) {

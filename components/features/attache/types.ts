@@ -2,16 +2,52 @@ import type { StudentProfile } from '@/types';
 
 export type StudentSortBy = 'name' | 'inscription';
 export type StudentStatusFilter = 'ALL' | StudentProfile['status'];
-export type QueryField = 'all' | 'fullName' | 'inscription' | 'email' | 'university' | 'program';
-export type StudentReturnField =
+export type StudentDataField =
   | 'fullName'
+  | 'givenName'
+  | 'familyName'
   | 'inscription'
+  | 'registrationNumber'
+  | 'dateOfBirth'
+  | 'gender'
+  | 'nationality'
+  | 'passportNumber'
+  | 'passportIssueDate'
+  | 'passportExpiryDate'
+  | 'passportIssuingCountry'
   | 'email'
+  | 'emergencyContactName'
+  | 'emergencyContactPhone'
   | 'university'
+  | 'universityAcronym'
+  | 'campus'
+  | 'universityCity'
+  | 'department'
   | 'program'
   | 'degreeLevel'
+  | 'programType'
+  | 'startDate'
+  | 'expectedEndDate'
   | 'status'
-  | 'phone';
+  | 'phone'
+  | 'bankName'
+  | 'branchName'
+  | 'branchAddress'
+  | 'branchCode'
+  | 'accountHolderName'
+  | 'accountNumber'
+  | 'iban'
+  | 'swiftCode'
+  | 'accountCreatedDate'
+  | 'currentHostAddress'
+  | 'homeCountryAddress'
+  | 'street'
+  | 'addressCity'
+  | 'state'
+  | 'wilaya'
+  | 'countryCode';
+export type QueryField = 'all' | StudentDataField;
+export type StudentReturnField = StudentDataField;
 export type MissingDataFilter = 'ALL' | 'ANY_MISSING' | 'MISSING_PROFILE' | 'MISSING_BANK' | 'NONE';
 export type DocumentStatusFilter = 'ALL' | 'PENDING' | 'COMPLETED' | 'MISSING';
 

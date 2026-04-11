@@ -1047,6 +1047,41 @@ async function syncManagedFilesTx(params: {
   }
 }
 
+async function syncStudentAuthLoginIdTx(
+  tx: DbTx,
+  currentInscriptionNumber: string,
+  nextInscriptionNumber: string,
+): Promise<void> {
+  const normalizedCurrent = currentInscriptionNumber.trim().toUpperCase();
+  const normalizedNext = nextInscriptionNumber.trim().toUpperCase();
+
+  if (!normalizedCurrent || !normalizedNext || normalizedCurrent === normalizedNext) {
+    return;
+  }
+
+  const authUsers = await tx.authUser.findMany({
+    where: {
+      role: PrismaUserRole.STUDENT,
+      loginId: normalizedCurrent,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  for (const authUser of authUsers) {
+    await tx.authUser.update({
+      where: { id: authUser.id },
+      data: {
+        loginId: normalizedNext,
+        sessionVersion: {
+          increment: 1,
+        },
+      },
+    });
+  }
+}
+
 async function updateStudentProfileTx(
   tx: DbTx,
   studentId: number,
@@ -1068,6 +1103,7 @@ async function updateStudentProfileTx(
     id: buildStudentProfileId(student.id),
     student: {
       inscriptionNumber: student.inscriptionNo,
+      fullName: buildFullName(student.person.givenName, student.person.familyName, student.inscriptionNo),
     },
   });
   const previousInscriptionNumber = student.inscriptionNo.trim().toUpperCase();
@@ -1095,31 +1131,7 @@ async function updateStudentProfileTx(
     },
   });
 
-  if (previousInscriptionNumber !== nextInscriptionNumber) {
-    const authUser = await tx.authUser.findUnique({
-      where: {
-        role_loginId: {
-          role: PrismaUserRole.STUDENT,
-          loginId: previousInscriptionNumber,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (authUser) {
-      await tx.authUser.update({
-        where: { id: authUser.id },
-        data: {
-          loginId: nextInscriptionNumber,
-          sessionVersion: {
-            increment: 1,
-          },
-        },
-      });
-    }
-  }
+  await syncStudentAuthLoginIdTx(tx, previousInscriptionNumber, nextInscriptionNumber);
 
   await syncPassport(tx, student.personId, normalizedProfile);
   await syncContacts(tx, student.personId, normalizedProfile);
