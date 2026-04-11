@@ -441,7 +441,7 @@ export default function EditStudentRecordModal({
       ref={isModal ? modalRef : undefined}
       role={isModal ? 'dialog' : undefined}
       aria-modal={isModal ? true : undefined}
-      aria-labelledby={titleId}
+      aria-labelledby={isModal ? titleId : undefined}
       tabIndex={isModal ? -1 : undefined}
       className={
         isModal
@@ -476,7 +476,13 @@ export default function EditStudentRecordModal({
           </button>
         </div>
 
-        <div className={isModal ? 'min-h-0 flex-1 overflow-y-auto pr-1' : ''}>
+        <div
+          className={
+            isModal
+              ? 'min-h-0 flex-1 overflow-y-auto pr-1'
+              : 'max-h-[min(48rem,calc(100vh-10rem))] overflow-y-auto pr-1'
+          }
+        >
           {submitError ? (
             <Notice
               tone="error"
