@@ -208,23 +208,11 @@ export default function StudentsSection({
   };
 
   if (selectedStudent) {
-    return (
-      <>
-        <StudentDetailView
-          student={selectedStudent}
-          onBack={() => {
-            setSelectedStudentId(null);
-            setEditStudentOpen(false);
-          }}
-          onEdit={() => setEditStudentOpen(true)}
-          onDeleteProgressRecord={async (entry) => {
-            await onUpdateStudent(selectedStudent.id, {
-              academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
-            });
-          }}
-        />
+    if (editStudentOpen) {
+      return (
         <EditStudentRecordModal
           open={editStudentOpen}
+          mode="inline"
           student={selectedStudent}
           students={students}
           onClose={() => setEditStudentOpen(false)}
@@ -238,7 +226,23 @@ export default function StudentsSection({
             });
           }}
         />
-      </>
+      );
+    }
+
+    return (
+      <StudentDetailView
+        student={selectedStudent}
+        onBack={() => {
+          setSelectedStudentId(null);
+          setEditStudentOpen(false);
+        }}
+        onEdit={() => setEditStudentOpen(true)}
+        onDeleteProgressRecord={async (entry) => {
+          await onUpdateStudent(selectedStudent.id, {
+            academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
+          });
+        }}
+      />
     );
   }
 

@@ -15,6 +15,7 @@ interface EditStudentRecordModalProps {
   students: StudentProfile[];
   onClose: () => void;
   onSubmit: (student: StudentProfile) => Promise<void>;
+  mode?: 'modal' | 'inline';
 }
 
 type EditableSection =
@@ -250,6 +251,7 @@ export default function EditStudentRecordModal({
   students,
   onClose,
   onSubmit,
+  mode = 'modal',
 }: EditStudentRecordModalProps) {
   const [draft, setDraft] = useState<StudentProfile>(() => cloneStudentProfile(student));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -257,6 +259,7 @@ export default function EditStudentRecordModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
+  const isModal = mode === 'modal';
 
   useEffect(() => {
     if (!open) {
@@ -269,7 +272,7 @@ export default function EditStudentRecordModal({
   }, [open, student]);
 
   useEffect(() => {
-    if (!open) {
+    if (!open || !isModal) {
       return;
     }
 
@@ -326,7 +329,7 @@ export default function EditStudentRecordModal({
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isSubmitting, onClose, open]);
+  }, [isModal, isSubmitting, onClose, open]);
 
   const preparedStudent = useMemo(() => prepareStudentForSave(draft), [draft]);
 
@@ -433,18 +436,19 @@ export default function EditStudentRecordModal({
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="theme-overlay absolute inset-0" onClick={() => !isSubmitting && onClose()} />
-
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        className="theme-panel-glass relative z-10 flex h-[min(54rem,calc(100vh-2rem))] w-full max-w-6xl flex-col overflow-hidden rounded-[2rem] border p-6 shadow-xl md:p-8"
-      >
+  const editor = (
+    <div
+      ref={isModal ? modalRef : undefined}
+      role={isModal ? 'dialog' : undefined}
+      aria-modal={isModal ? true : undefined}
+      aria-labelledby={titleId}
+      tabIndex={isModal ? -1 : undefined}
+      className={
+        isModal
+          ? 'theme-panel-glass relative z-10 flex h-[min(54rem,calc(100vh-2rem))] w-full max-w-6xl flex-col overflow-hidden rounded-[2rem] border p-6 shadow-xl md:p-8'
+          : 'theme-panel-glass relative mx-auto w-full max-w-6xl rounded-[2rem] border p-6 shadow-xl md:p-8'
+      }
+    >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="space-y-1.5">
             <div className="theme-icon-well inline-flex h-11 w-11 items-center justify-center rounded-xl border">
@@ -461,18 +465,18 @@ export default function EditStudentRecordModal({
           </div>
 
           <button
-            ref={closeButtonRef}
+            ref={isModal ? closeButtonRef : undefined}
             type="button"
             onClick={() => !isSubmitting && onClose()}
             className="theme-card-muted inline-flex h-10 w-10 items-center justify-center rounded-xl border transition hover:scale-[1.02] disabled:pointer-events-none disabled:opacity-50"
-            aria-label="Close edit student modal"
+            aria-label={isModal ? 'Close edit student modal' : 'Close inline student editor'}
             disabled={isSubmitting}
           >
             <X className="h-[18px] w-[18px]" />
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        <div className={isModal ? 'min-h-0 flex-1 overflow-y-auto pr-1' : ''}>
           {submitError ? (
             <Notice
               tone="error"
@@ -983,6 +987,16 @@ export default function EditStudentRecordModal({
           </Button>
         </div>
       </div>
+  );
+
+  if (!isModal) {
+    return editor;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="theme-overlay absolute inset-0" onClick={() => !isSubmitting && onClose()} />
+      {editor}
     </div>
   );
 }
