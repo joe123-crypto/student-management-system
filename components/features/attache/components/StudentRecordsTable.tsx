@@ -3,6 +3,12 @@ import { Check, X } from 'lucide-react';
 import type { StudentProfile } from '@/types';
 import type { StudentReturnField } from '@/components/features/attache/types';
 import Checkbox from '@/components/ui/Checkbox';
+import {
+  STUDENT_FIELD_DEFINITION_MAP,
+  STUDENT_FIELD_DEFINITIONS,
+  getStudentFieldLabel,
+  getStudentFieldValue,
+} from '@/components/features/attache/utils/studentData';
 
 interface StudentRecordsTableProps {
   students: StudentProfile[];
@@ -21,42 +27,23 @@ interface StudentRecordsTableProps {
 interface TableColumn {
   key: StudentReturnField;
   label: string;
-  render: (student: StudentProfile) => React.ReactNode;
 }
 
-interface EditStudentDraft {
-  fullName: string;
-  inscriptionNumber: string;
-  email: string;
-  phone: string;
-  status: StudentProfile['status'];
-  universityName: string;
-  campus: string;
-  city: string;
-  programMajor: string;
-  degreeLevel: string;
-}
+type EditStudentDraft = Record<StudentReturnField, string>;
+type SectionPatchMap = {
+  student: Partial<StudentProfile['student']>;
+  passport: Partial<StudentProfile['passport']>;
+  contact: Partial<StudentProfile['contact']>;
+  university: Partial<StudentProfile['university']>;
+  program: Partial<StudentProfile['program']>;
+  bank: Partial<StudentProfile['bank']>;
+  bankAccount: Partial<StudentProfile['bankAccount']>;
+  address: Partial<StudentProfile['address']>;
+};
 
+const FALLBACK_FIELDS: StudentReturnField[] = ['fullName', 'email'];
 const inlineInputClass =
   'theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none';
-
-const inlineSelectClass =
-  'theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none';
-
-function createEditDraft(student: StudentProfile): EditStudentDraft {
-  return {
-    fullName: student.student.fullName || '',
-    inscriptionNumber: student.student.inscriptionNumber || '',
-    email: student.contact.email || '',
-    phone: student.contact.phone || '',
-    status: student.status,
-    universityName: student.university.universityName || '',
-    campus: student.university.campus || '',
-    city: student.university.city || '',
-    programMajor: student.program.major || '',
-    degreeLevel: student.program.degreeLevel || '',
-  };
-}
 
 function splitFullName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -74,6 +61,15 @@ function splitFullName(fullName: string) {
   };
 }
 
+function createEditDraft(student: StudentProfile): EditStudentDraft {
+  return Object.fromEntries(
+    STUDENT_FIELD_DEFINITIONS.map((definition) => [
+      definition.key,
+      getStudentFieldValue(student, definition.key),
+    ]),
+  ) as EditStudentDraft;
+}
+
 function getStatusClasses(status: StudentProfile['status']): string {
   if (status === 'ACTIVE') {
     return 'theme-chip-success';
@@ -87,80 +83,38 @@ function getStatusClasses(status: StudentProfile['status']): string {
 }
 
 function getColumns(returnFields: StudentReturnField[]): TableColumn[] {
-  const baseColumns: Record<StudentReturnField, TableColumn> = {
-    fullName: {
-      key: 'fullName',
-      label: 'Full Name',
-      render: (student) => (
-        <div>
-          <div className="theme-heading text-sm font-bold">{student.student.fullName}</div>
-          <div className="theme-text-muted text-xs">{student.contact.email}</div>
-        </div>
-      ),
-    },
-    inscription: {
-      key: 'inscription',
-      label: 'Inscription No.',
-      render: (student) => (
-        <span className="text-sm font-mono text-[color:var(--theme-primary-soft)]">
-          {student.student.inscriptionNumber}
-        </span>
-      ),
-    },
-    email: {
-      key: 'email',
-      label: 'Email',
-      render: (student) => <span className="theme-text-muted text-sm">{student.contact.email}</span>,
-    },
-    university: {
-      key: 'university',
-      label: 'University',
-      render: (student) => (
-        <div>
-          <div className="theme-heading text-sm font-medium">{student.university.universityName}</div>
-          <div className="theme-text-muted text-xs">
-            {[student.university.campus, student.university.city].filter(Boolean).join(' · ')}
-          </div>
-        </div>
-      ),
-    },
-    program: {
-      key: 'program',
-      label: 'Program',
-      render: (student) => (
-        <div>
-          <div className="theme-heading text-sm font-medium">{student.program.major}</div>
-          <div className="theme-text-muted text-xs">{student.program.degreeLevel}</div>
-        </div>
-      ),
-    },
-    degreeLevel: {
-      key: 'degreeLevel',
-      label: 'Degree Level',
-      render: (student) => <span className="theme-text-muted text-sm">{student.program.degreeLevel}</span>,
-    },
-    status: {
-      key: 'status',
-      label: 'Status',
-      render: (student) => (
-        <span
-          className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${getStatusClasses(student.status)}`}
-        >
-          {student.status}
-        </span>
-      ),
-    },
-    phone: {
-      key: 'phone',
-      label: 'Phone',
-      render: (student) => (
-        <span className="theme-text-muted text-sm">{student.contact.phone || 'Not provided'}</span>
-      ),
-    },
-  };
+  const safeFields = returnFields.length > 0 ? returnFields : FALLBACK_FIELDS;
+  return safeFields.map((field) => ({
+    key: field,
+    label: getStudentFieldLabel(field),
+  }));
+}
 
-  const safeFields = returnFields.length > 0 ? returnFields : ['fullName', 'email'];
-  return safeFields.map((field) => baseColumns[field]);
+function normalizeDraftValue(field: StudentReturnField, value: string): string {
+  const trimmed = value.trim();
+
+  if (field === 'inscription') {
+    return trimmed.toUpperCase();
+  }
+
+  if (field === 'email') {
+    return trimmed.toLowerCase();
+  }
+
+  return trimmed;
+}
+
+function createEmptySectionPatches(): SectionPatchMap {
+  return {
+    student: {},
+    passport: {},
+    contact: {},
+    university: {},
+    program: {},
+    bank: {},
+    bankAccount: {},
+    address: {},
+  };
 }
 
 function getValidationError(
@@ -171,11 +125,20 @@ function getValidationError(
 ): string {
   const visibleFieldSet = new Set(visibleFields);
   const normalizedFullName = draft.fullName.trim();
-  const normalizedInscription = draft.inscriptionNumber.trim().toUpperCase();
-  const normalizedEmail = draft.email.trim().toLowerCase();
+  const normalizedGivenName = draft.givenName.trim();
+  const normalizedFamilyName = draft.familyName.trim();
+  const normalizedInscription = normalizeDraftValue('inscription', draft.inscription);
+  const normalizedEmail = normalizeDraftValue('email', draft.email);
 
-  if (visibleFieldSet.has('fullName') && !normalizedFullName) {
-    return 'Full name is required.';
+  if (
+    (visibleFieldSet.has('fullName') ||
+      visibleFieldSet.has('givenName') ||
+      visibleFieldSet.has('familyName')) &&
+    !normalizedFullName &&
+    !normalizedGivenName &&
+    !normalizedFamilyName
+  ) {
+    return 'Student name is required.';
   }
 
   if (visibleFieldSet.has('inscription') && !normalizedInscription) {
@@ -194,7 +157,11 @@ function getValidationError(
     return 'Another student already uses that inscription number.';
   }
 
-  if (visibleFieldSet.has('email') && normalizedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+  if (
+    visibleFieldSet.has('email') &&
+    normalizedEmail &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+  ) {
     return 'Enter a valid email address.';
   }
 
@@ -207,214 +174,181 @@ function buildStudentPatch(
   visibleFields: StudentReturnField[],
 ): Partial<StudentProfile> {
   const visibleFieldSet = new Set(visibleFields);
-  const studentPatch: Partial<StudentProfile['student']> = {};
-  const contactPatch: Partial<StudentProfile['contact']> = {};
-  const universityPatch: Partial<StudentProfile['university']> = {};
-  const programPatch: Partial<StudentProfile['program']> = {};
-  const bankAccountPatch: Partial<StudentProfile['bankAccount']> = {};
+  const sectionPatches = createEmptySectionPatches();
+  const patch: Partial<StudentProfile> = {};
+
+  for (const field of visibleFields) {
+    if (field === 'status' || field === 'fullName' || field === 'givenName' || field === 'familyName') {
+      continue;
+    }
+
+    const definition = STUDENT_FIELD_DEFINITION_MAP[field];
+    if (!definition?.patchTarget) {
+      continue;
+    }
+
+    sectionPatches[definition.patchTarget.section][definition.patchTarget.key as never] = normalizeDraftValue(
+      field,
+      draft[field],
+    ) as never;
+  }
+
   const normalizedFullName = draft.fullName.trim();
-  const normalizedInscription = draft.inscriptionNumber.trim().toUpperCase();
-  const normalizedEmail = draft.email.trim().toLowerCase();
-  const normalizedPhone = draft.phone.trim();
-  const normalizedUniversityName = draft.universityName.trim();
-  const normalizedCampus = draft.campus.trim();
-  const normalizedCity = draft.city.trim();
-  const normalizedProgramMajor = draft.programMajor.trim();
-  const normalizedDegreeLevel = draft.degreeLevel.trim();
-  const { givenName, familyName } = splitFullName(normalizedFullName);
+  const normalizedGivenName = draft.givenName.trim();
+  const normalizedFamilyName = draft.familyName.trim();
+  const splitFromFullName = splitFullName(normalizedFullName);
+  const nameFieldsVisible =
+    visibleFieldSet.has('fullName') ||
+    visibleFieldSet.has('givenName') ||
+    visibleFieldSet.has('familyName');
 
   if (visibleFieldSet.has('fullName')) {
-    studentPatch.fullName = normalizedFullName;
-    studentPatch.givenName = givenName;
-    studentPatch.familyName = familyName;
-  }
-
-  if (visibleFieldSet.has('inscription')) {
-    studentPatch.inscriptionNumber = normalizedInscription;
-  }
-
-  if (visibleFieldSet.has('email')) {
-    contactPatch.email = normalizedEmail;
-  }
-
-  if (visibleFieldSet.has('phone')) {
-    contactPatch.phone = normalizedPhone;
-  }
-
-  if (visibleFieldSet.has('university')) {
-    universityPatch.universityName = normalizedUniversityName;
-    universityPatch.campus = normalizedCampus;
-    universityPatch.city = normalizedCity;
-  }
-
-  if (visibleFieldSet.has('program')) {
-    programPatch.major = normalizedProgramMajor;
-    if (!visibleFieldSet.has('degreeLevel')) {
-      programPatch.degreeLevel = normalizedDegreeLevel;
+    sectionPatches.student.fullName = normalizedFullName;
+    if (!visibleFieldSet.has('givenName')) {
+      sectionPatches.student.givenName = splitFromFullName.givenName;
+    }
+    if (!visibleFieldSet.has('familyName')) {
+      sectionPatches.student.familyName = splitFromFullName.familyName;
     }
   }
 
-  if (visibleFieldSet.has('degreeLevel')) {
-    programPatch.degreeLevel = normalizedDegreeLevel;
+  if (visibleFieldSet.has('givenName')) {
+    sectionPatches.student.givenName = normalizedGivenName;
   }
 
-  if (
-    visibleFieldSet.has('fullName') &&
-    student.bankAccount.accountHolderName.trim() === student.student.fullName.trim()
-  ) {
-    bankAccountPatch.accountHolderName = normalizedFullName;
+  if (visibleFieldSet.has('familyName')) {
+    sectionPatches.student.familyName = normalizedFamilyName;
   }
 
-  const patch: Partial<StudentProfile> = {};
-
-  if (Object.keys(studentPatch).length > 0) {
-    patch.student = studentPatch as StudentProfile['student'];
-  }
-
-  if (Object.keys(contactPatch).length > 0) {
-    patch.contact = contactPatch as StudentProfile['contact'];
-  }
-
-  if (Object.keys(universityPatch).length > 0) {
-    patch.university = universityPatch as StudentProfile['university'];
-  }
-
-  if (Object.keys(programPatch).length > 0) {
-    patch.program = programPatch as StudentProfile['program'];
-  }
-
-  if (Object.keys(bankAccountPatch).length > 0) {
-    patch.bankAccount = bankAccountPatch as StudentProfile['bankAccount'];
+  if (!visibleFieldSet.has('fullName') && (visibleFieldSet.has('givenName') || visibleFieldSet.has('familyName'))) {
+    const nextGivenName = visibleFieldSet.has('givenName')
+      ? normalizedGivenName
+      : student.student.givenName.trim();
+    const nextFamilyName = visibleFieldSet.has('familyName')
+      ? normalizedFamilyName
+      : student.student.familyName.trim();
+    sectionPatches.student.fullName = `${nextGivenName} ${nextFamilyName}`.trim();
   }
 
   if (visibleFieldSet.has('status')) {
-    patch.status = draft.status;
+    patch.status = draft.status as StudentProfile['status'];
+  }
+
+  const nextFullName =
+    sectionPatches.student.fullName ||
+    `${sectionPatches.student.givenName ?? student.student.givenName} ${sectionPatches.student.familyName ?? student.student.familyName}`.trim();
+
+  if (
+    nameFieldsVisible &&
+    !visibleFieldSet.has('accountHolderName') &&
+    student.bankAccount.accountHolderName.trim() === student.student.fullName.trim()
+  ) {
+    sectionPatches.bankAccount.accountHolderName = nextFullName;
+  }
+
+  if (Object.keys(sectionPatches.student).length > 0) {
+    patch.student = sectionPatches.student as StudentProfile['student'];
+  }
+  if (Object.keys(sectionPatches.passport).length > 0) {
+    patch.passport = sectionPatches.passport as StudentProfile['passport'];
+  }
+  if (Object.keys(sectionPatches.contact).length > 0) {
+    patch.contact = sectionPatches.contact as StudentProfile['contact'];
+  }
+  if (Object.keys(sectionPatches.university).length > 0) {
+    patch.university = sectionPatches.university as StudentProfile['university'];
+  }
+  if (Object.keys(sectionPatches.program).length > 0) {
+    patch.program = sectionPatches.program as StudentProfile['program'];
+  }
+  if (Object.keys(sectionPatches.bank).length > 0) {
+    patch.bank = sectionPatches.bank as StudentProfile['bank'];
+  }
+  if (Object.keys(sectionPatches.bankAccount).length > 0) {
+    patch.bankAccount = sectionPatches.bankAccount as StudentProfile['bankAccount'];
+  }
+  if (Object.keys(sectionPatches.address).length > 0) {
+    patch.address = sectionPatches.address as StudentProfile['address'];
   }
 
   return patch;
 }
 
+function isMonospaceField(field: StudentReturnField): boolean {
+  return [
+    'inscription',
+    'registrationNumber',
+    'passportNumber',
+    'branchCode',
+    'accountNumber',
+    'iban',
+    'swiftCode',
+    'countryCode',
+  ].includes(field);
+}
+
+function renderReadOnlyCell(student: StudentProfile, field: StudentReturnField) {
+  if (field === 'status') {
+    return (
+      <span
+        className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${getStatusClasses(
+          student.status,
+        )}`}
+      >
+        {student.status}
+      </span>
+    );
+  }
+
+  const value = getStudentFieldValue(student, field);
+  if (!value) {
+    return <span className="theme-text-muted text-sm">Not provided</span>;
+  }
+
+  const baseClassName = isMonospaceField(field)
+    ? 'text-sm font-mono text-[color:var(--theme-primary-soft)]'
+    : field === 'fullName'
+      ? 'theme-heading text-sm font-semibold'
+      : 'theme-text-muted text-sm';
+
+  return <span className={baseClassName}>{value}</span>;
+}
+
 function EditableCell({
-  column,
+  field,
   draft,
   onFieldChange,
-  showDegreeLevelInProgram,
 }: {
-  column: StudentReturnField;
+  field: StudentReturnField;
   draft: EditStudentDraft;
-  onFieldChange: (field: keyof EditStudentDraft, value: string) => void;
-  showDegreeLevelInProgram: boolean;
+  onFieldChange: (field: StudentReturnField, value: string) => void;
 }) {
-  switch (column) {
-    case 'fullName':
-      return (
-        <input
-          type="text"
-          className={inlineInputClass}
-          value={draft.fullName}
-          onChange={(event) => onFieldChange('fullName', event.target.value)}
-        />
-      );
-    case 'inscription':
-      return (
-        <input
-          type="text"
-          className={`${inlineInputClass} font-mono`}
-          value={draft.inscriptionNumber}
-          onChange={(event) => onFieldChange('inscriptionNumber', event.target.value)}
-        />
-      );
-    case 'email':
-      return (
-        <input
-          type="email"
-          className={inlineInputClass}
-          value={draft.email}
-          onChange={(event) => onFieldChange('email', event.target.value)}
-        />
-      );
-    case 'university':
-      return (
-        <div className="space-y-2">
-          <input
-            type="text"
-            className={inlineInputClass}
-            value={draft.universityName}
-            onChange={(event) => onFieldChange('universityName', event.target.value)}
-            placeholder="University name"
-          />
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              className={inlineInputClass}
-              value={draft.campus}
-              onChange={(event) => onFieldChange('campus', event.target.value)}
-              placeholder="Campus"
-            />
-            <input
-              type="text"
-              className={inlineInputClass}
-              value={draft.city}
-              onChange={(event) => onFieldChange('city', event.target.value)}
-              placeholder="City"
-            />
-          </div>
-        </div>
-      );
-    case 'program':
-      return (
-        <div className="space-y-2">
-          <input
-            type="text"
-            className={inlineInputClass}
-            value={draft.programMajor}
-            onChange={(event) => onFieldChange('programMajor', event.target.value)}
-            placeholder="Program"
-          />
-          {showDegreeLevelInProgram ? (
-            <input
-              type="text"
-              className={inlineInputClass}
-              value={draft.degreeLevel}
-              onChange={(event) => onFieldChange('degreeLevel', event.target.value)}
-              placeholder="Degree level"
-            />
-          ) : null}
-        </div>
-      );
-    case 'degreeLevel':
-      return (
-        <input
-          type="text"
-          className={inlineInputClass}
-          value={draft.degreeLevel}
-          onChange={(event) => onFieldChange('degreeLevel', event.target.value)}
-        />
-      );
-    case 'status':
-      return (
-        <select
-          className={inlineSelectClass}
-          value={draft.status}
-          onChange={(event) => onFieldChange('status', event.target.value as StudentProfile['status'])}
-        >
-          <option value="PENDING">Pending</option>
-          <option value="ACTIVE">Active</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-      );
-    case 'phone':
-      return (
-        <input
-          type="text"
-          className={inlineInputClass}
-          value={draft.phone}
-          onChange={(event) => onFieldChange('phone', event.target.value)}
-        />
-      );
-    default:
-      return null;
+  const definition = STUDENT_FIELD_DEFINITION_MAP[field];
+
+  if (definition.inputType === 'select') {
+    return (
+      <select
+        className={inlineInputClass}
+        value={draft[field]}
+        onChange={(event) => onFieldChange(field, event.target.value)}
+      >
+        {(definition.options || []).map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    );
   }
+
+  return (
+    <input
+      type={definition.inputType || 'text'}
+      className={`${inlineInputClass} ${isMonospaceField(field) ? 'font-mono' : ''}`}
+      value={draft[field]}
+      onChange={(event) => onFieldChange(field, event.target.value)}
+    />
+  );
 }
 
 export default function StudentRecordsTable({
@@ -437,11 +371,14 @@ export default function StudentRecordsTable({
     students.length > 0 && students.every((student) => selectedStudentIds.has(student.id));
   const columns = getColumns(returnFields);
   const safeFields = useMemo<StudentReturnField[]>(
-    () => (returnFields.length > 0 ? returnFields : ['fullName', 'email']),
+    () => (returnFields.length > 0 ? returnFields : FALLBACK_FIELDS),
     [returnFields],
   );
-  const showDegreeLevelInProgram = safeFields.includes('program') && !safeFields.includes('degreeLevel');
   const isInlineEditing = editingStudentId !== null;
+  const tableMinWidth = useMemo(
+    () => Math.max(760, 72 + columns.length * 170),
+    [columns.length],
+  );
 
   useEffect(() => {
     if (!editingStudentId) {
@@ -464,7 +401,7 @@ export default function StudentRecordsTable({
     setSaveError('');
   }, [editingStudentId, students]);
 
-  const updateDraftField = (field: keyof EditStudentDraft, value: string) => {
+  const updateDraftField = (field: StudentReturnField, value: string) => {
     setSaveError('');
     setDraft((current) =>
       current
@@ -600,13 +537,12 @@ export default function StudentRecordsTable({
                         <div>
                           {isEditing && draft ? (
                             <EditableCell
-                              column={column.key}
+                              field={column.key}
                               draft={draft}
                               onFieldChange={updateDraftField}
-                              showDegreeLevelInProgram={showDegreeLevelInProgram}
                             />
                           ) : (
-                            column.render(student)
+                            renderReadOnlyCell(student, column.key)
                           )}
                         </div>
                       </div>
@@ -623,7 +559,7 @@ export default function StudentRecordsTable({
             })}
           </div>
 
-          <table className="hidden w-full min-w-[760px] text-left md:table">
+          <table className="hidden w-full text-left md:table" style={{ minWidth: `${tableMinWidth}px` }}>
             <thead className="sticky top-0 z-10">
               <tr className="theme-card-muted theme-text-muted type-label">
                 <th className="px-4 py-4">
@@ -671,10 +607,9 @@ export default function StudentRecordsTable({
                       >
                         {isEditing && draft ? (
                           <EditableCell
-                            column={column.key}
+                            field={column.key}
                             draft={draft}
                             onFieldChange={updateDraftField}
-                            showDegreeLevelInProgram={showDegreeLevelInProgram}
                           />
                         ) : (
                           <div className="flex items-start gap-2">
@@ -683,7 +618,7 @@ export default function StudentRecordsTable({
                                 Reviewed
                               </span>
                             ) : null}
-                            <div>{column.render(student)}</div>
+                            <div>{renderReadOnlyCell(student, column.key)}</div>
                           </div>
                         )}
                       </td>
