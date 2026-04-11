@@ -9,6 +9,7 @@ import {
   FileDown,
   LucideIcon,
   Mail,
+  Pencil,
   Plus,
   ScanSearch,
   ShieldCheck,
@@ -18,6 +19,7 @@ import {
 interface BulkActionsBarProps {
   selectedCount: number;
   onAddStudent: () => void;
+  onEditSelected: () => void;
   onOpenDatabaseQuery: () => void;
   onMarkReviewed: () => void;
   onRequestMissingDocs: () => void;
@@ -27,6 +29,8 @@ interface BulkActionsBarProps {
   onOpenDuplicateDetection: () => void;
   onClearSelection: () => void;
   onDeleteSelected: () => void;
+  isEditActive?: boolean;
+  isEditDisabled?: boolean;
   isExportDisabled?: boolean;
   isInsightsDisabled?: boolean;
 }
@@ -66,6 +70,7 @@ function ActionIconButton({
 export default function BulkActionsBar({
   selectedCount,
   onAddStudent,
+  onEditSelected,
   onOpenDatabaseQuery,
   onMarkReviewed,
   onRequestMissingDocs,
@@ -75,6 +80,8 @@ export default function BulkActionsBar({
   onOpenDuplicateDetection,
   onClearSelection,
   onDeleteSelected,
+  isEditActive = false,
+  isEditDisabled = false,
   isExportDisabled = false,
   isInsightsDisabled = false,
 }: BulkActionsBarProps) {
@@ -137,6 +144,13 @@ export default function BulkActionsBar({
       >
         <div className="mx-auto flex w-max items-center gap-2 px-1 pr-10 md:pr-1">
           <ActionIconButton icon={Plus} label="Add Student" variant="primary" onClick={onAddStudent} />
+          <ActionIconButton
+            icon={Pencil}
+            label="Edit Selected"
+            variant={isEditActive ? 'primary' : 'secondary'}
+            onClick={onEditSelected}
+            disabled={isEditDisabled}
+          />
           <ActionIconButton icon={Database} label="Query Database" variant="secondary" onClick={onOpenDatabaseQuery} />
           <ActionIconButton icon={FileDown} label="Export" variant="success" onClick={onOpenExportOptions} disabled={isExportDisabled} />
           <ActionIconButton icon={ShieldCheck} label="Data Quality" variant="secondary" onClick={onOpenDataQuality} disabled={isInsightsDisabled} />
