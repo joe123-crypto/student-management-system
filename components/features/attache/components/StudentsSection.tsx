@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
 import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
@@ -10,6 +10,7 @@ import {
   DuplicateDetectionCard,
 } from '@/components/features/attache/components/DataInsightsPanel';
 import StudentDetailView from '@/components/features/attache/components/StudentDetailView';
+import EditStudentRecordModal from '@/components/features/attache/components/EditStudentRecordModal';
 import ExportRecordsModal from '@/components/features/attache/components/ExportRecordsModal';
 import AddStudentRecordModal from '@/components/features/attache/components/AddStudentRecordModal';
 import useStudentFilters from '@/components/features/attache/hooks/useStudentFilters';
@@ -17,6 +18,7 @@ import useStudentSelection from '@/components/features/attache/hooks/useStudentS
 import useStudentTable from '@/components/features/attache/hooks/useStudentTable';
 import useStudentExports from '@/components/features/attache/hooks/useStudentExports';
 import { useNotifications } from '@/components/providers/NotificationProvider';
+import { isSameAgentContext } from '@/components/features/attache/utils/agentContext';
 import {
   applyStudentQuery,
   DEFAULT_STUDENT_QUERY,
@@ -60,6 +62,7 @@ export default function StudentsSection({
   const [duplicateDetectionOpen, setDuplicateDetectionOpen] = useState(false);
   const [databaseQueryOpen, setDatabaseQueryOpen] = useState(false);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [editStudentOpen, setEditStudentOpen] = useState(false);
 
   const {
     query,
@@ -136,17 +139,34 @@ export default function StudentsSection({
     ? students.find((student) => student.id === selectedStudentId) ?? null
     : null;
 
+  const agentContext = useMemo<AttacheAgentContext>(() => ({
+    filteredStudentIds: filteredStudents.map((student) => student.id),
+    selectedStudentIds: Array.from(selectedStudentIds),
+    searchQuery: query.searchQuery,
+    statusFilter: query.status,
+    university: query.university,
+    program: query.program,
+    duplicatesOnly: query.duplicatesOnly,
+  }), [
+    filteredStudents,
+    query.duplicatesOnly,
+    query.program,
+    query.searchQuery,
+    query.status,
+    query.university,
+    selectedStudentIds,
+  ]);
+  const lastSentAgentContextRef = useRef<AttacheAgentContext | null>(null);
+
   useEffect(() => {
-    onAgentContextChange?.({
-      filteredStudentIds: filteredStudents.map((student) => student.id),
-      selectedStudentIds: Array.from(selectedStudentIds),
-      searchQuery: query.searchQuery,
-      statusFilter: query.status,
-      university: query.university,
-      program: query.program,
-      duplicatesOnly: query.duplicatesOnly,
-    });
-  }, [filteredStudents, onAgentContextChange, query, selectedStudentIds]);
+    if (!onAgentContextChange) return;
+    if (lastSentAgentContextRef.current && isSameAgentContext(lastSentAgentContextRef.current, agentContext)) {
+      return;
+    }
+
+    lastSentAgentContextRef.current = agentContext;
+    onAgentContextChange(agentContext);
+  }, [agentContext, onAgentContextChange]);
 
   const appendCommunicationLog = (channel: 'EMAIL' | 'SMS', template: string, recipientCount: number) => {
     if (recipientCount === 0) return;
@@ -167,15 +187,36 @@ export default function StudentsSection({
 
   if (selectedStudent) {
     return (
-      <StudentDetailView
-        student={selectedStudent}
-        onBack={() => setSelectedStudentId(null)}
-        onDeleteProgressRecord={async (entry) => {
-          await onUpdateStudent(selectedStudent.id, {
-            academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
-          });
-        }}
-      />
+      <>
+        <StudentDetailView
+          student={selectedStudent}
+          onBack={() => {
+            setSelectedStudentId(null);
+            setEditStudentOpen(false);
+          }}
+          onEdit={() => setEditStudentOpen(true)}
+          onDeleteProgressRecord={async (entry) => {
+            await onUpdateStudent(selectedStudent.id, {
+              academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
+            });
+          }}
+        />
+        <EditStudentRecordModal
+          open={editStudentOpen}
+          student={selectedStudent}
+          students={students}
+          onClose={() => setEditStudentOpen(false)}
+          onSubmit={async (nextStudent) => {
+            await onUpdateStudent(selectedStudent.id, nextStudent);
+            setEditStudentOpen(false);
+            notifications.notify({
+              tone: 'success',
+              title: 'Student record updated',
+              message: `${nextStudent.student.fullName || nextStudent.student.inscriptionNumber} has been updated.`,
+            });
+          }}
+        />
+      </>
     );
   }
 

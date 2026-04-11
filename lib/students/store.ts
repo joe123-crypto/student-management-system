@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, UserRole as PrismaUserRole } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import {
   attachProfileImageToStudentTx,
@@ -14,12 +14,12 @@ import {
   mergeStudentProfile,
   normalizeStudentProfile,
 } from '@/lib/students/profile';
-import type { StudentProfile, UserRole } from '@/types';
+import type { StudentProfile, UserRole as AppUserRole } from '@/types';
 
 type StudentIdentity = {
   id?: string;
   loginId: string;
-  role: UserRole;
+  role: AppUserRole;
 };
 
 type DbTx = Prisma.TransactionClient;
@@ -1070,6 +1070,8 @@ async function updateStudentProfileTx(
       inscriptionNumber: student.inscriptionNo,
     },
   });
+  const previousInscriptionNumber = student.inscriptionNo.trim().toUpperCase();
+  const nextInscriptionNumber = normalizedProfile.student.inscriptionNumber.trim().toUpperCase();
   const provinceName = getPrimaryProvinceName(normalizedProfile);
   const homeAddressId = await getOrCreateAddress(tx, getHomeAddressName(normalizedProfile), provinceName);
   const currentAddressId = await getOrCreateAddress(tx, getCurrentAddressName(normalizedProfile), provinceName);
@@ -1088,9 +1090,36 @@ async function updateStudentProfileTx(
   await tx.student.update({
     where: { id: student.id },
     data: {
+      inscriptionNo: nextInscriptionNumber,
       addressId: currentAddressId ?? undefined,
     },
   });
+
+  if (previousInscriptionNumber !== nextInscriptionNumber) {
+    const authUser = await tx.authUser.findUnique({
+      where: {
+        role_loginId: {
+          role: PrismaUserRole.STUDENT,
+          loginId: previousInscriptionNumber,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (authUser) {
+      await tx.authUser.update({
+        where: { id: authUser.id },
+        data: {
+          loginId: nextInscriptionNumber,
+          sessionVersion: {
+            increment: 1,
+          },
+        },
+      });
+    }
+  }
 
   await syncPassport(tx, student.personId, normalizedProfile);
   await syncContacts(tx, student.personId, normalizedProfile);
@@ -1244,12 +1273,9 @@ export async function updateStudentProfile(
     id: existing.id,
     status: existing.status,
     student: {
-      inscriptionNumber: existing.student.inscriptionNumber,
       fullName: existing.student.fullName,
     },
   });
-
-  nextProfile.student.inscriptionNumber = existing.student.inscriptionNumber;
 
   const studentId = parseStudentProfileId(existing.id);
   if (!studentId) {
@@ -1275,13 +1301,24 @@ export async function updateStudentProfile(
     );
   }
 
-  await prisma.$transaction(
-    (tx) =>
-      updateStudentProfileTx(tx, studentId, nextProfile, {
-        clearProfilePicture,
-      }),
-    STUDENT_WRITE_TRANSACTION_OPTIONS,
-  );
+  try {
+    await prisma.$transaction(
+      (tx) =>
+        updateStudentProfileTx(tx, studentId, nextProfile, {
+          clearProfilePicture,
+        }),
+      STUDENT_WRITE_TRANSACTION_OPTIONS,
+    );
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
+      throw new Error('That inscription number is already in use.');
+    }
+
+    throw error;
+  }
   const updated = await findStudentProfileById(existing.id);
 
   if (!updated) {

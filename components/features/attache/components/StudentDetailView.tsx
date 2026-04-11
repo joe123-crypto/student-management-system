@@ -19,6 +19,7 @@ import { getSortedAcademicHistory } from '@/lib/students/academicHistory';
 interface StudentDetailViewProps {
   student: StudentProfile;
   onBack: () => void;
+  onEdit?: () => void;
   onDeleteProgressRecord?: (entry: ProgressDetails) => Promise<void>;
 }
 
@@ -81,6 +82,7 @@ function DetailField({
 export default function StudentDetailView({
   student,
   onBack,
+  onEdit,
   onDeleteProgressRecord,
 }: StudentDetailViewProps) {
   const [isChartReady, setIsChartReady] = React.useState(false);
@@ -138,7 +140,14 @@ export default function StudentDetailView({
           </svg>
           Back to Student Records
         </Button>
-        <StatusBadge status={student.status} />
+        <div className="flex items-center gap-3">
+          {onEdit ? (
+            <Button variant="secondary" onClick={onEdit}>
+              Edit details
+            </Button>
+          ) : null}
+          <StatusBadge status={student.status} />
+        </div>
       </div>
 
       <div className={`${surfaceCardClass} p-6 md:p-7`}>
