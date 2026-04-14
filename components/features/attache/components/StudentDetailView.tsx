@@ -130,20 +130,29 @@ export default function StudentDetailView({
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="theme-text-muted hover:bg-[rgba(237,228,194,0.24)]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button
+          variant="ghost"
+          onClick={onBack}
+          className="theme-text-muted self-start px-0 py-0 text-left hover:bg-transparent active:scale-100 sm:px-5 sm:py-2.5 sm:hover:bg-[rgba(237,228,194,0.24)]"
+        >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
           Back to Student Records
         </Button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3 sm:justify-start">
           {onEdit ? (
-            <Button variant="secondary" onClick={onEdit}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onEdit}
+              className="whitespace-nowrap rounded-2xl px-4 py-2.5 sm:px-5"
+            >
               Edit details
             </Button>
           ) : null}
-          <StatusBadge status={student.status} />
+          <StatusBadge status={student.status} className="shrink-0" />
         </div>
       </div>
 

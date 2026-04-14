@@ -102,7 +102,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
 
         <div
           className={`theme-card rounded-[2.5rem] border transition-all ${
-            step === 1 ? 'p-8 md:p-10' : 'p-8 md:p-12'
+            step === 1 ? 'p-5 sm:p-8 md:p-10' : 'p-5 sm:p-8 md:p-12'
           }`}
         >
           {step === 1 && <PersonalDetailsStep student={student} readOnlyInputClass={readOnlyInputClass} onNext={nextStep} />}

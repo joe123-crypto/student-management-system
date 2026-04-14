@@ -38,7 +38,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
         <MapPin className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
         Review Record
       </h2>
-      <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
+      <div className="grid grid-cols-1 gap-y-6 md:grid-cols-2 md:gap-x-8">
         <FormField label="Email">
           <input
             type="email"
@@ -57,7 +57,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
             onChange={(event) => onUpdateField?.('contact', 'phone', event.target.value)}
           />
         </FormField>
-        <FormField label="Host Address" className="col-span-2">
+        <FormField label="Host Address" className="md:col-span-2">
           <input
             type="text"
             className={sharedInputClass}
@@ -68,7 +68,7 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
         </FormField>
         {isEditable ? (
           <>
-            <FormField label="Home Country Address" className="col-span-2">
+            <FormField label="Home Country Address" className="md:col-span-2">
               <input
                 type="text"
                 className={sharedInputClass}
@@ -89,23 +89,23 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
             </FormField>
           </>
         ) : null}
-        <div className="col-span-2 pt-6 flex items-center justify-between">
+        <div className="pt-6 flex flex-col gap-4 md:col-span-2 sm:flex-row sm:items-center sm:justify-between">
           <Button
             onClick={onBack}
             disabled={isSubmitting}
             variant="secondary"
-            className="rounded-2xl px-8 py-3"
+            className="w-full justify-center rounded-2xl px-8 py-3 sm:w-auto"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <div className="flex items-center gap-6">
+          <div className="flex justify-end">
             <Button
               onClick={() => {
                 void onComplete();
               }}
               disabled={isSubmitting}
-              className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
+              className="self-end whitespace-nowrap rounded-2xl px-6 py-3.5 text-sm shadow-[0_18px_36px_rgba(37,79,34,0.16)] sm:px-12 sm:py-4"
             >
               {isSubmitting ? 'Saving...' : completeLabel}
             </Button>

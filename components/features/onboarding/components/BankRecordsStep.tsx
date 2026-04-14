@@ -30,8 +30,8 @@ const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
       <Landmark className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
       Bank Account Details
     </h2>
-    <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
-      <FormField label="Bank Name" className="col-span-2">
+    <div className="grid grid-cols-1 gap-y-6 items-end md:grid-cols-2 md:gap-x-8">
+      <FormField label="Bank Name" className="md:col-span-2">
         <input
           type="text"
           className={inputClass}
@@ -87,24 +87,28 @@ const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
           onChange={(e) => onUpdateField('bankAccount', 'accountHolderName', e.target.value)}
         />
       </FormField>
-      <div className="col-span-2 pt-6 flex items-center justify-between">
+      <div className="pt-6 flex flex-col gap-4 md:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <Button
           onClick={onBack}
           variant="secondary"
-          className="rounded-2xl px-8 py-3"
+          className="w-full justify-center rounded-2xl px-8 py-3 sm:w-auto"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           {showSkipAction ? (
-            <Button onClick={onNext} variant="ghost" className="text-sm font-bold hover:bg-transparent">
+            <Button
+              onClick={onNext}
+              variant="ghost"
+              className="w-full justify-center whitespace-normal text-sm font-bold hover:bg-transparent sm:w-auto sm:whitespace-nowrap"
+            >
               Skip for now
             </Button>
           ) : null}
           <Button
             onClick={onNext}
-            className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
+            className="w-full justify-center rounded-2xl px-8 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)] sm:w-auto sm:px-12"
           >
             <ArrowRight className="w-4 h-4" />
             {primaryActionLabel}

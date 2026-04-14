@@ -36,7 +36,7 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
         <GraduationCap className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
         University & Program
       </h2>
-      <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
+      <div className="grid grid-cols-1 gap-y-6 items-end md:grid-cols-2 md:gap-x-8">
         <FormField label="University Name">
           <input
             type="text"
@@ -122,18 +122,18 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
             </FormField>
           </>
         ) : null}
-        <div className="col-span-2 pt-6 flex items-center justify-between">
+        <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-3 pt-6 md:col-span-2 sm:flex sm:items-center sm:justify-between sm:gap-4">
           <Button
             onClick={onBack}
             variant="secondary"
-            className="rounded-2xl px-8 py-3"
+            className="min-w-0 justify-center rounded-2xl px-4 py-3 sm:w-auto sm:px-8"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
           <Button
             onClick={onNext}
-            className="rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)]"
+            className="min-w-0 justify-center rounded-2xl px-4 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)] sm:w-auto sm:px-12"
           >
             <ArrowRight className="w-4 h-4" />
             {nextLabel}
