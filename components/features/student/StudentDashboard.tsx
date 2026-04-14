@@ -100,6 +100,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     proofDocument: '',
   });
 
+  const studentId = student?.id ?? null;
   const visibleStudent = optimisticStudent ?? student;
 
   useEffect(() => {
@@ -108,7 +109,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   useEffect(() => {
     setHasHydratedPersistedState(false);
-    const storageKey = student?.id ? getStudentDashboardStateKey(student.id) : null;
+    const storageKey = studentId ? getStudentDashboardStateKey(studentId) : null;
 
     if (!storageKey) {
       setHasHydratedPersistedState(true);
@@ -130,7 +131,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       setActiveOverviewSection(null);
       setIsEditing(false);
       setIsUpdatingAcademic(false);
-      setEditData(cloneStudentProfile(student ?? null));
+      setEditData(null);
       setNewProgress({
         year: '',
         level: '',
@@ -142,7 +143,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
     setIsProfileDataLoading(false);
     setHasHydratedPersistedState(true);
-  }, [student]);
+  }, [studentId]);
 
   useEffect(() => {
     if (!visibleStudent) {
@@ -161,14 +162,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   }, [visibleStudent, isEditing]);
 
   useEffect(() => {
-    if (!hasHydratedPersistedState || !student?.id) {
+    if (!hasHydratedPersistedState || !studentId) {
       return;
     }
 
-    const storageKey = getStudentDashboardStateKey(student.id);
+    const storageKey = getStudentDashboardStateKey(studentId);
 
     if (
       activeTab === 'overview' &&
+      !activeOverviewSection &&
       !isEditing &&
       !isUpdatingAcademic &&
       !isActionCenterExpanded &&
@@ -199,7 +201,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     isEditing,
     isUpdatingAcademic,
     newProgress,
-    student?.id,
+    studentId,
   ]);
 
   if (!visibleStudent && !isStudentLoading) {

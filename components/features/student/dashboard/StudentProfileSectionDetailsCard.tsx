@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  ChevronLeft,
   GraduationCap,
   IdCard,
   Landmark,
@@ -158,6 +159,7 @@ interface StudentProfileSectionDetailsCardProps {
   isEditing?: boolean;
   isSaving?: boolean;
   inputClassName?: string;
+  onBack?: () => void;
   onToggleEdit?: () => void;
   onDiscard?: () => void;
   onSave?: () => void;
@@ -171,6 +173,7 @@ export function StudentProfileSectionDetailsCard({
   isEditing = false,
   isSaving = false,
   inputClassName,
+  onBack,
   onToggleEdit,
   onDiscard,
   onSave,
@@ -435,28 +438,37 @@ export function StudentProfileSectionDetailsCard({
           <p className="theme-text-muted type-body mt-2">{selectedSection.description}</p>
         </div>
 
-        {sectionId === 'banking' && canEditBanking && onToggleEdit ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              onClick={onToggleEdit}
-              variant={isEditing ? 'secondary' : 'primary'}
-              className="rounded-full"
-              disabled={isSaving}
-            >
-              {isEditing ? 'Stop Editing' : 'Edit Banking Details'}
+        <div className="flex flex-wrap items-center gap-3">
+          {onBack ? (
+            <Button variant="secondary" onClick={onBack} className="inline-flex items-center gap-2 rounded-full">
+              <ChevronLeft className="h-4 w-4" />
+              Back to overview
             </Button>
-            {isEditing && onDiscard && onSave ? (
-              <>
-                <Button variant="ghost" onClick={onDiscard} disabled={isSaving}>
-                  Discard
-                </Button>
-                <Button onClick={onSave} className="rounded-full px-8" disabled={isSaving}>
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </>
-            ) : null}
-          </div>
-        ) : null}
+          ) : null}
+
+          {sectionId === 'banking' && canEditBanking && onToggleEdit ? (
+            <>
+              <Button
+                onClick={onToggleEdit}
+                variant={isEditing ? 'secondary' : 'primary'}
+                className="rounded-full"
+                disabled={isSaving}
+              >
+                {isEditing ? 'Stop Editing' : 'Edit Banking Details'}
+              </Button>
+              {isEditing && onDiscard && onSave ? (
+                <>
+                  <Button variant="ghost" onClick={onDiscard} disabled={isSaving}>
+                    Discard
+                  </Button>
+                  <Button onClick={onSave} className="rounded-full px-8" disabled={isSaving}>
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </>
+              ) : null}
+            </>
+          ) : null}
+        </div>
       </div>
 
       {renderSectionContent()}
