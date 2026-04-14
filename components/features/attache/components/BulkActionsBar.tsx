@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import Button from '@/components/ui/Button';
+import { AnimatedCount, dashboardHoverLift, dashboardHoverTransition, dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
 import {
   CheckCheck,
   ChevronLeft,
@@ -41,6 +43,14 @@ interface ActionIconButtonProps {
   variant: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
   onClick: () => void;
   disabled?: boolean;
+}
+
+interface ToolbarAction {
+  icon: LucideIcon;
+  label: string;
+  variant: ActionIconButtonProps['variant'];
+  onClick: () => void;
+  disabled: boolean;
 }
 
 function ActionIconButton({
@@ -85,10 +95,8 @@ export default function BulkActionsBar({
   isExportDisabled = false,
   isInsightsDisabled = false,
 }: BulkActionsBarProps) {
+  const shouldReduceMotion = useReducedMotion();
   const hasSelection = selectedCount > 0;
-  const selectionLabel = hasSelection
-    ? `${selectedCount} record${selectedCount === 1 ? '' : 's'} selected`
-    : 'Directory tools';
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const scrollTimerRef = useRef<number | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -138,19 +146,34 @@ export default function BulkActionsBar({
   };
 
   return (
-    <div className="theme-toolbar group relative w-full max-w-full overflow-hidden rounded-[1.75rem] border px-4 py-4">
+    <motion.div
+      className="theme-toolbar group relative w-full max-w-full overflow-hidden rounded-[1.75rem] border px-4 py-4"
+      variants={dashboardStaggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
+        <motion.div variants={dashboardStaggerItem} className="min-w-0">
           <p className="theme-accent-soft type-label">Action Center</p>
-          <p className="theme-heading text-sm font-semibold sm:text-base">{selectionLabel}</p>
-        </div>
-        <span
+          <p className="theme-heading text-sm font-semibold sm:text-base">
+            {hasSelection ? (
+              <AnimatedCount
+                value={selectedCount}
+                suffix={` record${selectedCount === 1 ? '' : 's'} selected`}
+              />
+            ) : (
+              'Directory tools'
+            )}
+          </p>
+        </motion.div>
+        <motion.span
+          variants={dashboardStaggerItem}
           className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
             hasSelection ? 'theme-chip-success' : 'theme-chip-muted'
           }`}
         >
           {hasSelection ? 'Batch mode' : 'Browse mode'}
-        </span>
+        </motion.span>
       </div>
 
       <div className="theme-toolbar-well relative flex items-center border-t pt-4">
@@ -160,25 +183,42 @@ export default function BulkActionsBar({
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onScroll={updateScrollState}
         >
-          <div className="mx-auto flex w-max items-center gap-2 px-0 pr-10 md:pr-1">
-            <ActionIconButton icon={Plus} label="Add Student" variant="primary" onClick={onAddStudent} />
-            <ActionIconButton
-              icon={Pencil}
-              label="Edit Selected"
-              variant={isEditActive ? 'primary' : 'secondary'}
-              onClick={onEditSelected}
-              disabled={isEditDisabled}
-            />
-            <ActionIconButton icon={Database} label="Query Database" variant="secondary" onClick={onOpenDatabaseQuery} />
-            <ActionIconButton icon={FileDown} label="Export" variant="success" onClick={onOpenExportOptions} disabled={isExportDisabled} />
-            <ActionIconButton icon={ShieldCheck} label="Data Quality" variant="secondary" onClick={onOpenDataQuality} disabled={isInsightsDisabled} />
-            <ActionIconButton icon={ScanSearch} label="Duplicate Detection" variant="secondary" onClick={onOpenDuplicateDetection} disabled={isInsightsDisabled} />
-            <ActionIconButton icon={CheckCheck} label="Mark Reviewed" variant="secondary" onClick={onMarkReviewed} disabled={!hasSelection} />
-            <ActionIconButton icon={Mail} label="Request Missing Docs" variant="primary" onClick={onRequestMissingDocs} disabled={!hasSelection} />
-            <ActionIconButton icon={FileDown} label="Export Selected" variant="success" onClick={onExportSelected} disabled={!hasSelection} />
-            <ActionIconButton icon={Eraser} label="Clear Selection" variant="ghost" onClick={onClearSelection} disabled={!hasSelection} />
-            <ActionIconButton icon={Trash2} label="Delete Selected" variant="danger" onClick={onDeleteSelected} disabled={!hasSelection} />
-          </div>
+          <motion.div
+            className="mx-auto flex w-max items-center gap-2 px-0 pr-10 md:pr-1"
+            variants={dashboardStaggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            {([
+              { icon: Plus, label: 'Add Student', variant: 'primary', onClick: onAddStudent, disabled: false },
+              { icon: Pencil, label: 'Edit Selected', variant: isEditActive ? 'primary' : 'secondary', onClick: onEditSelected, disabled: isEditDisabled },
+              { icon: Database, label: 'Query Database', variant: 'secondary', onClick: onOpenDatabaseQuery, disabled: false },
+              { icon: FileDown, label: 'Export', variant: 'success', onClick: onOpenExportOptions, disabled: isExportDisabled },
+              { icon: ShieldCheck, label: 'Data Quality', variant: 'secondary', onClick: onOpenDataQuality, disabled: isInsightsDisabled },
+              { icon: ScanSearch, label: 'Duplicate Detection', variant: 'secondary', onClick: onOpenDuplicateDetection, disabled: isInsightsDisabled },
+              { icon: CheckCheck, label: 'Mark Reviewed', variant: 'secondary', onClick: onMarkReviewed, disabled: !hasSelection },
+              { icon: Mail, label: 'Request Missing Docs', variant: 'primary', onClick: onRequestMissingDocs, disabled: !hasSelection },
+              { icon: FileDown, label: 'Export Selected', variant: 'success', onClick: onExportSelected, disabled: !hasSelection },
+              { icon: Eraser, label: 'Clear Selection', variant: 'ghost', onClick: onClearSelection, disabled: !hasSelection },
+              { icon: Trash2, label: 'Delete Selected', variant: 'danger', onClick: onDeleteSelected, disabled: !hasSelection },
+            ] satisfies ToolbarAction[]).map((action) => (
+              <motion.div
+                key={action.label}
+                variants={dashboardStaggerItem}
+                whileHover={shouldReduceMotion ? undefined : dashboardHoverLift}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                transition={dashboardHoverTransition}
+              >
+                <ActionIconButton
+                  icon={action.icon}
+                  label={action.label}
+                  variant={action.variant}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
 
         {canScrollLeft ? (
@@ -219,6 +259,6 @@ export default function BulkActionsBar({
           </div>
         ) : null}
       </div>
-    </div>
+    </motion.div>
   );
 }

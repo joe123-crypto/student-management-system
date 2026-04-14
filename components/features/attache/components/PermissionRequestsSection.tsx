@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { PermissionRequest } from '@/types';
 import { useNotifications } from '@/components/providers/NotificationProvider';
 import Skeleton from '@/components/ui/Skeleton';
 import { getErrorMessage } from '@/lib/errors';
+import { AnimatedCount, dashboardHoverLift, dashboardHoverTransition, dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
 
 interface PermissionRequestsSectionProps {
   requests: PermissionRequest[];
@@ -30,8 +32,12 @@ export default function PermissionRequestsSection({
   isLoading = false,
   onUpdateStatus,
 }: PermissionRequestsSectionProps) {
+  const shouldReduceMotion = useReducedMotion();
   const notifications = useNotifications();
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+  const pendingCount = requests.filter((request) => request.status === 'PENDING').length;
+  const approvedCount = requests.filter((request) => request.status === 'APPROVED').length;
+  const rejectedCount = requests.filter((request) => request.status === 'REJECTED').length;
 
   if (isLoading) {
     return (
@@ -55,15 +61,54 @@ export default function PermissionRequestsSection({
   }
 
   return (
-    <section className="theme-card rounded-2xl border p-6">
-      <h2 className="theme-heading text-lg font-bold">Permission Requests</h2>
+    <motion.section
+      className="theme-card rounded-2xl border p-6"
+      variants={dashboardStaggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={dashboardStaggerItem} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="theme-heading text-lg font-bold">Permission Requests</h2>
+          <p className="theme-text-muted mt-1 text-sm">
+            Review new access requests and clear pending approvals quickly.
+          </p>
+        </div>
+      </motion.div>
+
+      <motion.div variants={dashboardStaggerItem} className="mt-6 grid gap-3 md:grid-cols-3">
+        <motion.div
+          whileHover={shouldReduceMotion ? undefined : dashboardHoverLift}
+          transition={dashboardHoverTransition}
+          className="theme-card-muted rounded-2xl border p-4"
+        >
+          <p className="theme-text-muted type-label">Pending</p>
+          <p className="theme-heading mt-2 text-2xl font-bold"><AnimatedCount value={pendingCount} /></p>
+        </motion.div>
+        <motion.div
+          whileHover={shouldReduceMotion ? undefined : dashboardHoverLift}
+          transition={dashboardHoverTransition}
+          className="theme-success rounded-2xl border p-4"
+        >
+          <p className="type-label">Approved</p>
+          <p className="mt-2 text-2xl font-bold"><AnimatedCount value={approvedCount} /></p>
+        </motion.div>
+        <motion.div
+          whileHover={shouldReduceMotion ? undefined : dashboardHoverLift}
+          transition={dashboardHoverTransition}
+          className="theme-danger rounded-2xl border p-4"
+        >
+          <p className="type-label">Rejected</p>
+          <p className="mt-2 text-2xl font-bold"><AnimatedCount value={rejectedCount} /></p>
+        </motion.div>
+      </motion.div>
 
       {requests.length === 0 ? (
         <p className="theme-card-muted theme-text-muted mt-6 rounded-xl border border-dashed p-4 text-sm">
           No requests yet.
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto">
+        <motion.div variants={dashboardStaggerItem} className="mt-6 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="theme-text-muted border-b border-[rgba(220,205,166,0.55)] text-xs uppercase tracking-wider">
@@ -77,7 +122,7 @@ export default function PermissionRequestsSection({
             </thead>
             <tbody>
               {requests.map((request) => (
-                <tr key={request.id} className="border-b border-[rgba(220,205,166,0.42)] text-[color:var(--theme-text)]">
+                <tr key={request.id} className="border-b border-[rgba(220,205,166,0.42)] text-[color:var(--theme-text)] transition-colors hover:bg-[rgba(255,255,255,0.34)]">
                   <td className="py-3 pr-4 font-semibold">{request.fullName || '-'}</td>
                   <td className="py-3 pr-4 font-mono">{request.passportNumber || '-'}</td>
                   <td className="py-3 pr-4 font-mono font-semibold text-[color:var(--theme-primary-soft)]">
@@ -85,7 +130,11 @@ export default function PermissionRequestsSection({
                   </td>
                   <td className="py-3 pr-4">{new Date(request.submittedAt).toLocaleString()}</td>
                   <td className="py-3 pr-4">
-                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone(request.status)}`}>
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        statusTone(request.status)
+                      } ${request.status === 'PENDING' ? 'theme-attention-pulse' : ''}`}
+                    >
                       {request.status}
                     </span>
                   </td>
@@ -159,8 +208,8 @@ export default function PermissionRequestsSection({
               ))}
             </tbody>
           </table>
-        </div>
+        </motion.div>
       )}
-    </section>
+    </motion.section>
   );
 }

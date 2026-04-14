@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
 import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
@@ -27,6 +28,7 @@ import {
   REPORT_COLUMNS,
 } from '@/components/features/attache/utils/studentData';
 import Skeleton from '@/components/ui/Skeleton';
+import { dashboardPanelMotion, dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
 
 interface StudentsSectionProps {
   students: StudentProfile[];
@@ -210,122 +212,139 @@ export default function StudentsSection({
   if (selectedStudent) {
     if (editStudentOpen) {
       return (
-        <EditStudentRecordModal
-          open={editStudentOpen}
-          mode="inline"
-          student={selectedStudent}
-          students={students}
-          onClose={() => setEditStudentOpen(false)}
-          onSubmit={async (nextStudent) => {
-            await onUpdateStudent(selectedStudent.id, nextStudent);
-            setEditStudentOpen(false);
-            notifications.notify({
-              tone: 'success',
-              title: 'Student record updated',
-              message: `${nextStudent.student.fullName || nextStudent.student.inscriptionNumber} has been updated.`,
-            });
-          }}
-        />
+        <motion.div {...dashboardPanelMotion}>
+          <EditStudentRecordModal
+            open={editStudentOpen}
+            mode="inline"
+            student={selectedStudent}
+            students={students}
+            onClose={() => setEditStudentOpen(false)}
+            onSubmit={async (nextStudent) => {
+              await onUpdateStudent(selectedStudent.id, nextStudent);
+              setEditStudentOpen(false);
+              notifications.notify({
+                tone: 'success',
+                title: 'Student record updated',
+                message: `${nextStudent.student.fullName || nextStudent.student.inscriptionNumber} has been updated.`,
+              });
+            }}
+          />
+        </motion.div>
       );
     }
 
     return (
-      <StudentDetailView
-        student={selectedStudent}
-        onBack={() => {
-          setSelectedStudentId(null);
-          setEditStudentOpen(false);
-        }}
-        onEdit={() => setEditStudentOpen(true)}
-        onDeleteProgressRecord={async (entry) => {
-          await onUpdateStudent(selectedStudent.id, {
-            academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
-          });
-        }}
-      />
+      <motion.div {...dashboardPanelMotion}>
+        <StudentDetailView
+          student={selectedStudent}
+          onBack={() => {
+            setSelectedStudentId(null);
+            setEditStudentOpen(false);
+          }}
+          onEdit={() => setEditStudentOpen(true)}
+          onDeleteProgressRecord={async (entry) => {
+            await onUpdateStudent(selectedStudent.id, {
+              academicHistory: (selectedStudent.academicHistory || []).filter((item) => item.id !== entry.id),
+            });
+          }}
+        />
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      variants={dashboardStaggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       <div className="space-y-6">
-        <StudentQueryToolbar
-          query={query}
-          onQueryChange={updateQuery}
-        />
+        <motion.div variants={dashboardStaggerItem}>
+          <StudentQueryToolbar
+            query={query}
+            onQueryChange={updateQuery}
+          />
+        </motion.div>
 
-        <BulkActionsBar
-          selectedCount={selectedStudentIds.size}
-          onAddStudent={() => {
-            setAddStudentOpen(true);
-          }}
-          onEditSelected={() => {
-            if (!singleSelectedStudent) return;
-            setInlineEditingStudentId((current) => (
-              current === singleSelectedStudent.id ? null : singleSelectedStudent.id
-            ));
-          }}
-          onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
-          onMarkReviewed={handleMarkReviewed}
-          onRequestMissingDocs={handleRequestMissingDocsBulk}
-          onExportSelected={handleExportSelected}
-          onOpenExportOptions={() => setExportPopupOpen(true)}
-          onOpenDataQuality={() => setDataQualityOpen(true)}
-          onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
-          onClearSelection={clearSelection}
-          onDeleteSelected={handleDeleteSelected}
-          isEditActive={inlineEditingStudentId !== null}
-          isEditDisabled={!singleSelectedStudent || isLoading || isStudentTableLoading}
-          isExportDisabled={isLoading}
-          isInsightsDisabled={isLoading}
-        />
+        <motion.div variants={dashboardStaggerItem}>
+          <BulkActionsBar
+            selectedCount={selectedStudentIds.size}
+            onAddStudent={() => {
+              setAddStudentOpen(true);
+            }}
+            onEditSelected={() => {
+              if (!singleSelectedStudent) return;
+              setInlineEditingStudentId((current) => (
+                current === singleSelectedStudent.id ? null : singleSelectedStudent.id
+              ));
+            }}
+            onOpenDatabaseQuery={() => setDatabaseQueryOpen(true)}
+            onMarkReviewed={handleMarkReviewed}
+            onRequestMissingDocs={handleRequestMissingDocsBulk}
+            onExportSelected={handleExportSelected}
+            onOpenExportOptions={() => setExportPopupOpen(true)}
+            onOpenDataQuality={() => setDataQualityOpen(true)}
+            onOpenDuplicateDetection={() => setDuplicateDetectionOpen(true)}
+            onClearSelection={clearSelection}
+            onDeleteSelected={handleDeleteSelected}
+            isEditActive={inlineEditingStudentId !== null}
+            isEditDisabled={!singleSelectedStudent || isLoading || isStudentTableLoading}
+            isExportDisabled={isLoading}
+            isInsightsDisabled={isLoading}
+          />
+        </motion.div>
 
-        <StudentRecordsTable
-          students={paginatedTableStudents}
-          isLoading={isLoading || isStudentTableLoading}
-          returnFields={query.returnFields}
-          selectedStudentIds={selectedStudentIds}
-          reviewedStudentIds={reviewedStudentIds}
-          onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
-          onToggleSelectOne={handleToggleSelectOne}
-          editingStudentId={inlineEditingStudentId}
-          onCancelEdit={() => setInlineEditingStudentId(null)}
-          onManage={setSelectedStudentId}
-          onSaveEdit={async (studentId, patch) => {
-            await onUpdateStudent(studentId, patch);
-            setInlineEditingStudentId(null);
-            const updatedStudent = students.find((entry) => entry.id === studentId);
-            const nextFullName =
-              patch.student?.fullName ||
-              [
-                patch.student?.givenName,
-                patch.student?.familyName,
-              ]
-                .filter(Boolean)
-                .join(' ')
-                .trim() ||
-              updatedStudent?.student.fullName ||
-              updatedStudent?.student.inscriptionNumber ||
-              'student';
-            notifications.notify({
-              tone: 'success',
-              title: 'Student record updated',
-              message: `Saved changes for ${nextFullName}.`,
-            });
-          }}
-        />
-        {!isLoading && !isStudentTableLoading ? (
-          <StudentTablePagination
-            totalItems={tableStudents.length}
-            currentPage={currentPage}
-            pageSize={pageSize}
-            pageSizeOptions={PAGE_SIZE_OPTIONS}
-            onPageChange={(page) => setCurrentPage(Math.min(Math.max(page, 1), totalPages))}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setCurrentPage(1);
+        <motion.div variants={dashboardStaggerItem}>
+          <StudentRecordsTable
+            students={paginatedTableStudents}
+            isLoading={isLoading || isStudentTableLoading}
+            returnFields={query.returnFields}
+            selectedStudentIds={selectedStudentIds}
+            reviewedStudentIds={reviewedStudentIds}
+            onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
+            onToggleSelectOne={handleToggleSelectOne}
+            editingStudentId={inlineEditingStudentId}
+            onCancelEdit={() => setInlineEditingStudentId(null)}
+            onManage={setSelectedStudentId}
+            onSaveEdit={async (studentId, patch) => {
+              await onUpdateStudent(studentId, patch);
+              setInlineEditingStudentId(null);
+              const updatedStudent = students.find((entry) => entry.id === studentId);
+              const nextFullName =
+                patch.student?.fullName ||
+                [
+                  patch.student?.givenName,
+                  patch.student?.familyName,
+                ]
+                  .filter(Boolean)
+                  .join(' ')
+                  .trim() ||
+                updatedStudent?.student.fullName ||
+                updatedStudent?.student.inscriptionNumber ||
+                'student';
+              notifications.notify({
+                tone: 'success',
+                title: 'Student record updated',
+                message: `Saved changes for ${nextFullName}.`,
+              });
             }}
           />
+        </motion.div>
+        {!isLoading && !isStudentTableLoading ? (
+          <motion.div variants={dashboardStaggerItem}>
+            <StudentTablePagination
+              totalItems={tableStudents.length}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onPageChange={(page) => setCurrentPage(Math.min(Math.max(page, 1), totalPages))}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+            />
+          </motion.div>
         ) : null}
       </div>
 
@@ -371,34 +390,60 @@ export default function StudentsSection({
         }}
       />
 
-      {dataQualityOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="theme-overlay absolute inset-0" onClick={() => setDataQualityOpen(false)} />
-          <div className="relative z-10 w-full max-w-2xl">
-            {isLoading ? (
-              <Skeleton className="h-72 rounded-2xl" />
-            ) : (
-              <DataQualityCard
-                filteredStudents={filteredStudents}
-                qualityIssueCount={qualityIssueCount}
-              />
-            )}
+      <AnimatePresence>
+        {dataQualityOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              className="theme-overlay absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDataQualityOpen(false)}
+            />
+            <motion.div
+              className="relative z-10 w-full max-w-2xl"
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+            >
+              {isLoading ? (
+                <Skeleton className="h-72 rounded-2xl" />
+              ) : (
+                <DataQualityCard
+                  filteredStudents={filteredStudents}
+                  qualityIssueCount={qualityIssueCount}
+                />
+              )}
+            </motion.div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {duplicateDetectionOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="theme-overlay absolute inset-0" onClick={() => setDuplicateDetectionOpen(false)} />
-          <div className="relative z-10 w-full max-w-2xl">
-            {isLoading ? (
-              <Skeleton className="h-72 rounded-2xl" />
-            ) : (
-              <DuplicateDetectionCard duplicateGroups={duplicateGroups} />
-            )}
+        {duplicateDetectionOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              className="theme-overlay absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDuplicateDetectionOpen(false)}
+            />
+            <motion.div
+              className="relative z-10 w-full max-w-2xl"
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+            >
+              {isLoading ? (
+                <Skeleton className="h-72 rounded-2xl" />
+              ) : (
+                <DuplicateDetectionCard duplicateGroups={duplicateGroups} />
+              )}
+            </motion.div>
           </div>
-        </div>
-      ) : null}
-    </div>
+        ) : null}
+      </AnimatePresence>
+    </motion.div>
   );
 }

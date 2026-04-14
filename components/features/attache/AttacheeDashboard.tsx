@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { startTransition, useCallback, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Announcement,
   AttacheAgentContext,
@@ -19,6 +20,7 @@ import {
   isSameAgentContext,
   pruneAgentContextStudentIds,
 } from '@/components/features/attache/utils/agentContext';
+import { dashboardPanelMotion } from '@/components/ui/motion';
 
 interface AttacheDashboardProps {
   user: User;
@@ -123,8 +125,20 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
     setCommunicationLogs((prev) => [entry, ...prev]);
   };
 
+  const handleViewChange = (nextView: ActiveView) => {
+    startTransition(() => {
+      setActiveView(nextView);
+    });
+  };
+
+  const handleCommunicationViewChange = (nextView: ActiveCommunicationView) => {
+    startTransition(() => {
+      setActiveCommunicationView(nextView);
+    });
+  };
+
   return (
-        <Layout
+    <Layout
       role={UserRole.ATTACHE}
       user={user}
       title={section === 'dashboard' ? 'Attache Dashboard' : 'Settings'}
@@ -140,87 +154,82 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
           <Tabs
             items={tabItems}
             activeTab={activeView}
-            onChange={(tab) => setActiveView(tab as ActiveView)}
+            onChange={(tab) => handleViewChange(tab as ActiveView)}
             className="mb-8"
             mobileLayout="grid"
           />
-          {activeView === 'students' ? (
-            <StudentsSection
-              students={students}
-              isLoading={isStudentsLoading}
-              onDeleteStudents={onDeleteStudents}
-              onImportStudents={onImportStudents}
-              onUpdateStudent={onUpdateStudent}
-              onLogCommunication={appendCommunicationLog}
-              onAgentContextChange={handleAgentContextChange}
-            />
-          ) : null}
-          {activeView === 'announcements' ? (
-            <section className="space-y-6">
-              <div className="flex justify-start sm:justify-end">
-                <div className="w-full sm:w-auto">
-                  <div className="grid min-w-0 grid-cols-2 gap-1 rounded-2xl border border-[rgba(220,205,166,0.7)] bg-white/80 p-1 shadow-sm md:inline-flex md:w-max md:min-w-0">
-                    {communicationTabItems.map((item) => {
-                      const active = item.id === activeCommunicationView;
-
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setActiveCommunicationView(item.id)}
-                          className={
-                            active
-                              ? 'min-w-0 rounded-xl bg-[color:var(--theme-primary)] px-3 py-2.5 text-center text-xs font-bold text-white shadow-sm transition md:px-4 md:text-sm'
-                              : 'min-w-0 rounded-xl px-3 py-2.5 text-center text-xs font-bold text-[color:var(--theme-text-muted)] transition hover:text-[color:var(--theme-primary)] md:px-4 md:text-sm'
-                          }
-                          aria-pressed={active}
-                        >
-                          <span className="md:hidden">{item.shortLabel}</span>
-                          <span className="hidden md:inline">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-              {activeCommunicationView === 'announcements' ? (
-                <AnnouncementsSection
-                  announcements={announcements}
-                  isLoading={isAnnouncementsLoading}
-                  onAddAnnouncement={onAddAnnouncement}
-                  onDeleteAnnouncement={onDeleteAnnouncement}
+          <AnimatePresence mode="wait" initial={false}>
+            {activeView === 'students' ? (
+              <motion.div key="attache-students" {...dashboardPanelMotion}>
+                <StudentsSection
+                  students={students}
+                  isLoading={isStudentsLoading}
+                  onDeleteStudents={onDeleteStudents}
+                  onImportStudents={onImportStudents}
+                  onUpdateStudent={onUpdateStudent}
+                  onLogCommunication={appendCommunicationLog}
+                  onAgentContextChange={handleAgentContextChange}
                 />
-              ) : null}
-              {activeCommunicationView === 'messaging' ? (
-                <div className="space-y-4">
-                  <div className="max-w-3xl">
-                  <CommunicationCenter
-                    selectedCount={0}
-                    filteredCount={students.length}
-                    onSend={({ channel, template, scope }) =>
-                      appendCommunicationLog({
-                        channel,
-                        template,
-                        recipientCount: scope === 'SELECTED' ? 0 : students.length,
-                      })
-                    }
-                    logs={communicationLogs}
+              </motion.div>
+            ) : null}
+            {activeView === 'announcements' ? (
+              <motion.section key="attache-communications" {...dashboardPanelMotion} className="space-y-6">
+                <div className="flex justify-start sm:justify-end">
+                  <Tabs
+                    items={communicationTabItems}
+                    activeTab={activeCommunicationView}
+                    onChange={(tab) => handleCommunicationViewChange(tab as ActiveCommunicationView)}
+                    className="w-full sm:w-auto"
+                    mobileLayout="grid"
                   />
-                  </div>
                 </div>
-              ) : null}
-            </section>
-          ) : null}
-          {activeView === 'permission-requests' ? (
-            <PermissionRequestsSection
-              requests={permissionRequests}
-              isLoading={isPermissionRequestsLoading}
-              onUpdateStatus={onUpdatePermissionRequestStatus}
-            />
-          ) : null}
+                <AnimatePresence mode="wait" initial={false}>
+                  {activeCommunicationView === 'announcements' ? (
+                    <motion.div key="attache-announcements-feed" {...dashboardPanelMotion}>
+                      <AnnouncementsSection
+                        announcements={announcements}
+                        isLoading={isAnnouncementsLoading}
+                        onAddAnnouncement={onAddAnnouncement}
+                        onDeleteAnnouncement={onDeleteAnnouncement}
+                      />
+                    </motion.div>
+                  ) : null}
+                  {activeCommunicationView === 'messaging' ? (
+                    <motion.div key="attache-direct-messaging" {...dashboardPanelMotion} className="space-y-4">
+                      <div className="max-w-3xl">
+                        <CommunicationCenter
+                          selectedCount={0}
+                          filteredCount={students.length}
+                          onSend={({ channel, template, scope }) =>
+                            appendCommunicationLog({
+                              channel,
+                              template,
+                              recipientCount: scope === 'SELECTED' ? 0 : students.length,
+                            })
+                          }
+                          logs={communicationLogs}
+                        />
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </motion.section>
+            ) : null}
+            {activeView === 'permission-requests' ? (
+              <motion.div key="attache-permission-requests" {...dashboardPanelMotion}>
+                <PermissionRequestsSection
+                  requests={permissionRequests}
+                  isLoading={isPermissionRequestsLoading}
+                  onUpdateStatus={onUpdatePermissionRequestStatus}
+                />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </>
       ) : (
-        <DatabaseImportSection students={students} onImportStudents={onImportStudents} />
+        <motion.div {...dashboardPanelMotion}>
+          <DatabaseImportSection students={students} onImportStudents={onImportStudents} />
+        </motion.div>
       )}
     </Layout>
   );

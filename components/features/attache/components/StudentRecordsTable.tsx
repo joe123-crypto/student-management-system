@@ -443,12 +443,12 @@ export default function StudentRecordsTable({
   return (
     <div className="theme-card overflow-hidden rounded-[1.75rem] border">
       {isLoading ? (
-        <div className="h-[400px] overflow-auto animate-pulse">
+        <div className="h-[400px] overflow-auto">
           <div className="theme-table-header sticky top-0 z-10 border-b">
             <div className="grid grid-cols-[56px_repeat(4,minmax(0,1fr))] gap-4 px-4 py-4">
-              <div className="h-4 w-4 rounded bg-[rgba(220,205,166,0.6)]" />
+              <div className="theme-skeleton h-4 w-4 rounded" />
               {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="h-3 w-28 rounded bg-[rgba(220,205,166,0.6)]" />
+                <div key={index} className="theme-skeleton h-3 w-28 rounded" />
               ))}
             </div>
           </div>
@@ -458,11 +458,11 @@ export default function StudentRecordsTable({
                 key={index}
                 className="grid grid-cols-[56px_repeat(4,minmax(0,1fr))] gap-4 px-4 py-4"
               >
-                <div className="mt-1 h-4 w-4 rounded bg-[rgba(220,205,166,0.6)]" />
+                <div className="theme-skeleton mt-1 h-4 w-4 rounded" />
                 {Array.from({ length: 4 }).map((__, columnIndex) => (
                   <div key={columnIndex} className="space-y-2">
-                    <div className="h-3 w-36 rounded bg-[rgba(220,205,166,0.6)]" />
-                    <div className="h-3 w-24 rounded bg-[rgba(220,205,166,0.34)]" />
+                    <div className="theme-skeleton h-3 w-36 rounded" />
+                    <div className="theme-skeleton h-3 w-24 rounded" />
                   </div>
                 ))}
               </div>
