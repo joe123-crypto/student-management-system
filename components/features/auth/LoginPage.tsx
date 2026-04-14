@@ -16,7 +16,7 @@ const roleOptions = [
 
 const studentLoginPlaceholder = 'STUDENT123';
 const attacheLoginPlaceholder = 'admin@scholarsalger.dz';
-const passwordPlaceholder = 'Enter your password';
+const passwordPlaceholder = 'Password';
 const fieldLabelClass = 'mb-2';
 const fieldRowClass = 'theme-input flex items-center gap-3 rounded-2xl border px-4 py-3';
 const inputClass =
@@ -95,7 +95,6 @@ const LoginPage: React.FC = () => {
               Secure access
             </div>
             <h1 className="theme-heading type-page-title">Sign in</h1>
-            <p className="theme-text-muted type-body-sm mt-2">Sign in to access your ScholarsAlger account.</p>
           </div>
 
           <SegmentedControl

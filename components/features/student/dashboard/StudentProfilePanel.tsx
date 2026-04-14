@@ -25,18 +25,16 @@ const heroSummaryGridClass = 'grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))
 interface ProfileSectionHeaderProps {
   icon: React.ElementType;
   title: string;
-  description: string;
 }
 
-function ProfileSectionHeader({ icon: Icon, title, description }: ProfileSectionHeaderProps) {
+function ProfileSectionHeader({ icon: Icon, title }: ProfileSectionHeaderProps) {
   return (
       <div className="mb-6 flex items-start gap-3">
       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(37,79,34,0.1)] text-[color:var(--theme-primary)]">
         <Icon className="h-5 w-5" />
       </div>
-      <div className="space-y-1">
+      <div>
         <h5 className="theme-heading type-card-title">{title}</h5>
-        <p className="theme-text-muted type-body-sm">{description}</p>
       </div>
     </div>
   );
@@ -158,9 +156,9 @@ const StudentProfilePanel: React.FC<StudentProfilePanelProps> = ({
                 <h4 className="theme-heading type-page-title break-words">
                   {student.student.fullName}
                 </h4>
-                <p className="theme-text-muted type-body max-w-2xl break-words">
-                  {programLine || 'Program and university details will appear here once available.'}
-                </p>
+                {programLine ? (
+                  <p className="theme-text-muted type-body max-w-2xl break-words">{programLine}</p>
+                ) : null}
               </div>
 
               <div className={heroSummaryGridClass}>
@@ -210,7 +208,6 @@ const StudentProfilePanel: React.FC<StudentProfilePanelProps> = ({
           <ProfileSectionHeader
             icon={UserRound}
             title="Personal identity"
-            description="Core identity details used across your student record."
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <ProfileField label="Given name" value={student.student.givenName || '---'} />
@@ -224,7 +221,6 @@ const StudentProfilePanel: React.FC<StudentProfilePanelProps> = ({
           <ProfileSectionHeader
             icon={GraduationCap}
             title="University and program"
-            description="The primary academic details that should stand out at a glance."
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">

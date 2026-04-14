@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, SendHorizontal, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Bot, SendHorizontal, Sparkles, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAppError } from '@/components/providers/AppErrorProvider';
@@ -209,25 +209,7 @@ export default function FloatingChatWidget({
             </button>
           </div>
 
-          <div className="relative border-b border-[color:rgba(220,205,166,0.6)] px-5 py-4 sm:px-6">
-              <div className="theme-card-muted flex items-start gap-3 rounded-[1.5rem] border px-4 py-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--theme-primary)] text-white shadow-[0_16px_30px_-16px_rgba(37,79,34,0.7)]">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="theme-heading text-sm font-bold">Private and secure</p>
-                <p className="theme-text-muted mt-1 text-xs leading-5">
-                  Ask for summaries, recent updates, or message drafts based on the student records you can access.
-                </p>
-              </div>
-            </div>
-          </div>
-
           <div ref={scrollContainerRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
-            <div className="theme-text-muted type-label text-center">
-              Start a conversation
-            </div>
-
             <div className="flex flex-wrap gap-2">
               {quickActions.map((action) => (
                 <button
@@ -321,7 +303,7 @@ export default function FloatingChatWidget({
                   rows={2}
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Type your message here..."
+                  placeholder="Message"
                   className="theme-input min-h-[3.5rem] flex-1 resize-none rounded-[1.25rem] border-0 bg-transparent px-3 py-2.5 text-sm outline-none focus:shadow-none"
                 />
                 <button

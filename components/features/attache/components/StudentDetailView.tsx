@@ -32,20 +32,17 @@ const fieldValueStrongClass = 'theme-heading type-card-title mt-2';
 function DetailSectionHeader({
   icon: Icon,
   title,
-  description,
 }: {
   icon: React.ElementType;
   title: string;
-  description: string;
 }) {
   return (
     <div className="mb-6 flex items-start gap-3">
       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(37,79,34,0.1)] text-[color:var(--theme-primary)]">
         <Icon className="h-5 w-5" />
       </div>
-      <div className="space-y-1">
+      <div>
         <h5 className="theme-heading type-card-title">{title}</h5>
-        <p className="theme-text-muted type-body-sm">{description}</p>
       </div>
     </div>
   );
@@ -174,9 +171,7 @@ export default function StudentDetailView({
                 <h4 className="theme-heading type-page-title">
                   {student.student.fullName}
                 </h4>
-                <p className="theme-text-muted type-body max-w-2xl">
-                  {programLine || 'Program and university details will appear here once available.'}
-                </p>
+                {programLine ? <p className="theme-text-muted type-body max-w-2xl">{programLine}</p> : null}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -226,7 +221,6 @@ export default function StudentDetailView({
           <DetailSectionHeader
             icon={UserRound}
             title="Personal identity"
-            description="The key identity details that should be easy to scan."
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DetailField label="Given name" value={student.student.givenName || '---'} />
@@ -240,7 +234,6 @@ export default function StudentDetailView({
           <DetailSectionHeader
             icon={GraduationCap}
             title="University and program"
-            description="Primary academic details, with the most important information carrying more weight."
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
@@ -259,14 +252,12 @@ export default function StudentDetailView({
         <DetailSectionHeader
           icon={Building2}
           title="Contact and banking"
-          description="Grouped so supporting details feel connected instead of scattered."
         />
         <div className="grid gap-5 lg:grid-cols-2">
           <div className="rounded-[1.5rem] border border-[rgba(220,205,166,0.48)] bg-[rgba(255,255,255,0.38)] p-5">
             <DetailSectionHeader
               icon={Phone}
               title="Contact details"
-              description="Practical contact points for the student."
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <DetailField label="Phone" value={student.contact.phone || '---'} />
@@ -278,7 +269,6 @@ export default function StudentDetailView({
             <DetailSectionHeader
               icon={Landmark}
               title="Banking details"
-              description="Important payout and account identifiers."
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <DetailField label="Bank" value={student.bank.bankName || '---'} />
@@ -292,7 +282,6 @@ export default function StudentDetailView({
         <DetailSectionHeader
           icon={LineChart}
           title="Academic progress"
-          description="Performance history with the current standing called out first."
         />
         {actionError ? (
           <div className="theme-danger mb-4 rounded-2xl border px-4 py-3 text-sm font-semibold">

@@ -90,12 +90,7 @@ export default function DatabaseQueryModal({
             <div className="theme-icon-well inline-flex h-10 w-10 items-center justify-center rounded-xl border">
               <Database className="h-[18px] w-[18px]" />
             </div>
-            <div>
-              <h3 className="theme-heading text-lg font-bold md:text-[1.7rem]">Query Student Database</h3>
-              <p className="theme-text-muted mt-1 max-w-2xl text-[13px] leading-5 md:text-sm">
-                Search across the full student record, including identity, passport, contact, academic, banking, and address data.
-              </p>
-            </div>
+            <h3 className="theme-heading text-lg font-bold md:text-[1.7rem]">Query Student Database</h3>
           </div>
 
           <button
@@ -148,7 +143,7 @@ export default function DatabaseQueryModal({
                               ),
                             )
                           }
-                          placeholder="Try Seed Student, STUDENT123, computer science..."
+                          placeholder="Search term"
                           className="theme-input h-10 w-full rounded-xl border pl-10 pr-4 text-sm outline-none"
                         />
                         <Search className="theme-text-muted absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" />
@@ -219,12 +214,7 @@ export default function DatabaseQueryModal({
 
           <div className="relative shrink-0 rounded-[1.5rem] border border-[color:var(--theme-border)] bg-white/45 p-3.5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="theme-text-muted type-label">Returned Fields</p>
-                <p className="theme-text-muted mt-1 text-[13px] leading-5 md:text-sm">
-                  Choose which database columns should be shown in the student records table for this query.
-                </p>
-              </div>
+              <p className="theme-text-muted type-label">Returned Fields</p>
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <button
                   type="button"

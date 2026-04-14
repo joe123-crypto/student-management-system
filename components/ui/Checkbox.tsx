@@ -15,6 +15,7 @@ export default function Checkbox({ label, className, containerClassName, ...prop
           'h-4 w-4 rounded border-[color:var(--theme-border)] bg-[color:var(--theme-card)] text-[color:var(--theme-primary)] focus:ring-2 focus:ring-[color:rgba(160,58,19,0.18)]',
           className,
         )}
+        style={{ accentColor: 'var(--theme-primary)' }}
         {...props}
       />
       {label ? <span>{label}</span> : null}

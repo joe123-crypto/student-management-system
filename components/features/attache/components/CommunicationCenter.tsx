@@ -84,14 +84,13 @@ export default function CommunicationCenter({
       </div>
       <div>
         <label className="theme-text-muted type-label mb-1 block">
-          Extra Message (optional)
+          Message
         </label>
         <textarea
           rows={3}
           value={customMessage}
           onChange={(e) => setCustomMessage(e.target.value)}
           className="theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none"
-          placeholder="Add context for this communication..."
         />
       </div>
       <div className="flex items-center justify-between gap-3">

@@ -27,11 +27,6 @@ export default function ActionCard({
               Action Center
             </p>
             <h4 className="theme-heading type-section-title break-words">{title}</h4>
-            <p className="theme-text-muted type-body-sm mt-2">
-              {hasItems
-                ? 'Keep attention on the remaining items that block a complete profile.'
-                : 'No further action is needed right now.'}
-            </p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
             <div className="type-meta rounded-full border border-[rgba(220,205,166,0.65)] bg-white/70 px-3 py-1.5 font-semibold text-[color:var(--theme-text)]">
@@ -80,7 +75,6 @@ export default function ActionCard({
             <span className="theme-text-muted type-label">
               {priorityLabel}
             </span>
-            <span className="theme-heading type-body-sm font-semibold">Review the profile tabs to resolve these items.</span>
           </div>
         ) : null}
       </div>

@@ -57,11 +57,10 @@ export default function PermissionRequestsSection({
   return (
     <section className="theme-card rounded-2xl border p-6">
       <h2 className="theme-heading text-lg font-bold">Permission Requests</h2>
-      <p className="theme-text-muted mt-1 text-sm">Student requests submitted from the login page.</p>
 
       {requests.length === 0 ? (
         <p className="theme-card-muted theme-text-muted mt-6 rounded-xl border border-dashed p-4 text-sm">
-          No permission requests yet.
+          No requests yet.
         </p>
       ) : (
         <div className="mt-6 overflow-x-auto">
