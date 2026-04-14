@@ -26,6 +26,7 @@
   --theme-danger-text: var(--theme-danger);
   --theme-overlay: rgba(27, 59, 25, 0.22);
   --theme-shadow: 0 20px 52px rgba(96, 83, 55, 0.08);
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body {
@@ -389,4 +390,95 @@ body {
 
 .animate-notification-modal {
   animation: notification-modal-enter 240ms ease-out;
+}
+
+@keyframes hero-dashboard-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes hero-card-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-1.5deg);
+  }
+
+  50% {
+    transform: translate3d(0, -16px, 0) rotate(1deg);
+  }
+}
+
+@keyframes hero-chip-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translate3d(0, 40px, 0) scale(0.98);
+  filter: blur(10px);
+  transition:
+    opacity 720ms var(--motion-ease-out),
+    transform 720ms var(--motion-ease-out),
+    filter 720ms var(--motion-ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+
+.reveal-on-scroll[data-reveal-variant='left'] {
+  transform: translate3d(-42px, 24px, 0) scale(0.98);
+}
+
+.reveal-on-scroll[data-reveal-variant='right'] {
+  transform: translate3d(42px, 24px, 0) scale(0.98);
+}
+
+.reveal-on-scroll[data-reveal-variant='pop'] {
+  transform: translate3d(0, 36px, 0) scale(0.92);
+}
+
+.reveal-on-scroll[data-reveal-visible='true'] {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.hero-dashboard-float {
+  animation: hero-dashboard-float 7s ease-in-out infinite;
+}
+
+.hero-floating-card {
+  animation: hero-card-float 7.5s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+.hero-floating-chip {
+  animation: hero-chip-float 4.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
+  .hero-dashboard-float,
+  .hero-floating-card,
+  .hero-floating-chip {
+    animation: none;
+  }
 }

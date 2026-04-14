@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { ProgressDetails } from '@/types';
 import Button from './Button';
@@ -12,7 +12,7 @@ interface AcademicStatusCardProps {
   title: string;
   status: string;
   metricLabel: string;
-  metricValue: string;
+  metricValue: React.ReactNode;
   chartData: ChartDatum[];
   chartDataKey: string;
   chartSeriesLabel?: string;
@@ -52,16 +52,53 @@ export default function AcademicStatusCard({
   chartHeightClassName = 'h-64 sm:h-80',
 }: AcademicStatusCardProps) {
   const gradientId = useId().replace(/:/g, '');
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const [isChartReady, setIsChartReady] = useState(false);
 
   useEffect(() => {
     setIsChartReady(false);
 
-    const frameId = window.requestAnimationFrame(() => {
-      setIsChartReady(true);
+    const chartContainer = chartContainerRef.current;
+
+    if (!chartContainer || typeof window === 'undefined') {
+      return;
+    }
+
+    let frameId = 0;
+
+    const markChartReady = (width: number, height: number) => {
+      if (width <= 0 || height <= 0) {
+        return;
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        setIsChartReady(true);
+      });
+    };
+
+    if (typeof ResizeObserver === 'undefined') {
+      const { width, height } = chartContainer.getBoundingClientRect();
+      markChartReady(width, height);
+
+      return () => window.cancelAnimationFrame(frameId);
+    }
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+
+      if (!entry) {
+        return;
+      }
+
+      markChartReady(entry.contentRect.width, entry.contentRect.height);
     });
 
-    return () => window.cancelAnimationFrame(frameId);
+    resizeObserver.observe(chartContainer);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.cancelAnimationFrame(frameId);
+    };
   }, [chartData, chartHeightClassName]);
 
   return (
@@ -104,7 +141,7 @@ export default function AcademicStatusCard({
           </div>
         </div>
 
-        <div className={cn('w-full', chartHeightClassName)}>
+        <div ref={chartContainerRef} className={cn('w-full', chartHeightClassName)}>
           {isChartReady ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} debounce={50}>
               <AreaChart data={chartData}>
