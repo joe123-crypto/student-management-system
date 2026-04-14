@@ -441,10 +441,10 @@ export default function StudentRecordsTable({
   };
 
   return (
-    <div className="theme-card overflow-hidden rounded-2xl border">
+    <div className="theme-card overflow-hidden rounded-[1.75rem] border">
       {isLoading ? (
         <div className="h-[400px] overflow-auto animate-pulse">
-          <div className="theme-card-muted sticky top-0 z-10 border-b">
+          <div className="theme-table-header sticky top-0 z-10 border-b">
             <div className="grid grid-cols-[56px_repeat(4,minmax(0,1fr))] gap-4 px-4 py-4">
               <div className="h-4 w-4 rounded bg-[rgba(220,205,166,0.6)]" />
               {Array.from({ length: 4 }).map((_, index) => (
@@ -471,7 +471,7 @@ export default function StudentRecordsTable({
         </div>
       ) : (
         <div className="h-[400px] overflow-auto">
-          <div className="theme-card-muted border-b px-4 py-3 md:hidden">
+          <div className="theme-table-header border-b px-4 py-3 md:hidden">
             <label className="theme-text-muted inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
               <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
               Select all
@@ -487,8 +487,12 @@ export default function StudentRecordsTable({
               return (
                 <article
                   key={student.id}
-                  className={`space-y-3 p-4 transition-colors hover:bg-[rgba(237,228,194,0.22)] ${
-                    isEditing ? 'bg-[rgba(237,228,194,0.18)]' : isInlineEditing ? '' : 'cursor-pointer'
+                  className={`space-y-3 p-4 transition-colors hover:bg-[rgba(237,228,194,0.38)] ${
+                    isEditing
+                      ? 'bg-[rgba(236,220,180,0.3)]'
+                      : 'bg-[rgba(255,255,255,0.24)]'
+                  } ${isInlineEditing ? '' : 'cursor-pointer'} ${
+                    isSelected ? 'ring-1 ring-[rgba(160,58,19,0.08)] ring-inset' : ''
                   }`}
                   onClick={() => {
                     if (!isInlineEditing) {
@@ -561,7 +565,7 @@ export default function StudentRecordsTable({
 
           <table className="hidden w-full text-left md:table" style={{ minWidth: `${tableMinWidth}px` }}>
             <thead className="sticky top-0 z-10">
-              <tr className="theme-card-muted theme-text-muted type-label">
+              <tr className="theme-table-header theme-text-muted type-label shadow-[inset_0_-1px_0_rgba(220,205,166,0.65)]">
                 <th className="px-4 py-4">
                   <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
                 </th>
@@ -584,8 +588,12 @@ export default function StudentRecordsTable({
                 return (
                   <tr
                     key={student.id}
-                    className={`transition-colors hover:bg-[rgba(237,228,194,0.22)] ${
-                      isEditing ? 'bg-[rgba(237,228,194,0.18)]' : isInlineEditing ? '' : 'cursor-pointer'
+                    className={`transition-colors odd:bg-[rgba(255,255,255,0.22)] even:bg-[rgba(237,228,194,0.14)] hover:bg-[rgba(237,228,194,0.38)] ${
+                      isEditing
+                        ? 'bg-[rgba(236,220,180,0.3)]'
+                        : ''
+                    } ${isInlineEditing ? '' : 'cursor-pointer'} ${
+                      isSelected ? 'bg-[rgba(255,250,242,0.8)]' : ''
                     }`}
                     onClick={() => {
                       if (!isInlineEditing) {

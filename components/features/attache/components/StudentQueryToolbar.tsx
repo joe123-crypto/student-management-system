@@ -38,9 +38,9 @@ export default function StudentQueryToolbar({
   onQueryChange,
 }: StudentQueryToolbarProps) {
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="theme-card-muted flex flex-col gap-4 rounded-[1.75rem] border px-4 py-4 md:flex-row md:items-center md:justify-between">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="theme-card flex items-center gap-2 rounded-xl border px-4 py-2">
+        <div className="theme-card flex items-center gap-2 rounded-2xl border px-4 py-3 shadow-[0_10px_24px_-20px_rgba(96,83,55,0.4)]">
           <span className="theme-text-muted type-label">Sort:</span>
           <select
             className="theme-heading cursor-pointer bg-transparent text-xs font-bold outline-none"
@@ -51,7 +51,7 @@ export default function StudentQueryToolbar({
             <option value="inscription">Inscription No.</option>
           </select>
         </div>
-        <div className="theme-card flex items-center gap-2 rounded-xl border px-4 py-2">
+        <div className="theme-card flex items-center gap-2 rounded-2xl border px-4 py-3 shadow-[0_10px_24px_-20px_rgba(96,83,55,0.4)]">
           <span className="theme-text-muted type-label">Status:</span>
           <select
             className="theme-heading cursor-pointer bg-transparent text-xs font-bold outline-none"
