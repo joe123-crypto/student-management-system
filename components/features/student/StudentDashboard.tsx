@@ -5,11 +5,12 @@ import Tabs from '@/components/ui/Tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import StudentDashboardOverview from '@/components/features/student/dashboard/StudentDashboardOverview';
 import StudentProfilePanel from '@/components/features/student/dashboard/StudentProfilePanel';
-import StudentContactBankPanel from '@/components/features/student/dashboard/StudentContactBankPanel';
 import StudentAcademicProgressPanel from '@/components/features/student/dashboard/StudentAcademicProgressPanel';
 import StudentAcademicUpdateForm from '@/components/features/student/dashboard/StudentAcademicUpdateForm';
 import StudentMissingInfoSidebar from '@/components/features/student/dashboard/StudentMissingInfoSidebar';
 import StudentPasswordSettings from '@/components/features/student/dashboard/StudentPasswordSettings';
+import StudentProfileSectionPage from '@/components/features/student/dashboard/StudentProfileSectionPage';
+import { ProfileSectionId } from '@/components/features/student/dashboard/StudentProfileSectionDetailsCard';
 import { useNotifications } from '@/components/providers/NotificationProvider';
 import { readFileAsDataUrl, uploadManagedFile } from '@/lib/files/client';
 import { getErrorMessage } from '@/lib/errors';
@@ -46,6 +47,7 @@ type ActiveTab = (typeof tabItems)[number]['id'];
 
 interface PersistedStudentDashboardState {
   activeTab: ActiveTab;
+  activeOverviewSection: ProfileSectionId | null;
   isEditing: boolean;
   isUpdatingAcademic: boolean;
   editData: StudentProfile | null;
@@ -53,7 +55,7 @@ interface PersistedStudentDashboardState {
   isActionCenterExpanded: boolean;
 }
 
-const studentDashboardStateVersion = 'v1';
+const studentDashboardStateVersion = 'v3';
 
 function getStudentDashboardStateKey(studentId: string) {
   return `student-dashboard-state:${studentDashboardStateVersion}:${studentId}`;
@@ -79,6 +81,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 }) => {
   const notifications = useNotifications();
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const [activeOverviewSection, setActiveOverviewSection] = useState<ProfileSectionId | null>(null);
   const [optimisticStudent, setOptimisticStudent] = useState<StudentProfile | null>(student);
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdatingAcademic, setIsUpdatingAcademic] = useState(false);
@@ -97,6 +100,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     proofDocument: '',
   });
 
+  const studentId = student?.id ?? null;
   const visibleStudent = optimisticStudent ?? student;
 
   useEffect(() => {
@@ -105,7 +109,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   useEffect(() => {
     setHasHydratedPersistedState(false);
-    const storageKey = student?.id ? getStudentDashboardStateKey(student.id) : null;
+    const storageKey = studentId ? getStudentDashboardStateKey(studentId) : null;
 
     if (!storageKey) {
       setHasHydratedPersistedState(true);
@@ -116,6 +120,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
     if (persistedState) {
       setActiveTab(persistedState.activeTab);
+      setActiveOverviewSection(persistedState.activeOverviewSection);
       setIsEditing(persistedState.isEditing);
       setIsUpdatingAcademic(persistedState.isUpdatingAcademic);
       setEditData(persistedState.editData);
@@ -123,9 +128,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       setIsActionCenterExpanded(persistedState.isActionCenterExpanded);
     } else {
       setActiveTab('overview');
+      setActiveOverviewSection(null);
       setIsEditing(false);
       setIsUpdatingAcademic(false);
-      setEditData(cloneStudentProfile(student ?? null));
+      setEditData(null);
       setNewProgress({
         year: '',
         level: '',
@@ -137,7 +143,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
     setIsProfileDataLoading(false);
     setHasHydratedPersistedState(true);
-  }, [student]);
+  }, [studentId]);
 
   useEffect(() => {
     if (!visibleStudent) {
@@ -156,14 +162,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   }, [visibleStudent, isEditing]);
 
   useEffect(() => {
-    if (!hasHydratedPersistedState || !student?.id) {
+    if (!hasHydratedPersistedState || !studentId) {
       return;
     }
 
-    const storageKey = getStudentDashboardStateKey(student.id);
+    const storageKey = getStudentDashboardStateKey(studentId);
 
     if (
       activeTab === 'overview' &&
+      !activeOverviewSection &&
       !isEditing &&
       !isUpdatingAcademic &&
       !isActionCenterExpanded &&
@@ -178,6 +185,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
     setInStorage<PersistedStudentDashboardState>(storageKey, {
       activeTab,
+      activeOverviewSection,
       isEditing,
       isUpdatingAcademic,
       editData: isEditing ? editData : null,
@@ -186,13 +194,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     });
   }, [
     activeTab,
+    activeOverviewSection,
     editData,
     hasHydratedPersistedState,
     isActionCenterExpanded,
     isEditing,
     isUpdatingAcademic,
     newProgress,
-    student?.id,
+    studentId,
   ]);
 
   if (!visibleStudent && !isStudentLoading) {
@@ -336,7 +345,16 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     : 'relative grid gap-8 pb-24 md:grid-cols-[minmax(0,1fr)_5.75rem]';
 
   const handleTabChange = (tab: ActiveTab) => {
+    if (tab !== 'overview') {
+      setActiveOverviewSection(null);
+    }
+
     setActiveTab(tab);
+  };
+
+  const openProfileSection = (sectionId: ProfileSectionId) => {
+    setActiveOverviewSection(sectionId);
+    setActiveTab('overview');
   };
 
   const resetEditDataToVisibleStudent = () => {
@@ -470,92 +488,97 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
             mobileLayout="grid"
           />
 
-          <div className="mb-10 md:hidden">
-            <StudentMissingInfoSidebar
-              items={missingItems}
-              loading={isStudentDataPending}
-              isExpanded={isActionCenterExpanded}
-              onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
-            />
-          </div>
-
-          <div className={dashboardLayoutClassName}>
-            <div className="min-w-0 space-y-10">
-              {activeTab === 'overview' ? (
-                <StudentDashboardOverview
-                  student={visibleStudent}
-                  announcements={announcements}
-                  isStudentLoading={isStudentDataPending}
-                  isAnnouncementsLoading={isAnnouncementsLoading}
-                />
-              ) : null}
-
-              {activeTab === 'profile' ? (
-                <>
-                  <StudentProfilePanel
-                    student={visibleStudent}
-                    currentPicture={currentPicture}
-                    loading={isStudentDataPending || isProfileDataLoading || !editData}
-                    onProfilePictureChange={uploadProfilePicture}
-                    onProfilePictureRemove={removeProfilePicture}
-                    isUploadingProfilePicture={isUploadingProfilePicture}
-                  />
-
-                  {!isStudentDataPending && !isProfileDataLoading && editData && visibleStudent ? (
-                    <StudentContactBankPanel
-                      student={visibleStudent}
-                      editData={editData}
-                      isEditing={isEditing}
-                      isSaving={isSavingProfile}
-                      inputClassName={inputClass}
-                      onToggleEdit={() => setIsEditing((prev) => !prev)}
-                      onDiscard={() => {
-                        setIsEditing(false);
-                        resetEditDataToVisibleStudent();
-                      }}
-                      onSave={saveProfile}
-                      onUpdateField={handleUpdateField}
-                    />
-                  ) : (
-                    <StudentContactBankPanel loading />
-                  )}
-                </>
-              ) : null}
-
-              {activeTab === 'academic' ? (
-                isStudentDataPending ? (
-                  <StudentAcademicProgressPanel loading onStartUpdate={() => undefined} />
-                ) : isUpdatingAcademic ? (
-                  <StudentAcademicUpdateForm
-                    newProgress={newProgress}
-                    inputClassName={inputClass}
-                    onFieldChange={(field, value) => setNewProgress((p) => ({ ...p, [field]: value }))}
-                    onProofDocumentUpload={uploadProofDocument}
-                    onBack={() => setIsUpdatingAcademic(false)}
-                    onSubmit={() => {
-                      void submitAcademicUpdate();
-                    }}
-                    isUploadingProofDocument={isUploadingProofDocument}
-                    isSubmitting={isSubmittingAcademic}
-                  />
-                ) : (
-                  <StudentAcademicProgressPanel
-                    academicHistory={visibleStudent.academicHistory}
-                    status={visibleStudent.status}
-                    onStartUpdate={() => setIsUpdatingAcademic(true)}
-                  />
-                )
-              ) : null}
-            </div>
-            <div className="hidden md:block">
-              <StudentMissingInfoSidebar
-                items={missingItems}
-                loading={isStudentDataPending}
-                isExpanded={isActionCenterExpanded}
-                onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
+          {activeTab === 'overview' && activeOverviewSection ? (
+            isStudentDataPending || !visibleStudent || !editData ? (
+              <LoadingSpinner label="Loading student details..." />
+            ) : (
+              <StudentProfileSectionPage
+                student={visibleStudent}
+                sectionId={activeOverviewSection}
+                editData={editData}
+                isEditing={isEditing}
+                isSaving={isSavingProfile}
+                inputClassName={inputClass}
+                onBack={() => setActiveOverviewSection(null)}
+                onToggleEdit={() => setIsEditing((prev) => !prev)}
+                onDiscard={() => {
+                  setIsEditing(false);
+                  resetEditDataToVisibleStudent();
+                }}
+                onSave={saveProfile}
+                onUpdateField={handleUpdateField}
               />
-            </div>
-          </div>
+            )
+          ) : (
+            <>
+              <div className="mb-10 md:hidden">
+                <StudentMissingInfoSidebar
+                  items={missingItems}
+                  loading={isStudentDataPending}
+                  isExpanded={isActionCenterExpanded}
+                  onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
+                />
+              </div>
+
+              <div className={dashboardLayoutClassName}>
+                <div className="min-w-0 space-y-10">
+                  {activeTab === 'overview' ? (
+                    <StudentDashboardOverview
+                      student={visibleStudent}
+                      announcements={announcements}
+                      isStudentLoading={isStudentDataPending}
+                      isAnnouncementsLoading={isAnnouncementsLoading}
+                      onOpenProfileSection={openProfileSection}
+                    />
+                  ) : null}
+
+                  {activeTab === 'profile' ? (
+                    <StudentProfilePanel
+                      student={visibleStudent}
+                      currentPicture={currentPicture}
+                      loading={isStudentDataPending || isProfileDataLoading}
+                      onProfilePictureChange={uploadProfilePicture}
+                      onProfilePictureRemove={removeProfilePicture}
+                      isUploadingProfilePicture={isUploadingProfilePicture}
+                    />
+                  ) : null}
+
+                  {activeTab === 'academic' ? (
+                    isStudentDataPending ? (
+                      <StudentAcademicProgressPanel loading onStartUpdate={() => undefined} />
+                    ) : isUpdatingAcademic ? (
+                      <StudentAcademicUpdateForm
+                        newProgress={newProgress}
+                        inputClassName={inputClass}
+                        onFieldChange={(field, value) => setNewProgress((p) => ({ ...p, [field]: value }))}
+                        onProofDocumentUpload={uploadProofDocument}
+                        onBack={() => setIsUpdatingAcademic(false)}
+                        onSubmit={() => {
+                          void submitAcademicUpdate();
+                        }}
+                        isUploadingProofDocument={isUploadingProofDocument}
+                        isSubmitting={isSubmittingAcademic}
+                      />
+                    ) : (
+                      <StudentAcademicProgressPanel
+                        academicHistory={visibleStudent.academicHistory}
+                        status={visibleStudent.status}
+                        onStartUpdate={() => setIsUpdatingAcademic(true)}
+                      />
+                    )
+                  ) : null}
+                </div>
+                <div className="hidden md:block">
+                  <StudentMissingInfoSidebar
+                    items={missingItems}
+                    loading={isStudentDataPending}
+                    isExpanded={isActionCenterExpanded}
+                    onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </>
       ) : (
         <StudentPasswordSettings onChangePassword={onChangePassword} inputClassName={inputClass} />
