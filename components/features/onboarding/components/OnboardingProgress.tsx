@@ -14,7 +14,7 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({
   stepLabel = 'Step',
 }) => (
   <div className="mb-12">
-    <div className="flex items-center justify-between mb-8">
+    <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h1 className="theme-heading type-section-title">{title}</h1>
       <span className="theme-text-muted type-meta font-medium">
         {stepLabel} {step} of {totalSteps}
