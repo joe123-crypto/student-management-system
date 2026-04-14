@@ -344,19 +344,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     ? 'relative grid gap-8 pb-24 md:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]'
     : 'relative grid gap-8 pb-24 md:grid-cols-[minmax(0,1fr)_5.75rem]';
 
-  const handleTabChange = (tab: ActiveTab) => {
-    if (tab !== 'overview') {
-      setActiveOverviewSection(null);
-    }
-
-    setActiveTab(tab);
-  };
-
-  const openProfileSection = (sectionId: ProfileSectionId) => {
-    setActiveOverviewSection(sectionId);
-    setActiveTab('overview');
-  };
-
   const resetEditDataToVisibleStudent = () => {
     if (!visibleStudent) {
       setEditData(null);
@@ -364,6 +351,27 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     }
 
     setEditData(cloneStudentProfile(visibleStudent));
+  };
+
+  const closeProfileSection = () => {
+    setActiveOverviewSection(null);
+    setIsEditing(false);
+    resetEditDataToVisibleStudent();
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    if (tab !== 'overview') {
+      closeProfileSection();
+    }
+
+    setActiveTab(tab);
+  };
+
+  const openProfileSection = (sectionId: ProfileSectionId) => {
+    setIsEditing(false);
+    resetEditDataToVisibleStudent();
+    setActiveOverviewSection(sectionId);
+    setActiveTab('overview');
   };
 
   const uploadProfilePicture = async (file: File) => {
@@ -499,7 +507,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 isEditing={isEditing}
                 isSaving={isSavingProfile}
                 inputClassName={inputClass}
-                onBack={() => setActiveOverviewSection(null)}
+                onBack={closeProfileSection}
                 onToggleEdit={() => setIsEditing((prev) => !prev)}
                 onDiscard={() => {
                   setIsEditing(false);
