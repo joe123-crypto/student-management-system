@@ -27,18 +27,16 @@ const fieldValueClass = 'theme-heading mt-2 break-words text-lg font-semibold le
 interface ProfileGroupHeaderProps {
   icon: React.ElementType;
   title: string;
-  description: string;
 }
 
-function ProfileGroupHeader({ icon: Icon, title, description }: ProfileGroupHeaderProps) {
+function ProfileGroupHeader({ icon: Icon, title }: ProfileGroupHeaderProps) {
   return (
     <div className="mb-5 flex items-start gap-3">
       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(37,79,34,0.1)] text-[color:var(--theme-primary)]">
         <Icon className="h-5 w-5" />
       </div>
-      <div className="space-y-1">
+      <div>
         <h5 className="theme-heading text-sm font-bold tracking-[0.04em]">{title}</h5>
-        <p className="theme-text-muted text-sm leading-relaxed">{description}</p>
       </div>
     </div>
   );
@@ -145,7 +143,6 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
           <ProfileGroupHeader
             icon={Building2}
             title="Contact and banking"
-            description="Keep the practical details together, with editing focused only on the fields you can update."
           />
         </div>
         <Button
@@ -163,7 +160,6 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
           <ProfileGroupHeader
             icon={Phone}
             title="Contact details"
-            description="Reference information managed with your profile."
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <DisplayField label="Phone" value={student.contact.phone || '---'} />
@@ -175,7 +171,6 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
           <ProfileGroupHeader
             icon={Landmark}
             title="Banking details"
-            description="These are the fields you can review and update directly."
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <div className={fieldCardClass}>
@@ -238,11 +233,6 @@ const StudentContactBankPanel: React.FC<StudentContactBankPanelProps> = ({
           </div>
         </div>
       </div>
-
-      <p className="theme-text-muted mt-5 text-sm font-semibold">
-        Personal and academic details are managed by administration.
-      </p>
-
       {isEditing ? (
         <div className="mt-6 flex items-center justify-end gap-3 border-t border-[rgba(220,205,166,0.55)] pt-6">
           <Button variant="ghost" onClick={onDiscard} disabled={isSaving}>

@@ -86,7 +86,7 @@ export default function AnnouncementsSection({
             title="Past Announcements"
             compact
             className="theme-card min-h-[420px] rounded-3xl border p-6"
-            emptyMessage="No announcements yet. Published updates will appear here."
+            emptyMessage="Post the first announcement."
             actions={(announcement) => (
               <Button
                 variant="ghost"

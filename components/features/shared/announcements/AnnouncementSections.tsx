@@ -34,7 +34,7 @@ export function AnnouncementFeedSection({
   titleVariant = 'section',
   className,
   listClassName = 'space-y-4',
-  emptyMessage = 'No announcements yet.',
+  emptyMessage = 'Post the first announcement.',
   actions,
 }: AnnouncementFeedSectionProps) {
   return (

@@ -227,18 +227,15 @@ function validateStudentDraft(nextStudent: StudentProfile, students: StudentProf
 
 function SectionCard({
   title,
-  description,
   children,
 }: {
   title: string;
-  description: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="theme-card rounded-[2rem] border p-5 md:p-6">
-      <div className="mb-5 space-y-1">
+      <div className="mb-5">
         <h3 className="theme-heading type-card-title">{title}</h3>
-        <p className="theme-text-muted text-sm">{description}</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">{children}</div>
     </section>
@@ -454,14 +451,9 @@ export default function EditStudentRecordModal({
             <div className="theme-icon-well inline-flex h-11 w-11 items-center justify-center rounded-xl border">
               <Pencil className="h-5 w-5" />
             </div>
-            <div>
-              <h2 id={titleId} className="theme-heading text-lg font-bold md:text-[1.7rem]">
-                Edit Student Details
-              </h2>
-              <p className="theme-text-muted mt-1 max-w-3xl text-sm">
-                Update every part of this student record from one place, including identity, academics, contact details, banking, and progress history.
-              </p>
-            </div>
+            <h2 id={titleId} className="theme-heading text-lg font-bold md:text-[1.7rem]">
+              Edit Student Details
+            </h2>
           </div>
 
           <button
@@ -495,7 +487,6 @@ export default function EditStudentRecordModal({
           <div className="space-y-5">
             <SectionCard
               title="Personal identity"
-              description="Core identity fields and student status."
             >
               <FormField label="Full name">
                 <input
@@ -579,7 +570,6 @@ export default function EditStudentRecordModal({
 
             <SectionCard
               title="Passport details"
-              description="Travel and identity-document details."
             >
               <FormField label="Passport number">
                 <input
@@ -617,7 +607,6 @@ export default function EditStudentRecordModal({
 
             <SectionCard
               title="University and program"
-              description="Academic placement, dates, and program metadata."
             >
               <FormField label="University name">
                 <input
@@ -703,7 +692,6 @@ export default function EditStudentRecordModal({
 
             <SectionCard
               title="Contact details"
-              description="Primary and emergency contact information."
             >
               <FormField label="Email address">
                 <input
@@ -741,7 +729,6 @@ export default function EditStudentRecordModal({
 
             <SectionCard
               title="Address details"
-              description="Current host address and the home-country record."
             >
               <FormField label="Current host address" className="md:col-span-2">
                 <input
@@ -803,7 +790,6 @@ export default function EditStudentRecordModal({
 
             <SectionCard
               title="Banking details"
-              description="Bank, branch, and payout account information."
             >
               <FormField label="Bank name">
                 <input
@@ -881,12 +867,7 @@ export default function EditStudentRecordModal({
 
             <section className="theme-card rounded-[2rem] border p-5 md:p-6">
               <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div className="space-y-1">
-                  <h3 className="theme-heading type-card-title">Academic history</h3>
-                  <p className="theme-text-muted text-sm">
-                    Edit yearly records, update existing values, or add new progress entries.
-                  </p>
-                </div>
+                <h3 className="theme-heading type-card-title">Academic history</h3>
                 <Button onClick={addAcademicHistoryEntry} variant="secondary" className="md:self-start">
                   <Plus className="h-4 w-4" />
                   Add record
@@ -900,7 +881,6 @@ export default function EditStudentRecordModal({
                       <div className="mb-4 flex items-center justify-between gap-3">
                         <div>
                           <p className="theme-heading text-sm font-semibold">Progress record {index + 1}</p>
-                          <p className="theme-text-muted text-xs">Keep year, level, and grade filled for saved records.</p>
                         </div>
                         <Button
                           variant="ghost"
@@ -964,9 +944,7 @@ export default function EditStudentRecordModal({
                 </div>
               ) : (
                 <div className="rounded-[1.5rem] border border-dashed border-[rgba(220,205,166,0.8)] bg-[rgba(255,255,255,0.32)] px-5 py-6 text-center">
-                  <p className="theme-text-muted text-sm">
-                    No academic history yet. Add the first record when you are ready.
-                  </p>
+                  <p className="theme-text-muted text-sm">Add the first record.</p>
                 </div>
               )}
             </section>

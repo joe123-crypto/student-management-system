@@ -193,11 +193,6 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
               ) : null}
               {activeCommunicationView === 'messaging' ? (
                 <div className="space-y-4">
-                  <div className="theme-card-muted max-w-3xl rounded-2xl border p-4">
-                    <p className="theme-text-muted text-sm">
-                      Use <span className="font-bold text-[color:var(--theme-primary)]">All Filtered</span> to broadcast to the current student directory from this view.
-                    </p>
-                  </div>
                   <div className="max-w-3xl">
                   <CommunicationCenter
                     selectedCount={0}

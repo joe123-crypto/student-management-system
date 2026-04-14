@@ -357,14 +357,9 @@ export default function AddStudentRecordModal({
             <div className="theme-icon-well inline-flex h-11 w-11 items-center justify-center rounded-xl border">
               <UserPlus className="h-5 w-5" />
             </div>
-            <div>
-              <h2 id={titleId} className="theme-heading text-lg font-bold md:text-[1.7rem]">
-                Add Student Record
-              </h2>
-              <p className="theme-text-muted mt-1 max-w-2xl text-sm">
-                Reuse the onboarding steps to create a student profile directly from the attache dashboard.
-              </p>
-            </div>
+            <h2 id={titleId} className="theme-heading text-lg font-bold md:text-[1.7rem]">
+              Add Student Record
+            </h2>
           </div>
 
           <button
