@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Announcement, ProgressDetails, StudentProfile, UserRole } from '@/types';
 import Layout from '@/components/layout/Layout';
 import Tabs from '@/components/ui/Tabs';
@@ -21,6 +22,7 @@ import {
   removeFromStorage,
   setInStorage,
 } from '@/components/shell/shared/storage';
+import { dashboardPanelMotion } from '@/components/ui/motion';
 
 interface StudentDashboardProps {
   student: StudentProfile | null;
@@ -364,7 +366,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       closeProfileSection();
     }
 
-    setActiveTab(tab);
+    startTransition(() => {
+      setActiveTab(tab);
+    });
   };
 
   const openProfileSection = (sectionId: ProfileSectionId) => {
@@ -496,87 +500,39 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
             mobileLayout="grid"
           />
 
-          {activeTab === 'overview' && activeOverviewSection ? (
-            isStudentDataPending || !visibleStudent || !editData ? (
-              <LoadingSpinner label="Loading student details..." />
+          <AnimatePresence mode="wait">
+            {activeTab === 'overview' && activeOverviewSection ? (
+              <motion.div
+                key={`overview-section-${activeOverviewSection}`}
+                {...dashboardPanelMotion}
+              >
+                {isStudentDataPending || !visibleStudent || !editData ? (
+                  <LoadingSpinner label="Loading student details..." />
+                ) : (
+                  <StudentProfileSectionPage
+                    student={visibleStudent}
+                    sectionId={activeOverviewSection}
+                    editData={editData}
+                    isEditing={isEditing}
+                    isSaving={isSavingProfile}
+                    inputClassName={inputClass}
+                    onBack={closeProfileSection}
+                    onToggleEdit={() => setIsEditing((prev) => !prev)}
+                    onDiscard={() => {
+                      setIsEditing(false);
+                      resetEditDataToVisibleStudent();
+                    }}
+                    onSave={saveProfile}
+                    onUpdateField={handleUpdateField}
+                  />
+                )}
+              </motion.div>
             ) : (
-              <StudentProfileSectionPage
-                student={visibleStudent}
-                sectionId={activeOverviewSection}
-                editData={editData}
-                isEditing={isEditing}
-                isSaving={isSavingProfile}
-                inputClassName={inputClass}
-                onBack={closeProfileSection}
-                onToggleEdit={() => setIsEditing((prev) => !prev)}
-                onDiscard={() => {
-                  setIsEditing(false);
-                  resetEditDataToVisibleStudent();
-                }}
-                onSave={saveProfile}
-                onUpdateField={handleUpdateField}
-              />
-            )
-          ) : (
-            <>
-              <div className="mb-10 md:hidden">
-                <StudentMissingInfoSidebar
-                  items={missingItems}
-                  loading={isStudentDataPending}
-                  isExpanded={isActionCenterExpanded}
-                  onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
-                />
-              </div>
-
-              <div className={dashboardLayoutClassName}>
-                <div className="min-w-0 space-y-10">
-                  {activeTab === 'overview' ? (
-                    <StudentDashboardOverview
-                      student={visibleStudent}
-                      announcements={announcements}
-                      isStudentLoading={isStudentDataPending}
-                      isAnnouncementsLoading={isAnnouncementsLoading}
-                      onOpenProfileSection={openProfileSection}
-                    />
-                  ) : null}
-
-                  {activeTab === 'profile' ? (
-                    <StudentProfilePanel
-                      student={visibleStudent}
-                      currentPicture={currentPicture}
-                      loading={isStudentDataPending || isProfileDataLoading}
-                      onProfilePictureChange={uploadProfilePicture}
-                      onProfilePictureRemove={removeProfilePicture}
-                      isUploadingProfilePicture={isUploadingProfilePicture}
-                    />
-                  ) : null}
-
-                  {activeTab === 'academic' ? (
-                    isStudentDataPending ? (
-                      <StudentAcademicProgressPanel loading onStartUpdate={() => undefined} />
-                    ) : isUpdatingAcademic ? (
-                      <StudentAcademicUpdateForm
-                        newProgress={newProgress}
-                        inputClassName={inputClass}
-                        onFieldChange={(field, value) => setNewProgress((p) => ({ ...p, [field]: value }))}
-                        onProofDocumentUpload={uploadProofDocument}
-                        onBack={() => setIsUpdatingAcademic(false)}
-                        onSubmit={() => {
-                          void submitAcademicUpdate();
-                        }}
-                        isUploadingProofDocument={isUploadingProofDocument}
-                        isSubmitting={isSubmittingAcademic}
-                      />
-                    ) : (
-                      <StudentAcademicProgressPanel
-                        academicHistory={visibleStudent.academicHistory}
-                        status={visibleStudent.status}
-                        onStartUpdate={() => setIsUpdatingAcademic(true)}
-                      />
-                    )
-                  ) : null}
-                </div>
-                <div className="hidden md:block">
+              <motion.div
+                key={`dashboard-tab-${activeTab}`}
+                {...dashboardPanelMotion}
+              >
+                <div className="mb-10 md:hidden">
                   <StudentMissingInfoSidebar
                     items={missingItems}
                     loading={isStudentDataPending}
@@ -584,9 +540,67 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
                   />
                 </div>
-              </div>
-            </>
-          )}
+
+                <div className={dashboardLayoutClassName}>
+                  <div className="min-w-0 space-y-10">
+                    {activeTab === 'overview' ? (
+                      <StudentDashboardOverview
+                        student={visibleStudent}
+                        announcements={announcements}
+                        isStudentLoading={isStudentDataPending}
+                        isAnnouncementsLoading={isAnnouncementsLoading}
+                        onOpenProfileSection={openProfileSection}
+                      />
+                    ) : null}
+
+                    {activeTab === 'profile' ? (
+                      <StudentProfilePanel
+                        student={visibleStudent}
+                        currentPicture={currentPicture}
+                        loading={isStudentDataPending || isProfileDataLoading}
+                        onProfilePictureChange={uploadProfilePicture}
+                        onProfilePictureRemove={removeProfilePicture}
+                        isUploadingProfilePicture={isUploadingProfilePicture}
+                      />
+                    ) : null}
+
+                    {activeTab === 'academic' ? (
+                      isStudentDataPending ? (
+                        <StudentAcademicProgressPanel loading onStartUpdate={() => undefined} />
+                      ) : isUpdatingAcademic ? (
+                        <StudentAcademicUpdateForm
+                          newProgress={newProgress}
+                          inputClassName={inputClass}
+                          onFieldChange={(field, value) => setNewProgress((p) => ({ ...p, [field]: value }))}
+                          onProofDocumentUpload={uploadProofDocument}
+                          onBack={() => setIsUpdatingAcademic(false)}
+                          onSubmit={() => {
+                            void submitAcademicUpdate();
+                          }}
+                          isUploadingProofDocument={isUploadingProofDocument}
+                          isSubmitting={isSubmittingAcademic}
+                        />
+                      ) : (
+                        <StudentAcademicProgressPanel
+                          academicHistory={visibleStudent.academicHistory}
+                          status={visibleStudent.status}
+                          onStartUpdate={() => setIsUpdatingAcademic(true)}
+                        />
+                      )
+                    ) : null}
+                  </div>
+                  <div className="hidden md:block">
+                    <StudentMissingInfoSidebar
+                      items={missingItems}
+                      loading={isStudentDataPending}
+                      isExpanded={isActionCenterExpanded}
+                      onToggleExpanded={() => setIsActionCenterExpanded((prev) => !prev)}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       ) : (
         <StudentPasswordSettings onChangePassword={onChangePassword} inputClassName={inputClass} />

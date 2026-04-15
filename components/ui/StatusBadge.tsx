@@ -23,6 +23,7 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
       className={cn(
         'rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.03em]',
         statusClassMap[status] || 'theme-card-muted theme-text-muted',
+        status === 'PENDING' && 'theme-attention-pulse',
         className,
       )}
     >

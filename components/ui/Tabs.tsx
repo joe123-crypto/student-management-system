@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useId } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from './cn';
 
 interface TabItem<T extends string> {
@@ -22,6 +23,9 @@ export default function Tabs<T extends string>({
   className,
   mobileLayout = 'scroll',
 }: TabsProps<T>) {
+  const indicatorId = useId();
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <div
       className={cn(
@@ -53,18 +57,29 @@ export default function Tabs<T extends string>({
               type="button"
               onClick={() => onChange(item.id)}
               className={cn(
-                'rounded-[1.1rem] px-3 py-3 text-center text-xs font-semibold transition-all md:px-5 md:text-sm',
+                'relative overflow-hidden rounded-[1.1rem] px-3 py-3 text-center text-xs font-semibold transition-colors md:px-5 md:text-sm',
                 mobileLayout === 'grid'
                   ? 'min-w-0 leading-tight'
                   : 'shrink-0 snap-start whitespace-nowrap',
                 active
-                  ? 'bg-[var(--theme-card)] text-[color:var(--theme-text)]'
+                  ? 'text-[color:var(--theme-text)]'
                   : 'text-[color:var(--theme-text-muted)] hover:bg-[rgba(255,255,255,0.82)] hover:text-[color:var(--theme-text)]',
               )}
               aria-pressed={active}
             >
-              <span className="md:hidden">{item.shortLabel ?? item.label}</span>
-              <span className="hidden md:inline">{item.label}</span>
+              {active ? (
+                <motion.span
+                  layoutId={`tabs-indicator-${indicatorId}`}
+                  className="absolute inset-0 rounded-[1.1rem] bg-[var(--theme-card)] shadow-[0_12px_24px_rgba(96,83,55,0.08)]"
+                  transition={
+                    shouldReduceMotion
+                      ? { duration: 0 }
+                      : { type: 'spring', bounce: 0.18, duration: 0.45 }
+                  }
+                />
+              ) : null}
+              <span className="relative z-10 md:hidden">{item.shortLabel ?? item.label}</span>
+              <span className="relative z-10 hidden md:inline">{item.label}</span>
             </button>
           );
         })}

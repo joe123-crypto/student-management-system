@@ -1,6 +1,15 @@
 import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import ActionCard from '@/components/ui/ActionCard';
 import Skeleton from '@/components/ui/Skeleton';
+import {
+  AnimatedCount,
+  dashboardHoverLift,
+  dashboardHoverTransition,
+  dashboardPanelMotion,
+  dashboardStaggerContainer,
+  dashboardStaggerItem,
+} from '@/components/ui/motion';
 
 interface StudentMissingInfoSidebarProps {
   items: string[];
@@ -55,6 +64,7 @@ const StudentMissingInfoSidebar: React.FC<StudentMissingInfoSidebarProps> = ({
   isExpanded,
   onToggleExpanded,
 }) => {
+  const shouldReduceMotion = useReducedMotion();
   const hasItems = items.length > 0;
   const visibleWarningItems = items.slice(0, 3);
   const toggleLabel = isExpanded ? 'Collapse action center' : 'Expand action center';
@@ -97,27 +107,35 @@ const StudentMissingInfoSidebar: React.FC<StudentMissingInfoSidebarProps> = ({
         ) : (
           <>
             {isExpanded ? (
-              <ActionCard
-                title="Missing Information"
-                items={items}
-                emptyMessage="Your profile is up to date!"
-                priorityLabel="Priority High"
-                actionSlot={
-                  <button
-                    type="button"
-                    onClick={onToggleExpanded}
-                    title={toggleLabel}
-                    aria-label={toggleLabel}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(220,205,166,0.65)] bg-white/80 text-[color:var(--theme-text)] transition-all hover:-translate-y-0.5 hover:border-[rgba(160,58,19,0.38)] hover:text-[color:var(--theme-primary-soft)]"
-                  >
-                    <ChevronIcon direction="right" className="h-4 w-4" />
-                  </button>
-                }
-              />
+              <motion.div {...dashboardPanelMotion}>
+                <ActionCard
+                  title="Missing Information"
+                  items={items}
+                  emptyMessage="Your profile is up to date!"
+                  priorityLabel="Priority High"
+                  actionSlot={
+                    <button
+                      type="button"
+                      onClick={onToggleExpanded}
+                      title={toggleLabel}
+                      aria-label={toggleLabel}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(220,205,166,0.65)] bg-white/80 text-[color:var(--theme-text)] transition-all hover:-translate-y-0.5 hover:border-[rgba(160,58,19,0.38)] hover:text-[color:var(--theme-primary-soft)]"
+                    >
+                      <ChevronIcon direction="right" className="h-4 w-4" />
+                    </button>
+                  }
+                />
+              </motion.div>
             ) : (
-              <button
+              <motion.button
                 type="button"
                 onClick={onToggleExpanded}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.28, ease: 'easeOut' }}
+                whileHover={shouldReduceMotion ? undefined : dashboardHoverLift}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.995 }}
                 title={
                   hasItems
                     ? `${items.length} item${items.length === 1 ? '' : 's'} need attention. ${toggleLabel}.`
@@ -129,51 +147,81 @@ const StudentMissingInfoSidebar: React.FC<StudentMissingInfoSidebarProps> = ({
               >
                 <div className="absolute right-0 top-0 h-20 w-20 rounded-full bg-[rgba(245,130,74,0.08)] blur-3xl" />
 
-                <div className="relative z-10 flex min-w-0 items-center gap-4 md:flex-col md:items-center">
-                  <div
+                <motion.div
+                  className="relative z-10 flex min-w-0 items-center gap-4 md:flex-col md:items-center"
+                  variants={dashboardStaggerContainer}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <motion.div
+                    variants={dashboardStaggerItem}
+                    transition={dashboardHoverTransition}
                     className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${
                       hasItems
                         ? 'border-[rgba(245,130,74,0.26)] bg-[rgba(245,130,74,0.12)] text-[color:var(--theme-primary-soft)]'
                         : 'border-[rgba(37,79,34,0.18)] bg-[rgba(37,79,34,0.08)] text-[color:var(--theme-primary)]'
                     }`}
                   >
-                    {hasItems ? <WarningIcon className="h-5 w-5" /> : <CheckIcon className="h-5 w-5" />}
+                    {hasItems ? (
+                      <motion.span
+                        initial={shouldReduceMotion ? false : { rotate: -10, y: 8, opacity: 0 }}
+                        animate={shouldReduceMotion ? { opacity: 1 } : { rotate: 0, y: 0, opacity: 1 }}
+                        transition={{ delay: 0.12, duration: 0.4, ease: 'easeOut' }}
+                      >
+                        <WarningIcon className="h-5 w-5" />
+                      </motion.span>
+                    ) : (
+                      <CheckIcon className="h-5 w-5" />
+                    )}
                     {hasItems ? (
                       <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--theme-primary-soft)] px-1 text-[11px] font-bold text-white">
-                        {items.length}
+                        <AnimatedCount value={items.length} />
                       </span>
                     ) : null}
-                  </div>
+                  </motion.div>
 
-                  <div className="flex items-center gap-2 md:flex-col md:gap-3">
+                  <motion.div className="flex items-center gap-2 md:flex-col md:gap-3" variants={dashboardStaggerContainer}>
                     {hasItems ? (
                       visibleWarningItems.map((item, index) => (
-                        <span
+                        <motion.span
                           key={`${item}-${index}`}
                           title={item}
+                          variants={dashboardStaggerItem}
+                          initial={shouldReduceMotion ? false : { opacity: 0, y: 8, rotate: -6 }}
+                          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, rotate: 0 }}
+                          transition={{
+                            delay: shouldReduceMotion ? 0 : 0.12 + index * 0.06,
+                            duration: 0.28,
+                            ease: 'easeOut',
+                          }}
                           className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[rgba(220,205,166,0.55)] bg-white/78 text-[color:var(--theme-primary-soft)] shadow-sm"
                         >
                           <WarningIcon className="h-4 w-4" />
-                        </span>
+                        </motion.span>
                       ))
                     ) : (
                       <span className="type-label rounded-full border border-[rgba(37,79,34,0.18)] bg-white/78 px-3 py-1 text-[color:var(--theme-primary)]">
                         Clear
                       </span>
                     )}
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
 
-                <div className="relative z-10 flex items-center gap-3 md:mt-auto md:flex-col">
+                <motion.div
+                  className="relative z-10 flex items-center gap-3 md:mt-auto md:flex-col"
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: shouldReduceMotion ? 0 : 0.18, duration: 0.28, ease: 'easeOut' }}
+                >
                   <span className="type-label rounded-full border border-[rgba(220,205,166,0.55)] bg-white/78 px-3 py-1 text-[color:var(--theme-text)]">
-                    {hasItems ? `${items.length} open` : 'All clear'}
+                    {hasItems ? <AnimatedCount value={items.length} suffix=" open" /> : 'All clear'}
                   </span>
                   <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[rgba(220,205,166,0.65)] bg-white/82 text-[color:var(--theme-text)]">
                     <ChevronIcon direction="left" className="h-4 w-4" />
                   </span>
                   <span className="sr-only">Action center</span>
-                </div>
-              </button>
+                </motion.div>
+              </motion.button>
             )}
           </>
         )}

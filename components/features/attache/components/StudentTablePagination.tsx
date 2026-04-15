@@ -1,4 +1,5 @@
 import React from 'react';
+import { AnimatedCount } from '@/components/ui/motion';
 
 interface StudentTablePaginationProps {
   totalItems: number;
@@ -41,7 +42,8 @@ export default function StudentTablePagination({
           ))}
         </select>
         <span className="theme-text-muted text-xs sm:whitespace-nowrap">
-          Showing {start}-{end} of {totalItems}
+          Showing <AnimatedCount value={start} />-<AnimatedCount value={end} /> of{' '}
+          <AnimatedCount value={totalItems} />
         </span>
       </div>
 
@@ -55,7 +57,7 @@ export default function StudentTablePagination({
           Previous
         </button>
         <span className="theme-heading text-center text-sm font-semibold">
-          Page {safePage} of {totalPages}
+          Page <AnimatedCount value={safePage} /> of <AnimatedCount value={totalPages} />
         </span>
         <button
           type="button"

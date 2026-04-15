@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import type { Announcement } from '@/types';
 import Button from '@/components/ui/Button';
 import { useNotifications } from '@/components/providers/NotificationProvider';
@@ -8,6 +9,7 @@ import {
 } from '@/components/features/shared/announcements/AnnouncementSections';
 import Skeleton from '@/components/ui/Skeleton';
 import { getErrorMessage } from '@/lib/errors';
+import { dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
 
 interface AnnouncementsSectionProps {
   announcements: Announcement[];
@@ -58,8 +60,13 @@ export default function AnnouncementsSection({
   };
 
   return (
-    <div className="grid items-start gap-6 xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)]">
-      <div>
+    <motion.div
+      className="grid items-start gap-6 xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)]"
+      variants={dashboardStaggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={dashboardStaggerItem}>
         <AnnouncementComposerCard
           announcementTitle={newTitle}
           announcementContent={newContent}
@@ -69,8 +76,8 @@ export default function AnnouncementsSection({
           submitLabel={isSubmitting ? 'Posting...' : 'Post Announcement'}
           className="theme-card sticky top-24 rounded-3xl border p-6 shadow-sm"
         />
-      </div>
-      <div className="space-y-4">
+      </motion.div>
+      <motion.div variants={dashboardStaggerItem} className="space-y-4">
         {isLoading ? (
           <div className="theme-card min-h-[420px] rounded-3xl border p-6">
             <Skeleton className="h-6 w-48" />
@@ -121,7 +128,7 @@ export default function AnnouncementsSection({
             )}
           />
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

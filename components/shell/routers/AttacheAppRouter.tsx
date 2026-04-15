@@ -3,6 +3,7 @@
 import type { Announcement, PermissionRequest, StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
 import Redirect from '@/components/shell/Redirect';
+import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
 import AttacheDashboard from '@/components/features/attache/AttacheeDashboard';
 
 interface AttacheAppRouterProps {
@@ -47,6 +48,9 @@ export default function AttacheAppRouter({
 }: AttacheAppRouterProps) {
   if (user?.role !== UserRole.ATTACHE) {
     return <Redirect to="/login" />;
+  }
+  if (isStudentsLoading) {
+    return <AppLoadingScreen label="Loading student records..." />;
   }
 
   const section = route === '/attache/settings' ? 'settings' : 'dashboard';
