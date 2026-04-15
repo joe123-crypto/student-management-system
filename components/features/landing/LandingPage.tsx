@@ -301,7 +301,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
   };
 
   return (
-    <div ref={pageRef} className="theme-page min-h-screen overflow-x-hidden text-[color:var(--theme-text)]">
+    <div ref={pageRef} className="theme-page min-h-screen text-[color:var(--theme-text)]">
 
       <div className="fixed top-6 left-0 right-0 z-50 px-3 sm:px-6">
         <nav className="theme-card mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 rounded-full border px-2.5 sm:h-16 sm:gap-3 sm:px-6">
