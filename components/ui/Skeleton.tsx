@@ -8,7 +8,7 @@ export default function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       aria-hidden="true"
-      className={cn('animate-pulse rounded-2xl bg-[rgba(220,205,166,0.58)]', className)}
+      className={cn('theme-skeleton rounded-2xl', className)}
     />
   );
 }

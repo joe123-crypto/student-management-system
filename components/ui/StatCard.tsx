@@ -2,8 +2,8 @@ import React from 'react';
 
 interface StatCardProps {
   label: string;
-  value: string;
-  suffix?: string;
+  value: React.ReactNode;
+  suffix?: React.ReactNode;
   valueClassName?: string;
   supportingText?: string;
 }
