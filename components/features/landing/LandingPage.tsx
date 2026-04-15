@@ -301,7 +301,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
   };
 
   return (
-    <div ref={pageRef} className="theme-page min-h-screen overflow-x-hidden text-[color:var(--theme-text)]">
+    <div ref={pageRef} className="theme-page min-h-screen text-[color:var(--theme-text)]">
 
       <div className="fixed top-6 left-0 right-0 z-50 px-3 sm:px-6">
         <nav className="theme-card mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 rounded-full border px-2.5 sm:h-16 sm:gap-3 sm:px-6">
@@ -357,7 +357,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
             <div className="grid items-center gap-12 sm:gap-14 lg:grid-cols-2 lg:gap-20">
               <div className="reveal-on-scroll relative z-10 pb-20 sm:pb-24 lg:pb-0 lg:pr-10 xl:pr-16" data-reveal="" data-reveal-variant="left">
                 <HeroStudentImage
-                  className="right-0 -bottom-20 z-20 h-[14rem] w-[9.5rem] sm:right-6 sm:-bottom-24 sm:h-[18rem] sm:w-[12rem] lg:hidden"
+                  className="right-0 -bottom-20 z-0 h-[14rem] w-[9.5rem] sm:right-6 sm:-bottom-24 sm:h-[18rem] sm:w-[12rem] lg:hidden"
                   sizes="(max-width: 639px) 152px, 192px"
                   absolute
                   priority
@@ -391,7 +391,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                 </div>
               </div>
 
-              <div className="relative xl:pl-8">
+              <div className="relative z-20 -mt-14 sm:-mt-16 lg:z-auto lg:mt-0 xl:pl-8">
                 <div className="reveal-on-scroll hero-dashboard-float" data-reveal="" data-reveal-variant="right" style={{ '--reveal-delay': '180ms' } as React.CSSProperties}>
                   <AcademicStatusCard
                     title="Academic Status"
