@@ -158,7 +158,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
             className="mb-8"
             mobileLayout="grid"
           />
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence mode="wait">
             {activeView === 'students' ? (
               <motion.div key="attache-students" {...dashboardPanelMotion}>
                 <StudentsSection
@@ -183,7 +183,7 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
                     mobileLayout="grid"
                   />
                 </div>
-                <AnimatePresence mode="wait" initial={false}>
+                <AnimatePresence mode="wait">
                   {activeCommunicationView === 'announcements' ? (
                     <motion.div key="attache-announcements-feed" {...dashboardPanelMotion}>
                       <AnnouncementsSection
