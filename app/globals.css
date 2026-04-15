@@ -481,31 +481,28 @@ body {
 
 .reveal-on-scroll {
   opacity: 0;
-  transform: translate3d(0, 40px, 0) scale(0.98);
-  filter: blur(10px);
+  transform: translate3d(0, 24px, 0) scale(0.985);
   transition:
-    opacity 720ms var(--motion-ease-out),
-    transform 720ms var(--motion-ease-out),
-    filter 720ms var(--motion-ease-out);
+    opacity 540ms var(--motion-ease-out),
+    transform 540ms var(--motion-ease-out);
   transition-delay: var(--reveal-delay, 0ms);
-  will-change: opacity, transform, filter;
+  will-change: opacity, transform;
 }
 
 .reveal-on-scroll[data-reveal-variant='left'] {
-  transform: translate3d(-42px, 24px, 0) scale(0.98);
+  transform: translate3d(-28px, 16px, 0) scale(0.985);
 }
 
 .reveal-on-scroll[data-reveal-variant='right'] {
-  transform: translate3d(42px, 24px, 0) scale(0.98);
+  transform: translate3d(28px, 16px, 0) scale(0.985);
 }
 
 .reveal-on-scroll[data-reveal-variant='pop'] {
-  transform: translate3d(0, 36px, 0) scale(0.92);
+  transform: translate3d(0, 20px, 0) scale(0.965);
 }
 
 .reveal-on-scroll[data-reveal-visible='true'] {
   opacity: 1;
-  filter: blur(0);
   transform: translate3d(0, 0, 0) scale(1);
 }
 
@@ -516,17 +513,24 @@ body {
 .hero-floating-card {
   animation: hero-card-float 7.5s ease-in-out infinite;
   transform-origin: 50% 100%;
+  backdrop-filter: none;
 }
 
 .hero-floating-chip {
   animation: hero-chip-float 4.8s ease-in-out infinite;
+  backdrop-filter: none;
+}
+
+@media (max-width: 1023px) {
+  .hero-dashboard-float {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal-on-scroll {
     opacity: 1;
     transform: none;
-    filter: none;
     transition: none;
   }
 
