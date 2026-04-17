@@ -2,9 +2,10 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import authConfig from '@/auth.config';
 import {
-  GENERIC_PERMISSION_REQUEST_MESSAGE,
+  createPermissionRequest,
   listPermissionRequests,
-  submitPermissionRequest,
+  PermissionRequestConflictError,
+  PermissionRequestValidationError,
 } from '@/lib/permission-requests/store';
 import { normalizePermissionRequestInput } from '@/lib/permission-requests/serializers';
 import { takeRateLimitToken } from '@/lib/security/rate-limit';
@@ -77,17 +78,31 @@ export async function POST(request: Request) {
       );
     }
 
-    await submitPermissionRequest({
+    await createPermissionRequest({
       inscriptionNumber: normalized.inscriptionNumber,
       fullName: normalized.fullName,
       passportNumber: normalized.passportNumber,
     });
 
     return NextResponse.json(
-      { message: GENERIC_PERMISSION_REQUEST_MESSAGE },
-      { status: 202 },
+      { message: 'Your request has been received and is now pending review.' },
+      { status: 201 },
     );
   } catch (error) {
+    if (error instanceof PermissionRequestValidationError) {
+      return NextResponse.json(
+        {
+          error:
+            'We could not verify those details against an eligible student record. Please check your full name, passport number, and inscription number.',
+        },
+        { status: 400 },
+      );
+    }
+
+    if (error instanceof PermissionRequestConflictError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     console.error('[PERMISSION_REQUESTS] Failed to create permission request:', error);
     return NextResponse.json({ error: 'Failed to submit permission request.' }, { status: 500 });
   }
