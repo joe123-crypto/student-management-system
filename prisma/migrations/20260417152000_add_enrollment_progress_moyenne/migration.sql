@@ -1,0 +1,6 @@
+ALTER TABLE "ENROLLMENTPROGRESS"
+    ADD COLUMN "moyenne" DOUBLE PRECISION;
+
+UPDATE "ENROLLMENTPROGRESS"
+SET "moyenne" = REPLACE(BTRIM("result_status"), ',', '.')::DOUBLE PRECISION
+WHERE COALESCE(BTRIM("result_status"), '') ~ '^[0-9]+([.,][0-9]+)?$';

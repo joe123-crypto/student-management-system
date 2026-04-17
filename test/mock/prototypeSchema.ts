@@ -43,6 +43,7 @@ export interface ADDRESS {
 export interface PROVINCE {
   id: number;
   name: string;
+  country: string;
 }
 
 export interface UNIVERSITY {
@@ -58,37 +59,54 @@ export interface DEPARTMENT {
   description: string;
 }
 
-export interface PROGRAMTYPE {
-  id: number;
-  name: string;
-  default_duration: number;
-}
-
 export interface PROGRAM {
   id: number;
   name: string;
-  description: string;
   department_id: number;
-  programtype_id: number;
+  system_type: string;
+  duration_years: number;
+}
+
+export interface AWARDTYPE {
+  id: number;
+  code: string;
+  label: string;
+}
+
+export interface PROGRAMAWARD {
+  id: number;
+  program_id: number;
+  award_type_id: number;
+  sequence_no: number;
+  nominal_year: number;
 }
 
 export interface ENROLLMENT {
   id: number;
-  registration_no: string;
-  date_enrolled: string;
-  status: string;
+  start_year: number;
+  end_year: number | null;
+  current_status: string;
   student_id: number;
   program_id: number;
 }
 
-export interface PROGRESS {
+export interface ENROLLMENTPROGRESS {
   id: number;
-  date: string;
-  semester: string;
-  level: string;
-  grade: string;
-  status: string;
+  stage_code: string;
+  academic_year: string;
+  status_date: string;
+  result_status: string;
+  moyenne: number | null;
   enrollment_id: number;
+}
+
+export interface STUDENTAWARD {
+  id: number;
+  student_id: number;
+  enrollment_id: number;
+  program_award_id: number;
+  award_date: string | null;
+  status: string;
 }
 
 export interface BANK {
@@ -124,10 +142,12 @@ export interface PrototypeDatabase {
   PROVINCE: PROVINCE[];
   UNIVERSITY: UNIVERSITY[];
   DEPARTMENT: DEPARTMENT[];
-  PROGRAMTYPE: PROGRAMTYPE[];
   PROGRAM: PROGRAM[];
+  AWARDTYPE: AWARDTYPE[];
+  PROGRAMAWARD: PROGRAMAWARD[];
   ENROLLMENT: ENROLLMENT[];
-  PROGRESS: PROGRESS[];
+  ENROLLMENTPROGRESS: ENROLLMENTPROGRESS[];
+  STUDENTAWARD: STUDENTAWARD[];
   BANK: BANK[];
   BRANCH: BRANCH[];
   ACCOUNT: ACCOUNT[];
