@@ -76,7 +76,7 @@ export default function PermissionRequestsSection({
     >
       <motion.div variants={dashboardStaggerItem} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="theme-heading text-lg font-bold">Permission Requests</h2>
+          <h2 className="theme-heading text-lg font-bold">Permissions</h2>
           <p className="theme-text-muted mt-1 text-sm">
             Review new access requests and clear pending approvals quickly.
           </p>
@@ -189,7 +189,20 @@ export default function PermissionRequestsSection({
                         </button>
                       </div>
                     ) : (
-                      <span className="theme-text-muted text-xs">No action needed</span>
+                      request.status === 'APPROVED' ? (
+                        <button
+                          type="button"
+                          disabled={activeRequestId === request.id}
+                          onClick={() => {
+                            setApprovalRequest(request);
+                          }}
+                          className="theme-success rounded-full border px-3 py-1 text-xs font-semibold transition hover:bg-[rgba(37,79,34,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Change Password
+                        </button>
+                      ) : (
+                        <span className="theme-text-muted text-xs">No action needed</span>
+                      )
                     )}
                   </td>
                 </tr>
@@ -216,16 +229,21 @@ export default function PermissionRequestsSection({
             return;
           }
 
+          const isPasswordReset = approvalRequest.status === 'APPROVED';
           setActiveRequestId(approvalRequest.id);
 
           try {
             const result = await onUpdateStatus(approvalRequest.id, 'APPROVED', { password });
             notifications.notify({
               tone: 'success',
-              title: 'Request approved',
-              message: `${approvalRequest.fullName || approvalRequest.inscriptionNumber} can now sign in with ${
-                result.authUserLoginId || approvalRequest.inscriptionNumber
-              } and temporary password ${password}.`,
+              title: isPasswordReset ? 'Password updated' : 'Request approved',
+              message: isPasswordReset
+                ? `A new temporary password was saved for ${
+                    approvalRequest.fullName || approvalRequest.inscriptionNumber
+                  }. Login ID: ${result.authUserLoginId || approvalRequest.inscriptionNumber}.`
+                : `${approvalRequest.fullName || approvalRequest.inscriptionNumber} can now sign in with ${
+                    result.authUserLoginId || approvalRequest.inscriptionNumber
+                  } and temporary password ${password}.`,
               durationMs: 10000,
             });
             setApprovalRequest(null);
