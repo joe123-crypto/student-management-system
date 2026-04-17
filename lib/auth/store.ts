@@ -41,7 +41,7 @@ export async function deriveAuthSubject(authUser: Pick<AuthUserRecord, 'role' | 
     },
     include: {
       enrollments: {
-        orderBy: [{ dateEnrolled: 'desc' }, { id: 'desc' }],
+        orderBy: [{ startYear: 'desc' }, { id: 'desc' }],
         take: 1,
         include: {
           program: {

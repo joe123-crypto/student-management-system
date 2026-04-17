@@ -3,6 +3,10 @@ import { hash } from '@node-rs/argon2';
 
 const prisma = new PrismaClient();
 
+function dateOnly(value: string): Date {
+  return new Date(`${value}T00:00:00.000Z`);
+}
+
 async function getOrCreateProvince(name: string) {
   const existing = await prisma.province.findFirst({
     where: {
@@ -68,11 +72,16 @@ async function getOrCreateDepartment(name: string) {
   });
 }
 
-async function getOrCreateProgramType(name: string, defaultDuration: number) {
-  const existing = await prisma.programType.findFirst({
+function normalizeCode(value: string): string {
+  return value.trim().replace(/\s+/g, '_').toUpperCase() || 'GENERAL';
+}
+
+async function getOrCreateAwardType(code: string, label: string) {
+  const normalizedCode = normalizeCode(code);
+  const existing = await prisma.awardType.findFirst({
     where: {
-      name: {
-        equals: name,
+      code: {
+        equals: normalizedCode,
         mode: 'insensitive',
       },
     },
@@ -82,15 +91,16 @@ async function getOrCreateProgramType(name: string, defaultDuration: number) {
     return existing;
   }
 
-  return prisma.programType.create({
+  return prisma.awardType.create({
     data: {
-      name,
-      defaultDuration,
+      code: normalizedCode,
+      label,
     },
   });
 }
 
-async function getOrCreateProgram(name: string, departmentId: number, programTypeId: number) {
+async function getOrCreateProgram(name: string, departmentId: number, systemType: string, durationYears: number) {
+  const normalizedSystemType = normalizeCode(systemType);
   const existing = await prisma.program.findFirst({
     where: {
       name: {
@@ -98,20 +108,56 @@ async function getOrCreateProgram(name: string, departmentId: number, programTyp
         mode: 'insensitive',
       },
       departmentId,
-      programTypeId,
+      systemType: normalizedSystemType,
     },
   });
 
   if (existing) {
+    if (existing.durationYears !== durationYears) {
+      return prisma.program.update({
+        where: { id: existing.id },
+        data: {
+          durationYears,
+        },
+      });
+    }
     return existing;
   }
 
   return prisma.program.create({
     data: {
       name,
-      description: name,
       departmentId,
-      programTypeId,
+      systemType: normalizedSystemType,
+      durationYears,
+    },
+  });
+}
+
+async function getOrCreateProgramAward(programId: number, awardTypeId: number, sequenceNo: number, nominalYear: number) {
+  const existing = await prisma.programAward.findFirst({
+    where: {
+      programId,
+      sequenceNo,
+    },
+  });
+
+  if (existing) {
+    return prisma.programAward.update({
+      where: { id: existing.id },
+      data: {
+        awardTypeId,
+        nominalYear,
+      },
+    });
+  }
+
+  return prisma.programAward.create({
+    data: {
+      programId,
+      awardTypeId,
+      sequenceNo,
+      nominalYear,
     },
   });
 }
@@ -217,8 +263,9 @@ async function main() {
   const campusAddress = await getOrCreateAddress('USTO Campus', 'Oran');
   const branchAddress = await getOrCreateAddress('Banque Nationale Branch 1', 'Oran');
   const department = await getOrCreateDepartment('Computer Science');
-  const programType = await getOrCreateProgramType('Bachelors', 4);
-  const program = await getOrCreateProgram('Computer Science', department.id, programType.id);
+  const awardType = await getOrCreateAwardType('LICENCE', 'Licence');
+  const program = await getOrCreateProgram('Computer Science', department.id, 'LMD', 4);
+  const programAward = await getOrCreateProgramAward(program.id, awardType.id, 1, 4);
   const bank = await getOrCreateBank('Banque Nationale', 10000, branchAddress.id);
   const branch = await getOrCreateBranch('Main Branch', 1001, branchAddress.id, bank.id);
 
@@ -270,10 +317,10 @@ async function main() {
         where: {
           id: existingStudent.personId,
         },
-        data: {
+      data: {
           givenName: 'Seed',
           familyName: 'Student',
-          dob: '',
+          dob: null,
           gender: 'M',
           homeAddressId: homeAddress.id,
         },
@@ -282,7 +329,7 @@ async function main() {
         data: {
           givenName: 'Seed',
           familyName: 'Student',
-          dob: '',
+          dob: null,
           gender: 'M',
           homeAddressId: homeAddress.id,
         },
@@ -318,16 +365,16 @@ async function main() {
       },
       data: {
         passportNo: '',
-        issueDate: '',
-        expiry: '',
+        issueDate: null,
+        expiry: null,
       },
     });
   } else {
     await prisma.passport.create({
       data: {
         passportNo: '',
-        issueDate: '',
-        expiry: '',
+        issueDate: null,
+        expiry: null,
         personId: person.id,
       },
     });
@@ -369,7 +416,7 @@ async function main() {
         label: contactSeed.label,
         value: contactSeed.value,
         isPrimary: contactSeed.isPrimary,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       },
     });
   }
@@ -378,7 +425,7 @@ async function main() {
     where: {
       studentId: student.id,
     },
-    orderBy: [{ dateEnrolled: 'desc' }, { id: 'desc' }],
+    orderBy: [{ startYear: 'desc' }, { id: 'desc' }],
   });
 
   const enrollment = existingEnrollment
@@ -387,25 +434,52 @@ async function main() {
           id: existingEnrollment.id,
         },
         data: {
-          registrationNo: 'REG-2026-001',
-          dateEnrolled: '2026-01-10',
-          status: 'PENDING',
+          startYear: 2026,
+          endYear: 2030,
+          currentStatus: 'pending',
           programId: program.id,
         },
       })
     : await prisma.enrollment.create({
         data: {
-          registrationNo: 'REG-2026-001',
-          dateEnrolled: '2026-01-10',
-          status: 'PENDING',
+          startYear: 2026,
+          endYear: 2030,
+          currentStatus: 'pending',
           studentId: student.id,
           programId: program.id,
         },
       });
 
-  await prisma.progress.deleteMany({
+  await prisma.studentAward.deleteMany({
     where: {
       enrollmentId: enrollment.id,
+    },
+  });
+
+  await prisma.enrollmentProgress.deleteMany({
+    where: {
+      enrollmentId: enrollment.id,
+    },
+  });
+
+  await prisma.enrollmentProgress.create({
+    data: {
+      stageCode: 'L1',
+      academicYear: '2026/2027',
+      statusDate: dateOnly('2026-06-15'),
+      resultStatus: 'pending',
+      moyenne: null,
+      enrollmentId: enrollment.id,
+    },
+  });
+
+  await prisma.studentAward.create({
+    data: {
+      studentId: student.id,
+      enrollmentId: enrollment.id,
+      programAwardId: programAward.id,
+      awardDate: null,
+      status: 'pending',
     },
   });
 
@@ -424,7 +498,7 @@ async function main() {
           accountNo: '',
           rib: BigInt(0),
           currency: '',
-          dateCreated: '',
+          dateCreated: null,
           branchId: branch.id,
         },
     });
@@ -434,7 +508,7 @@ async function main() {
         accountNo: '',
         rib: BigInt(0),
         currency: '',
-        dateCreated: '',
+        dateCreated: null,
         branchId: branch.id,
         personId: person.id,
       },

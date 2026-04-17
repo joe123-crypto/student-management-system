@@ -17,8 +17,30 @@ function stringValue(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
+function numberValue(value: unknown, fallback?: number): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
 function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+}
+
+function parseMoyenne(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.trim().replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(normalized)) {
+    return undefined;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function hasText(value: string | null | undefined): boolean {
@@ -60,7 +82,38 @@ function normalizeAcademicHistory(
       level: stringValue(record.level, fallback[index]?.level || ''),
       grade: stringValue(record.grade, fallback[index]?.grade || ''),
       status: stringValue(record.status, fallback[index]?.status || 'PENDING'),
+      stageCode: optionalString(record.stageCode) || fallback[index]?.stageCode,
+      academicYear: optionalString(record.academicYear) || fallback[index]?.academicYear,
+      statusDate: optionalString(record.statusDate) || fallback[index]?.statusDate,
+      resultStatus: optionalString(record.resultStatus) || fallback[index]?.resultStatus,
+      moyenne:
+        parseMoyenne(record.moyenne) ??
+        parseMoyenne(record.grade) ??
+        parseMoyenne(record.resultStatus) ??
+        fallback[index]?.moyenne,
       proofDocument: optionalString(record.proofDocument),
+    };
+  });
+}
+
+function normalizeProgramAwards(
+  value: unknown,
+  fallback: NonNullable<StudentProfile['studentAwards']> = [],
+): NonNullable<StudentProfile['studentAwards']> {
+  if (!Array.isArray(value)) {
+    return fallback;
+  }
+
+  return value.map((entry, index) => {
+    const record = isRecord(entry) ? entry : {};
+    return {
+      id: stringValue(record.id, fallback[index]?.id || `award-${index + 1}`),
+      code: stringValue(record.code, fallback[index]?.code || ''),
+      label: stringValue(record.label, fallback[index]?.label || ''),
+      sequenceNo: numberValue(record.sequenceNo, fallback[index]?.sequenceNo || index + 1) || index + 1,
+      nominalYear: numberValue(record.nominalYear, fallback[index]?.nominalYear || 1) || 1,
+      status: optionalString(record.status) || fallback[index]?.status,
+      awardDate: optionalString(record.awardDate) || fallback[index]?.awardDate,
     };
   });
 }
@@ -121,6 +174,9 @@ export function createEmptyStudentProfile(seed: StudentProfileSeed = {}): Studen
       startDate: '',
       expectedEndDate: '',
       programType: '',
+      systemType: '',
+      durationYears: undefined,
+      awards: [],
     },
     bankAccount: {
       accountHolderName: fullName,
@@ -152,6 +208,7 @@ export function createEmptyStudentProfile(seed: StudentProfileSeed = {}): Studen
     },
     status: seed.status || 'PENDING',
     academicHistory: [],
+    studentAwards: [],
   };
 }
 
@@ -168,6 +225,7 @@ export function mergeStudentProfile(current: StudentProfile, patch: Partial<Stud
     contact: { ...current.contact, ...(patch.contact || {}) },
     address: { ...current.address, ...(patch.address || {}) },
     academicHistory: patch.academicHistory ?? current.academicHistory,
+    studentAwards: patch.studentAwards ?? current.studentAwards,
   };
 }
 
@@ -196,6 +254,7 @@ export function normalizeStudentProfile(
   const bank = isRecord(record.bank) ? record.bank : {};
   const contact = isRecord(record.contact) ? record.contact : {};
   const address = isRecord(record.address) ? record.address : {};
+  const studentAwards = normalizeProgramAwards(record.studentAwards, base.studentAwards);
   const hasProfilePicture = Object.prototype.hasOwnProperty.call(student, 'profilePicture');
   const hasStatus = Object.prototype.hasOwnProperty.call(record, 'status');
 
@@ -234,6 +293,9 @@ export function normalizeStudentProfile(
       startDate: stringValue(program.startDate, base.program.startDate),
       expectedEndDate: stringValue(program.expectedEndDate, base.program.expectedEndDate),
       programType: stringValue(program.programType, base.program.programType),
+      systemType: stringValue(program.systemType, base.program.systemType),
+      durationYears: numberValue(program.durationYears, base.program.durationYears),
+      awards: normalizeProgramAwards(program.awards, base.program.awards),
     },
     bankAccount: {
       accountHolderName: stringValue(bankAccount.accountHolderName, base.bankAccount.accountHolderName),
@@ -265,6 +327,7 @@ export function normalizeStudentProfile(
     },
     status: hasStatus ? normalizeStatus(record.status) : base.status,
     academicHistory: normalizeAcademicHistory(record.academicHistory, base.academicHistory),
+    studentAwards,
   });
 
   normalized.id = normalized.id || base.id;
@@ -312,7 +375,12 @@ function academicHistoryMatches(
     left?.year === right?.year &&
     left?.level === right?.level &&
     left?.grade === right?.grade &&
-    left?.status === right?.status
+    left?.status === right?.status &&
+    left?.stageCode === right?.stageCode &&
+    left?.academicYear === right?.academicYear &&
+    left?.statusDate === right?.statusDate &&
+    left?.resultStatus === right?.resultStatus &&
+    left?.moyenne === right?.moyenne
   );
 }
 
@@ -393,6 +461,11 @@ export function sanitizeStudentSelfServicePatch(
         level,
         grade,
         status: 'PENDING',
+        stageCode: entry.stageCode || level,
+        academicYear: entry.academicYear || year,
+        statusDate: entry.statusDate || entry.date || new Date().toISOString().slice(0, 10),
+        resultStatus: entry.resultStatus || grade,
+        moyenne: parseMoyenne(entry.moyenne) ?? parseMoyenne(grade) ?? parseMoyenne(entry.resultStatus),
         proofDocument: entry.proofDocument,
       };
     });

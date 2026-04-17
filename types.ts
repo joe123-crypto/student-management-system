@@ -37,6 +37,19 @@ export interface ProgramDetails {
   startDate: string;
   expectedEndDate: string;
   programType?: string;
+  systemType?: string;
+  durationYears?: number;
+  awards?: ProgramAwardDetails[];
+}
+
+export interface ProgramAwardDetails {
+  id: string;
+  code: string;
+  label: string;
+  sequenceNo: number;
+  nominalYear: number;
+  status?: string;
+  awardDate?: string;
 }
 
 export interface BankAccountDetails {
@@ -78,6 +91,11 @@ export interface ProgressDetails {
   level: string;
   grade: string;
   status: string;
+  stageCode?: string;
+  academicYear?: string;
+  statusDate?: string;
+  resultStatus?: string;
+  moyenne?: number;
   proofDocument?: string; // authenticated file URL/reference for transcript/document
 }
 
@@ -93,6 +111,7 @@ export interface StudentProfile {
   address: AddressDetails;
   status: 'PENDING' | 'ACTIVE' | 'COMPLETED';
   academicHistory?: ProgressDetails[];
+  studentAwards?: ProgramAwardDetails[];
 }
 
 export interface Announcement {

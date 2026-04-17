@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
@@ -93,13 +93,13 @@ model AuditLog {
 }
 
 model RateLimitBucket {
-  id         String   @id
-  bucket     String
-  scopeHash  String
-  count      Int      @default(0)
-  resetAt    DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id
+  bucket    String
+  scopeHash String
+  count     Int      @default(0)
+  resetAt   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([resetAt])
   @@index([bucket, resetAt])
@@ -137,13 +137,13 @@ model PermissionRequest {
 }
 
 model Person {
-  id            Int        @id @default(autoincrement())
-  givenName     String     @map("given_name")
-  familyName    String     @map("family_name")
-  dob           String
+  id            Int         @id @default(autoincrement())
+  givenName     String      @map("given_name")
+  familyName    String      @map("family_name")
+  dob           DateTime?   @db.Date
   gender        String
-  homeAddressId Int?       @map("home_address_id")
-  homeAddress   Address?   @relation("PersonHomeAddress", fields: [homeAddressId], references: [id], onDelete: SetNull)
+  homeAddressId Int?        @map("home_address_id")
+  homeAddress   Address?    @relation("PersonHomeAddress", fields: [homeAddressId], references: [id], onDelete: SetNull)
   student       Student?
   passports     Passport[]
   contacts      Contact[]
@@ -157,13 +157,14 @@ model Person {
 }
 
 model Student {
-  id            Int          @id @default(autoincrement())
-  personId      Int          @unique @map("person_id")
-  inscriptionNo String       @unique @map("inscription_no")
-  addressId     Int?         @map("address_id")
-  person        Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
-  address       Address?     @relation("StudentCurrentAddress", fields: [addressId], references: [id], onDelete: SetNull)
+  id            Int            @id @default(autoincrement())
+  personId      Int            @unique @map("person_id")
+  inscriptionNo String         @unique @map("inscription_no")
+  addressId     Int?           @map("address_id")
+  person        Person         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  address       Address?       @relation("StudentCurrentAddress", fields: [addressId], references: [id], onDelete: SetNull)
   enrollments   Enrollment[]
+  studentAwards StudentAward[]
   fileAssets    FileAsset[]
 
   @@index([addressId])
@@ -171,12 +172,12 @@ model Student {
 }
 
 model Passport {
-  id         Int    @id @default(autoincrement())
-  passportNo String @map("passport_no")
-  issueDate  String @map("issue_date")
-  expiry     String
-  personId   Int    @map("person_id")
-  person     Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+  id         Int       @id @default(autoincrement())
+  passportNo String    @map("passport_no")
+  issueDate  DateTime? @map("issue_date") @db.Date
+  expiry     DateTime? @db.Date
+  personId   Int       @map("person_id")
+  person     Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@index([personId])
   @@index([passportNo])
@@ -184,14 +185,14 @@ model Passport {
 }
 
 model Contact {
-  id        Int     @id @default(autoincrement())
-  ownerId   Int     @map("owner_id")
+  id        Int      @id @default(autoincrement())
+  ownerId   Int      @map("owner_id")
   type      String
   value     String
   label     String
-  isPrimary Boolean @default(false) @map("is_primary")
-  createdAt String  @map("created_at")
-  owner     Person  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @map("created_at") @db.Timestamp(3)
+  owner     Person   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   @@index([ownerId, type])
   @@index([ownerId, type, label])
@@ -217,6 +218,7 @@ model Address {
 model Province {
   id        Int       @id @default(autoincrement())
   name      String
+  country   String    @default("")
   addresses Address[]
 
   @@index([name])
@@ -245,63 +247,102 @@ model Department {
   @@map("DEPARTMENT")
 }
 
-model ProgramType {
-  id              Int       @id @default(autoincrement())
-  name            String
-  defaultDuration Int       @map("default_duration")
-  programs        Program[]
-
-  @@index([name])
-  @@map("PROGRAMTYPE")
-}
-
 model Program {
-  id            Int          @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   name          String
-  description   String
-  departmentId  Int          @map("department_id")
-  programTypeId Int          @map("programtype_id")
-  department    Department   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
-  programType   ProgramType  @relation(fields: [programTypeId], references: [id], onDelete: Restrict)
+  departmentId  Int            @map("department_id")
+  systemType    String         @map("system_type")
+  durationYears Int            @map("duration_years")
+  department    Department     @relation(fields: [departmentId], references: [id], onDelete: Restrict)
   enrollments   Enrollment[]
+  programAwards ProgramAward[]
 
+  @@unique([departmentId, name, systemType])
   @@index([name])
   @@index([departmentId])
-  @@index([programTypeId])
+  @@index([systemType])
   @@map("PROGRAM")
 }
 
+model AwardType {
+  id            Int            @id @default(autoincrement())
+  code          String         @unique
+  label         String
+  programAwards ProgramAward[]
+
+  @@index([label])
+  @@map("AWARDTYPE")
+}
+
+model ProgramAward {
+  id            Int            @id @default(autoincrement())
+  programId     Int            @map("program_id")
+  awardTypeId   Int            @map("award_type_id")
+  sequenceNo    Int            @map("sequence_no")
+  nominalYear   Int            @map("nominal_year")
+  program       Program        @relation(fields: [programId], references: [id], onDelete: Cascade)
+  awardType     AwardType      @relation(fields: [awardTypeId], references: [id], onDelete: Restrict)
+  studentAwards StudentAward[]
+
+  @@unique([programId, sequenceNo])
+  @@index([programId])
+  @@index([awardTypeId])
+  @@map("PROGRAMAWARD")
+}
+
 model Enrollment {
-  id             Int        @id @default(autoincrement())
-  registrationNo String     @map("registration_no")
-  dateEnrolled   String     @map("date_enrolled")
-  status         String
-  studentId      Int        @map("student_id")
-  programId      Int        @map("program_id")
-  student        Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  program        Program    @relation(fields: [programId], references: [id], onDelete: Restrict)
-  progressRows   Progress[]
-  fileAssets     FileAsset[]
+  id            Int                  @id @default(autoincrement())
+  studentId     Int                  @map("student_id")
+  programId     Int                  @map("program_id")
+  startYear     Int                  @map("start_year")
+  endYear       Int?                 @map("end_year")
+  currentStatus String               @map("current_status")
+  student       Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  program       Program              @relation(fields: [programId], references: [id], onDelete: Restrict)
+  progressRows  EnrollmentProgress[]
+  studentAwards StudentAward[]
+  fileAssets    FileAsset[]
 
   @@index([studentId])
   @@index([programId])
-  @@index([status])
+  @@index([currentStatus])
+  @@index([startYear])
   @@map("ENROLLMENT")
 }
 
-model Progress {
-  id           Int        @id @default(autoincrement())
-  date         String
-  semester     String
-  level        String
-  grade        String
-  status       String
-  enrollmentId Int        @map("enrollment_id")
-  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+model EnrollmentProgress {
+  id           Int         @id @default(autoincrement())
+  stageCode    String      @map("stage_code")
+  academicYear String      @map("academic_year")
+  statusDate   DateTime?   @map("status_date") @db.Date
+  resultStatus String      @map("result_status")
+  moyenne      Float?
+  enrollmentId Int         @map("enrollment_id")
+  enrollment   Enrollment  @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   fileAssets   FileAsset[]
 
   @@index([enrollmentId])
-  @@map("PROGRESS")
+  @@index([academicYear])
+  @@index([stageCode])
+  @@map("ENROLLMENTPROGRESS")
+}
+
+model StudentAward {
+  id             Int          @id @default(autoincrement())
+  studentId      Int          @map("student_id")
+  enrollmentId   Int          @map("enrollment_id")
+  programAwardId Int          @map("program_award_id")
+  awardDate      DateTime?    @map("award_date") @db.Date
+  status         String
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  enrollment     Enrollment   @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  programAward   ProgramAward @relation(fields: [programAwardId], references: [id], onDelete: Restrict)
+
+  @@index([studentId])
+  @@index([enrollmentId])
+  @@index([programAwardId])
+  @@index([status])
+  @@map("STUDENTAWARD")
 }
 
 model Bank {
@@ -335,15 +376,15 @@ model Branch {
 }
 
 model Account {
-  id          Int    @id @default(autoincrement())
-  accountNo   String @map("account_no")
+  id          Int       @id @default(autoincrement())
+  accountNo   String    @map("account_no")
   rib         BigInt
-  currency    String @default("")
-  dateCreated String @map("date_created")
-  branchId    Int    @map("branch_id")
-  personId    Int    @map("person_id")
-  branch      Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  person      Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+  currency    String    @default("")
+  dateCreated DateTime? @map("date_created") @db.Date
+  branchId    Int       @map("branch_id")
+  personId    Int       @map("person_id")
+  branch      Branch    @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  person      Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@index([personId])
   @@index([branchId])
@@ -351,13 +392,13 @@ model Account {
 }
 
 model FileAsset {
-  id                String          @id @default(cuid())
+  id                String              @id @default(cuid())
   purpose           FilePurpose
-  visibility        FileVisibility  @default(PRIVATE)
-  status            FileStatus      @default(PENDING_UPLOAD)
+  visibility        FileVisibility      @default(PRIVATE)
+  status            FileStatus          @default(PENDING_UPLOAD)
   provider          StorageProvider
   bucket            String
-  objectKey         String          @unique
+  objectKey         String              @unique
   originalFilename  String
   sanitizedFilename String
   mimeType          String
@@ -375,15 +416,15 @@ model FileAsset {
   metadata          Json?
   expiresAt         DateTime?
   uploadedAt        DateTime?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  student           Student?        @relation(fields: [studentId], references: [id], onDelete: SetNull)
-  person            Person?         @relation(fields: [personId], references: [id], onDelete: SetNull)
-  enrollment        Enrollment?     @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
-  progress          Progress?       @relation(fields: [progressId], references: [id], onDelete: SetNull)
-  uploadedByUser    AuthUser?       @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
-  supersededBy      FileAsset?      @relation("SupersededFileAsset", fields: [supersededById], references: [id], onDelete: SetNull)
-  previousVersions  FileAsset[]     @relation("SupersededFileAsset")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  student           Student?            @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  person            Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
+  enrollment        Enrollment?         @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  progress          EnrollmentProgress? @relation(fields: [progressId], references: [id], onDelete: SetNull)
+  uploadedByUser    AuthUser?           @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  supersededBy      FileAsset?          @relation("SupersededFileAsset", fields: [supersededById], references: [id], onDelete: SetNull)
+  previousVersions  FileAsset[]         @relation("SupersededFileAsset")
   agentContexts     AgentContextFile[]
 
   @@index([purpose, status])
@@ -413,14 +454,14 @@ model AgentContextFile {
 }
 
 model AgentThread {
-  id            String             @id @default(cuid())
-  ownerUserId   String
-  channel       AgentThreadChannel @default(WEB)
-  title         String?
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  ownerUser     AuthUser           @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
-  messages      AgentMessage[]
+  id          String             @id @default(cuid())
+  ownerUserId String
+  channel     AgentThreadChannel @default(WEB)
+  title       String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  ownerUser   AuthUser           @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  messages    AgentMessage[]
 
   @@index([ownerUserId, updatedAt])
 }

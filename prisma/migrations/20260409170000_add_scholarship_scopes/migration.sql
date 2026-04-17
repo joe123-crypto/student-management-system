@@ -1,0 +1,2 @@
+-- No-op placeholder to reconcile migration history with target databases
+-- where scholarship scope objects were introduced outside this branch.

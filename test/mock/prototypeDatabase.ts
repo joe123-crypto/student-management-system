@@ -1,8 +1,11 @@
 import type { StudentProfile } from '@/types';
 import { INITIAL_PROTOTYPE_DATABASE } from '@/test/mock/prototypeSeedData';
 import type { BRANCH, PERSON, PrototypeDatabase } from '@/test/mock/prototypeSchema';
+
 export type { PrototypeDatabase } from '@/test/mock/prototypeSchema';
+
 export const PROTOTYPE_DATABASE_STORAGE_KEY = 'prototype_database_v2';
+
 const REQUIRED_TABLES: (keyof PrototypeDatabase)[] = [
   'PERSON',
   'STUDENT',
@@ -12,10 +15,12 @@ const REQUIRED_TABLES: (keyof PrototypeDatabase)[] = [
   'PROVINCE',
   'UNIVERSITY',
   'DEPARTMENT',
-  'PROGRAMTYPE',
   'PROGRAM',
+  'AWARDTYPE',
+  'PROGRAMAWARD',
   'ENROLLMENT',
-  'PROGRESS',
+  'ENROLLMENTPROGRESS',
+  'STUDENTAWARD',
   'BANK',
   'BRANCH',
   'ACCOUNT',
@@ -33,6 +38,19 @@ const nextId = <K extends keyof PrototypeDatabase>(db: PrototypeDatabase, table:
   Math.max(0, ...db[table].map((row: { id: number }) => row.id)) + 1;
 
 const buildFullName = (person: PERSON) => `${person.given_name} ${person.family_name}`.trim();
+
+function normalizeCode(value: string): string {
+  return value.trim().replace(/\s+/g, '_').toUpperCase() || 'GENERAL';
+}
+
+function formatAwardLabel(value: string): string {
+  const normalized = value.trim();
+  if (!normalized) return 'General Award';
+  return normalized
+    .replace(/[_-]+/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 
 function getContactValue(db: PrototypeDatabase, ownerId: number, type: string, label?: string): string {
   const matches = db.CONTACT.filter(
@@ -62,7 +80,7 @@ function getOrCreateAddress(db: PrototypeDatabase, name: string, provinceName: s
     ? existingProvince.id
     : (() => {
       const id = nextId(db, 'PROVINCE');
-      db.PROVINCE.push({ id, name: provinceName || 'Unknown Province' });
+      db.PROVINCE.push({ id, name: provinceName || 'Unknown Province', country: '' });
       return id;
     })();
 
@@ -83,30 +101,65 @@ function getOrCreateDepartment(db: PrototypeDatabase, name: string): number {
   return id;
 }
 
-function getOrCreateProgramType(db: PrototypeDatabase, name: string): number {
-  const normalized = name.trim();
-  const existing = db.PROGRAMTYPE.find((entry) => entry.name.toLowerCase() === normalized.toLowerCase());
+function getOrCreateAwardType(db: PrototypeDatabase, codeOrLabel: string): number {
+  const normalizedCode = normalizeCode(codeOrLabel);
+  const existing = db.AWARDTYPE.find((entry) => entry.code.toLowerCase() === normalizedCode.toLowerCase());
   if (existing) return existing.id;
 
-  const id = nextId(db, 'PROGRAMTYPE');
-  db.PROGRAMTYPE.push({ id, name: normalized || 'Program', default_duration: 2 });
+  const id = nextId(db, 'AWARDTYPE');
+  db.AWARDTYPE.push({ id, code: normalizedCode, label: formatAwardLabel(codeOrLabel || normalizedCode) });
   return id;
 }
 
-function getOrCreateProgram(db: PrototypeDatabase, name: string, degreeLevel: string): number {
+function getOrCreateProgram(db: PrototypeDatabase, name: string, systemType: string, durationYears = 2): number {
   const normalizedName = name.trim() || 'General Studies';
-  const existing = db.PROGRAM.find((program) => program.name.toLowerCase() === normalizedName.toLowerCase());
-  if (existing) return existing.id;
+  const normalizedSystemType = normalizeCode(systemType);
+  const existing = db.PROGRAM.find(
+    (program) =>
+      program.name.toLowerCase() === normalizedName.toLowerCase() &&
+      program.system_type.toLowerCase() === normalizedSystemType.toLowerCase(),
+  );
+  if (existing) {
+    existing.duration_years = Math.max(1, durationYears || existing.duration_years || 2);
+    return existing.id;
+  }
 
   const id = nextId(db, 'PROGRAM');
   const departmentId = getOrCreateDepartment(db, 'General Studies');
-  const programTypeId = getOrCreateProgramType(db, degreeLevel || 'Program');
   db.PROGRAM.push({
     id,
     name: normalizedName,
-    description: normalizedName,
     department_id: departmentId,
-    programtype_id: programTypeId,
+    system_type: normalizedSystemType,
+    duration_years: Math.max(1, durationYears || 2),
+  });
+  return id;
+}
+
+function ensureDefaultProgramAward(
+  db: PrototypeDatabase,
+  programId: number,
+  awardCodeOrLabel: string,
+  nominalYear: number,
+): number | null {
+  const normalizedAward = awardCodeOrLabel.trim();
+  if (!normalizedAward) return null;
+
+  const awardTypeId = getOrCreateAwardType(db, normalizedAward);
+  const existing = db.PROGRAMAWARD.find((entry) => entry.program_id === programId && entry.sequence_no === 1);
+  if (existing) {
+    existing.award_type_id = awardTypeId;
+    existing.nominal_year = Math.max(1, nominalYear || existing.nominal_year || 1);
+    return existing.id;
+  }
+
+  const id = nextId(db, 'PROGRAMAWARD');
+  db.PROGRAMAWARD.push({
+    id,
+    program_id: programId,
+    award_type_id: awardTypeId,
+    sequence_no: 1,
+    nominal_year: Math.max(1, nominalYear || 1),
   });
   return id;
 }
@@ -144,16 +197,67 @@ function upsertContact(
 
 function toStatus(value: string): StudentProfile['status'] {
   const upper = value.toUpperCase();
-  if (upper === 'ACTIVE' || upper === 'COMPLETED') return upper;
+  if (upper === 'ACTIVE') return 'ACTIVE';
+  if (upper === 'COMPLETED' || upper === 'GRADUATED') return 'COMPLETED';
   return 'PENDING';
 }
 
-function calculateExpectedEnd(dateEnrolled: string, duration: number | undefined): string {
-  if (!dateEnrolled) return '';
-  const date = new Date(`${dateEnrolled}T00:00:00Z`);
-  if (Number.isNaN(date.getTime())) return '';
-  date.setUTCFullYear(date.getUTCFullYear() + (duration || 2));
-  return date.toISOString().slice(0, 10);
+function toEnrollmentStatus(value: StudentProfile['status']): string {
+  if (value === 'ACTIVE') return 'active';
+  if (value === 'COMPLETED') return 'graduated';
+  return 'pending';
+}
+
+function extractYearFromDate(value: string | undefined, fallback: number): number {
+  const normalized = value?.trim();
+  if (!normalized) return fallback;
+  const year = Number(normalized.slice(0, 4));
+  return Number.isFinite(year) ? year : fallback;
+}
+
+function buildStartDate(startYear: number | null | undefined): string {
+  return typeof startYear === 'number' && Number.isFinite(startYear) ? `${startYear}-01-01` : '';
+}
+
+function calculateExpectedEnd(startYear: number | null | undefined, duration: number | undefined): string {
+  if (typeof startYear !== 'number' || !Number.isFinite(startYear)) return '';
+  return `${startYear + (duration || 2)}-01-01`;
+}
+
+function buildRegistrationNumber(enrollmentId: number | null | undefined, startYear: number | null | undefined, studentId: number): string {
+  if (typeof startYear !== 'number' || !Number.isFinite(startYear)) return '';
+  const suffix = typeof enrollmentId === 'number' ? enrollmentId : studentId;
+  return `ENR-${startYear}-${suffix}`;
+}
+
+function parseMoyenne(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value !== 'string') return null;
+
+  const normalized = value.trim().replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(normalized)) return null;
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatMoyenne(value: number | null | undefined): string {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '';
+  return value.toFixed(2).replace(/\.?0+$/, '');
+}
+
+function resolveDurationYears(profile: StudentProfile, existingDuration = 2): number {
+  if (typeof profile.program.durationYears === 'number' && Number.isFinite(profile.program.durationYears)) {
+    return Math.max(1, profile.program.durationYears);
+  }
+
+  const startYear = extractYearFromDate(profile.program.startDate, 0);
+  const expectedEndYear = extractYearFromDate(profile.program.expectedEndDate, 0);
+  if (startYear > 0 && expectedEndYear > startYear) {
+    return expectedEndYear - startYear;
+  }
+
+  return Math.max(1, existingDuration || 2);
 }
 
 function mergeStudentProfile(current: StudentProfile, patch: Partial<StudentProfile>): StudentProfile {
@@ -169,6 +273,7 @@ function mergeStudentProfile(current: StudentProfile, patch: Partial<StudentProf
     contact: { ...current.contact, ...(patch.contact || {}) },
     address: { ...current.address, ...(patch.address || {}) },
     academicHistory: patch.academicHistory ?? current.academicHistory,
+    studentAwards: patch.studentAwards ?? current.studentAwards,
   };
 }
 
@@ -186,11 +291,17 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
     const currentAddress = db.ADDRESS.find((entry) => entry.id === studentRow.address_id);
 
     const enrollment = db.ENROLLMENT.filter((entry) => entry.student_id === studentRow.id).sort((a, b) =>
-      b.date_enrolled.localeCompare(a.date_enrolled),
+      b.start_year - a.start_year || b.id - a.id,
     )[0];
     const program = enrollment ? db.PROGRAM.find((entry) => entry.id === enrollment.program_id) : undefined;
-    const programType = program ? db.PROGRAMTYPE.find((entry) => entry.id === program.programtype_id) : undefined;
     const department = program ? db.DEPARTMENT.find((entry) => entry.id === program.department_id) : undefined;
+    const programAwards = program
+      ? db.PROGRAMAWARD.filter((entry) => entry.program_id === program.id).sort((a, b) => a.sequence_no - b.sequence_no)
+      : [];
+    const finalProgramAward = programAwards[programAwards.length - 1];
+    const finalAwardType = finalProgramAward
+      ? db.AWARDTYPE.find((entry) => entry.id === finalProgramAward.award_type_id)
+      : undefined;
 
     const university =
       db.UNIVERSITY.find((entry) => entry.address_id === studentRow.address_id) ||
@@ -208,7 +319,12 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
     const branchAddress = branch ? db.ADDRESS.find((entry) => entry.id === branch.address_id) : undefined;
 
     const progressRows = enrollment
-      ? db.PROGRESS.filter((entry) => entry.enrollment_id === enrollment.id).sort((a, b) => a.date.localeCompare(b.date))
+      ? db.ENROLLMENTPROGRESS.filter((entry) => entry.enrollment_id === enrollment.id).sort((a, b) =>
+        a.status_date.localeCompare(b.status_date),
+      )
+      : [];
+    const studentAwards = enrollment
+      ? db.STUDENTAWARD.filter((entry) => entry.enrollment_id === enrollment.id).sort((a, b) => a.id - b.id)
       : [];
 
     const fullName = buildFullName(person);
@@ -216,7 +332,7 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
     const phone = getContactValue(db, person.id, 'PHONE');
     const emergencyName = getContactValue(db, person.id, 'EMERGENCY', 'name');
     const emergencyPhone = getContactValue(db, person.id, 'EMERGENCY', 'phone');
-    const status = toStatus(enrollment?.status || 'PENDING');
+    const status = toStatus(enrollment?.current_status || 'pending');
 
     const profile: StudentProfile = {
       id: `student-${studentRow.id}`,
@@ -225,7 +341,7 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
         givenName: person.given_name,
         familyName: person.family_name,
         inscriptionNumber: studentRow.inscription_no,
-        registrationNumber: enrollment?.registration_no,
+        registrationNumber: buildRegistrationNumber(enrollment?.id, enrollment?.start_year, studentRow.id),
         dateOfBirth: person.dob,
         nationality: passport?.passport_no ? passport.passport_no.slice(0, 2) : 'Unknown',
         gender: person.gender === 'F' ? 'F' : person.gender === 'Other' ? 'Other' : 'M',
@@ -244,10 +360,23 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
         department: department?.name || '',
       },
       program: {
-        degreeLevel: programType?.name || '',
+        degreeLevel: finalAwardType?.label || finalAwardType?.code || program?.system_type || '',
         major: program?.name || '',
-        startDate: enrollment?.date_enrolled || '',
-        expectedEndDate: calculateExpectedEnd(enrollment?.date_enrolled || '', programType?.default_duration),
+        startDate: buildStartDate(enrollment?.start_year),
+        expectedEndDate: calculateExpectedEnd(enrollment?.start_year, program?.duration_years),
+        programType: program?.system_type || '',
+        systemType: program?.system_type || '',
+        durationYears: program?.duration_years,
+        awards: programAwards.map((entry) => {
+          const awardType = db.AWARDTYPE.find((award) => award.id === entry.award_type_id);
+          return {
+            id: `program-award-${entry.id}`,
+            code: awardType?.code || '',
+            label: awardType?.label || '',
+            sequenceNo: entry.sequence_no,
+            nominalYear: entry.nominal_year,
+          };
+        }),
       },
       bankAccount: {
         accountHolderName: fullName,
@@ -273,19 +402,71 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
         currentHostAddress: [currentAddress?.name, getProvinceName(db, currentAddress?.wilaya_id)].filter(Boolean).join(', '),
       },
       status,
-      academicHistory: progressRows.map((entry) => ({
-        id: `progress-${entry.id}`,
-        date: entry.date,
-        year: entry.semester,
-        level: entry.level,
-        grade: entry.grade,
-        status: entry.status,
-      })),
+      academicHistory: progressRows.map((entry) => {
+        const moyenne = parseMoyenne(entry.moyenne);
+        return {
+          id: `progress-${entry.id}`,
+          date: entry.status_date,
+          year: entry.academic_year,
+          level: entry.stage_code,
+          grade: formatMoyenne(moyenne) || entry.result_status,
+          status: entry.result_status,
+          stageCode: entry.stage_code,
+          academicYear: entry.academic_year,
+          statusDate: entry.status_date,
+          resultStatus: entry.result_status,
+          moyenne: moyenne ?? undefined,
+        };
+      }),
+      studentAwards: studentAwards.map((entry) => {
+        const programAward = db.PROGRAMAWARD.find((item) => item.id === entry.program_award_id);
+        const awardType = programAward ? db.AWARDTYPE.find((item) => item.id === programAward.award_type_id) : undefined;
+        return {
+          id: `student-award-${entry.id}`,
+          code: awardType?.code || '',
+          label: awardType?.label || '',
+          sequenceNo: programAward?.sequence_no || 1,
+          nominalYear: programAward?.nominal_year || 1,
+          status: entry.status,
+          awardDate: entry.award_date || undefined,
+        };
+      }),
     };
 
     profiles.push(profile);
     return profiles;
   }, []);
+}
+
+function syncStudentAward(
+  db: PrototypeDatabase,
+  studentId: number,
+  enrollmentId: number,
+  programAwardId: number | null,
+  profileStatus: StudentProfile['status'],
+  awardDate: string | null,
+): void {
+  if (!programAwardId) return;
+
+  const nextStatus = profileStatus === 'COMPLETED' ? 'awarded' : profileStatus === 'PENDING' ? 'pending' : 'pending';
+  const existing = db.STUDENTAWARD.find(
+    (entry) => entry.enrollment_id === enrollmentId && entry.program_award_id === programAwardId,
+  );
+
+  if (existing) {
+    existing.status = nextStatus;
+    existing.award_date = nextStatus === 'awarded' ? awardDate : null;
+    return;
+  }
+
+  db.STUDENTAWARD.push({
+    id: nextId(db, 'STUDENTAWARD'),
+    student_id: studentId,
+    enrollment_id: enrollmentId,
+    program_award_id: programAwardId,
+    award_date: nextStatus === 'awarded' ? awardDate : null,
+    status: nextStatus,
+  });
 }
 
 function addStudentProfileToDatabase(db: PrototypeDatabase, profile: StudentProfile): PrototypeDatabase {
@@ -325,15 +506,52 @@ function addStudentProfileToDatabase(db: PrototypeDatabase, profile: StudentProf
   upsertContact(nextDb, personId, 'EMERGENCY', 'name', profile.contact.emergencyContactName || '', false);
   upsertContact(nextDb, personId, 'EMERGENCY', 'phone', profile.contact.emergencyContactPhone || '', false);
 
-  const programId = getOrCreateProgram(nextDb, profile.program.major, profile.program.degreeLevel);
+  const durationYears = resolveDurationYears(profile);
+  const programId = getOrCreateProgram(
+    nextDb,
+    profile.program.major,
+    profile.program.systemType || profile.program.programType || profile.program.degreeLevel || 'GENERAL',
+    durationYears,
+  );
+  const programAwardId = ensureDefaultProgramAward(
+    nextDb,
+    programId,
+    profile.program.degreeLevel || profile.program.programType || profile.program.systemType || 'GENERAL',
+    durationYears,
+  );
+  const startYear = extractYearFromDate(profile.program.startDate, new Date().getFullYear());
+  const endYear = extractYearFromDate(profile.program.expectedEndDate, startYear + durationYears);
+
+  const enrollmentId = nextId(nextDb, 'ENROLLMENT');
   nextDb.ENROLLMENT.push({
-    id: nextId(nextDb, 'ENROLLMENT'),
-    registration_no: profile.student.registrationNumber || `REG-${new Date().getFullYear()}-${studentId}`,
-    date_enrolled: profile.program.startDate || new Date().toISOString().slice(0, 10),
-    status: profile.status,
+    id: enrollmentId,
+    start_year: startYear,
+    end_year: endYear,
+    current_status: toEnrollmentStatus(profile.status),
     student_id: studentId,
     program_id: programId,
   });
+
+  (profile.academicHistory || []).forEach((item, index) => {
+    nextDb.ENROLLMENTPROGRESS.push({
+      id: nextId(nextDb, 'ENROLLMENTPROGRESS'),
+      stage_code: item.stageCode || item.level || `STAGE_${index + 1}`,
+      academic_year: item.academicYear || item.year || String(startYear + index),
+      status_date: item.statusDate || item.date || new Date().toISOString().slice(0, 10),
+      result_status: item.resultStatus || item.grade || item.status || 'pending',
+      moyenne: parseMoyenne(item.moyenne) ?? parseMoyenne(item.grade) ?? parseMoyenne(item.resultStatus),
+      enrollment_id: enrollmentId,
+    });
+  });
+
+  syncStudentAward(
+    nextDb,
+    studentId,
+    enrollmentId,
+    programAwardId,
+    profile.status,
+    profile.program.expectedEndDate || null,
+  );
 
   const bankAddressId = getOrCreateAddress(nextDb, profile.bank.branchAddress || 'Default branch address', 'Unknown');
   let branch = nextDb.BRANCH.find((entry) => String(entry.code) === profile.bank.branchCode);
@@ -416,31 +634,51 @@ export function updateStudentProfileInDatabase(
   upsertContact(nextDb, person.id, 'EMERGENCY', 'phone', merged.contact.emergencyContactPhone, false);
 
   const enrollment =
-    nextDb.ENROLLMENT.filter((entry) => entry.student_id === studentId).sort((a, b) =>
-      b.date_enrolled.localeCompare(a.date_enrolled),
-    )[0] || null;
+    nextDb.ENROLLMENT.filter((entry) => entry.student_id === studentId).sort((a, b) => b.start_year - a.start_year || b.id - a.id)[0] ||
+    null;
   if (enrollment) {
-    enrollment.status = merged.status;
-    enrollment.registration_no = merged.student.registrationNumber || enrollment.registration_no;
-    if (merged.program.startDate) enrollment.date_enrolled = merged.program.startDate;
-    if (merged.program.major) {
-      enrollment.program_id = getOrCreateProgram(nextDb, merged.program.major, merged.program.degreeLevel);
-    }
+    const durationYears = resolveDurationYears(merged);
+    const programId = getOrCreateProgram(
+      nextDb,
+      merged.program.major,
+      merged.program.systemType || merged.program.programType || merged.program.degreeLevel || 'GENERAL',
+      durationYears,
+    );
+    const programAwardId = ensureDefaultProgramAward(
+      nextDb,
+      programId,
+      merged.program.degreeLevel || merged.program.programType || merged.program.systemType || 'GENERAL',
+      durationYears,
+    );
+
+    enrollment.current_status = toEnrollmentStatus(merged.status);
+    enrollment.start_year = extractYearFromDate(merged.program.startDate, enrollment.start_year);
+    enrollment.end_year = extractYearFromDate(merged.program.expectedEndDate, enrollment.start_year + durationYears);
+    enrollment.program_id = programId;
 
     if (merged.academicHistory) {
-      nextDb.PROGRESS = nextDb.PROGRESS.filter((entry) => entry.enrollment_id !== enrollment.id);
-      merged.academicHistory.forEach((item) => {
-        nextDb.PROGRESS.push({
-          id: nextId(nextDb, 'PROGRESS'),
-          date: item.date,
-          semester: item.year,
-          level: item.level,
-          grade: item.grade,
-          status: item.status,
+      nextDb.ENROLLMENTPROGRESS = nextDb.ENROLLMENTPROGRESS.filter((entry) => entry.enrollment_id !== enrollment.id);
+      merged.academicHistory.forEach((item, index) => {
+        nextDb.ENROLLMENTPROGRESS.push({
+          id: nextId(nextDb, 'ENROLLMENTPROGRESS'),
+          stage_code: item.stageCode || item.level || `STAGE_${index + 1}`,
+          academic_year: item.academicYear || item.year || String(enrollment.start_year + index),
+          status_date: item.statusDate || item.date || new Date().toISOString().slice(0, 10),
+          result_status: item.resultStatus || item.grade || item.status || 'pending',
+          moyenne: parseMoyenne(item.moyenne) ?? parseMoyenne(item.grade) ?? parseMoyenne(item.resultStatus),
           enrollment_id: enrollment.id,
         });
       });
     }
+
+    syncStudentAward(
+      nextDb,
+      studentId,
+      enrollment.id,
+      programAwardId,
+      merged.status,
+      merged.program.expectedEndDate || null,
+    );
   }
 
   let account = nextDb.ACCOUNT.find((entry) => entry.person_id === person.id);
@@ -500,7 +738,10 @@ export function deleteStudentsFromDatabase(db: PrototypeDatabase, studentProfile
     nextDb.ENROLLMENT.filter((entry) => studentIds.has(entry.student_id)).map((entry) => entry.id),
   );
 
-  nextDb.PROGRESS = nextDb.PROGRESS.filter((entry) => !enrollmentIds.has(entry.enrollment_id));
+  nextDb.STUDENTAWARD = nextDb.STUDENTAWARD.filter(
+    (entry) => !studentIds.has(entry.student_id) && !enrollmentIds.has(entry.enrollment_id),
+  );
+  nextDb.ENROLLMENTPROGRESS = nextDb.ENROLLMENTPROGRESS.filter((entry) => !enrollmentIds.has(entry.enrollment_id));
   nextDb.ENROLLMENT = nextDb.ENROLLMENT.filter((entry) => !studentIds.has(entry.student_id));
   nextDb.ACCOUNT = nextDb.ACCOUNT.filter((entry) => !personIds.has(entry.person_id));
   nextDb.CONTACT = nextDb.CONTACT.filter((entry) => !personIds.has(entry.owner_id));
@@ -525,11 +766,11 @@ export function importStudentProfilesToDatabase(
         PASSPORT: [],
         CONTACT: [],
         ENROLLMENT: [],
-        PROGRESS: [],
+        ENROLLMENTPROGRESS: [],
+        STUDENTAWARD: [],
         ACCOUNT: [],
       }
       : cloneDatabase(db);
 
   return records.reduce((nextDb, profile) => addStudentProfileToDatabase(nextDb, profile), base);
 }
-
