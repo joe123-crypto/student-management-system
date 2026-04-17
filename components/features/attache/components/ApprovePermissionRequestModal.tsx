@@ -36,6 +36,7 @@ export default function ApprovePermissionRequestModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
+  const isPasswordReset = request?.status === 'APPROVED';
 
   useEffect(() => {
     if (!open || !request) {
@@ -127,10 +128,12 @@ export default function ApprovePermissionRequestModal({
               <ShieldCheck className="h-4 w-4" />
             </div>
             <h2 id={titleId} className="theme-heading text-lg font-bold">
-              Approve Permission Request
+              {isPasswordReset ? 'Change Student Password' : 'Approve Permission Request'}
             </h2>
             <p className="theme-text-muted text-sm leading-6">
-              Save student login details, then approve this request.
+              {isPasswordReset
+                ? 'Generate and save a new temporary password for this student.'
+                : 'Save student login details, then approve this request.'}
             </p>
           </div>
 
@@ -227,7 +230,9 @@ export default function ApprovePermissionRequestModal({
             disabled={isSubmitting}
             className="rounded-full px-8"
           >
-            {isSubmitting ? 'Saving credentials...' : 'Approve and Save Credentials'}
+            {isSubmitting
+              ? (isPasswordReset ? 'Saving new password...' : 'Saving credentials...')
+              : (isPasswordReset ? 'Save New Password' : 'Approve and Save Credentials')}
           </Button>
         </div>
       </div>

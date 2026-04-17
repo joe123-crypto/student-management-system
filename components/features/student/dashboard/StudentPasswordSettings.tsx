@@ -2,19 +2,10 @@ import React, { useState } from 'react';
 import FormField from '@/components/ui/FormField';
 import Button from '@/components/ui/Button';
 import Notice from '@/components/ui/Notice';
-
-const PASSWORD_REQUIREMENTS_MESSAGE =
-  'Use at least 12 characters with uppercase, lowercase, a number, and a symbol.';
-
-function isStrongPassword(password: string) {
-  return (
-    password.length >= 12 &&
-    /[a-z]/.test(password) &&
-    /[A-Z]/.test(password) &&
-    /\d/.test(password) &&
-    /[^A-Za-z0-9]/.test(password)
-  );
-}
+import {
+  PASSWORD_REQUIREMENTS_MESSAGE,
+  isStrongPassword,
+} from '@/lib/auth/password-policy';
 
 interface StudentPasswordSettingsProps {
   onChangePassword: (

@@ -161,10 +161,10 @@ async function provisionStudentCredentialsTx(
     inscriptionNumber: string;
     passwordHash: string;
   },
-): Promise<string> {
+): Promise<{ authUserId: string; loginId: string }> {
   const loginId = normalizeStudentLoginId(params.inscriptionNumber);
 
-  await tx.authUser.upsert({
+  const authUser = await tx.authUser.upsert({
     where: {
       role_loginId: {
         role: PrismaUserRole.STUDENT,
@@ -188,9 +188,21 @@ async function provisionStudentCredentialsTx(
         increment: 1,
       },
     },
+    select: {
+      id: true,
+      loginId: true,
+      passwordHash: true,
+    },
   });
 
-  return loginId;
+  if (authUser.passwordHash !== params.passwordHash) {
+    throw new Error('Failed to replace the stored student password hash.');
+  }
+
+  return {
+    authUserId: authUser.id,
+    loginId: authUser.loginId,
+  };
 }
 
 export async function updatePermissionRequestStatus(params: {
@@ -238,7 +250,7 @@ export async function updatePermissionRequestStatus(params: {
       },
     });
 
-    const authUserLoginId =
+    const provisionedAuthUser =
       isApproving && passwordHash
         ? await provisionStudentCredentialsTx(tx, {
             inscriptionNumber: normalizedLoginId,
@@ -248,7 +260,8 @@ export async function updatePermissionRequestStatus(params: {
 
     return {
       updated,
-      authUserLoginId,
+      authUserId: provisionedAuthUser?.authUserId,
+      authUserLoginId: provisionedAuthUser?.loginId,
     };
   });
 
@@ -258,6 +271,7 @@ export async function updatePermissionRequestStatus(params: {
     metadata: {
       permissionRequestId: result.updated.id,
       status: result.updated.status,
+      authUserId: result.authUserId,
       authUserLoginId: result.authUserLoginId,
     },
   });

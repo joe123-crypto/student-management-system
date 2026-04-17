@@ -50,7 +50,7 @@ interface AttacheDashboardProps {
 const tabItems = [
   { id: 'students', label: 'Student Records', shortLabel: 'Students' },
   { id: 'announcements', label: 'Communication Center', shortLabel: 'Messages' },
-  { id: 'permission-requests', label: 'Permission Requests', shortLabel: 'Requests' },
+  { id: 'permission-requests', label: 'Permissions', shortLabel: 'Permissions' },
 ] as const;
 
 const communicationTabItems = [
