@@ -131,6 +131,15 @@ export interface PermissionRequest {
   submittedAt: string;
 }
 
+export interface PermissionRequestStatusUpdateOptions {
+  password?: string;
+}
+
+export interface PermissionRequestStatusUpdateResult {
+  permissionRequest: PermissionRequest;
+  authUserLoginId?: string;
+}
+
 export interface User {
   id: string;
   subject: string;

@@ -5,7 +5,12 @@ import { useAppError } from '@/components/providers/AppErrorProvider';
 import { isAbortError } from '@/lib/errors';
 import { isMockDbEnabled } from '@/test/mock/config';
 import { mockPermissionsService } from '@/test/mock/services/permissionsService';
-import type { PermissionRequest, User } from '@/types';
+import type {
+  PermissionRequest,
+  PermissionRequestStatusUpdateOptions,
+  PermissionRequestStatusUpdateResult,
+  User,
+} from '@/types';
 import { UserRole } from '@/types';
 
 const EMPTY_PERMISSION_REQUESTS: PermissionRequest[] = [];
@@ -166,14 +171,24 @@ export function usePermissionRequests(
   async function updatePermissionRequestStatus(
     id: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
-  ) {
+    options: PermissionRequestStatusUpdateOptions = {},
+  ): Promise<PermissionRequestStatusUpdateResult> {
     if (isMockDbEnabled()) {
+      const currentRequest = permissionRequests.find((request) => request.id === id);
+      if (!currentRequest) {
+        throw new Error('Permission request not found.');
+      }
+
+      const updatedRequest = { ...currentRequest, status };
       const nextRequests = permissionRequests.map((request) =>
-        request.id === id ? { ...request, status } : request,
+        request.id === id ? updatedRequest : request,
       );
       mockPermissionsService.savePermissionRequests(nextRequests);
       setPermissionRequests(nextRequests);
-      return;
+      return {
+        permissionRequest: updatedRequest,
+        authUserLoginId: status === 'APPROVED' ? updatedRequest.inscriptionNumber : undefined,
+      };
     }
 
     if (user?.role !== UserRole.ATTACHE) {
@@ -185,11 +200,13 @@ export function usePermissionRequests(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({
+        status,
+        ...(options.password ? { password: options.password } : {}),
+      }),
     });
 
-    const payload = (await response.json()) as {
-      permissionRequest?: PermissionRequest;
+    const payload = (await response.json()) as Partial<PermissionRequestStatusUpdateResult> & {
       error?: string;
     };
 
@@ -197,7 +214,13 @@ export function usePermissionRequests(
       throw new Error(payload.error || `Failed to update permission request (${response.status}).`);
     }
 
-    setPermissionRequests((current) => upsertPermissionRequest(current, payload.permissionRequest!));
+    const permissionRequest = payload.permissionRequest;
+    setPermissionRequests((current) => upsertPermissionRequest(current, permissionRequest));
+
+    return {
+      permissionRequest,
+      authUserLoginId: payload.authUserLoginId,
+    };
   }
 
   return {
