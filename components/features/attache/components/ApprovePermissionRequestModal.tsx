@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { RefreshCcw, ShieldCheck, X } from 'lucide-react';
+import { Check, Copy, RefreshCcw, ShieldCheck, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Notice from '@/components/ui/Notice';
 import { generateStudentPassword } from '@/lib/auth/password-policy';
@@ -24,6 +24,50 @@ function getFocusableElements(container: HTMLElement) {
   ).filter((element) => !element.hasAttribute('aria-hidden') && element.getClientRects().length > 0);
 }
 
+function fallbackCopyTextToClipboard(value: string) {
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.top = '0';
+  textarea.style.left = '-9999px';
+
+  const currentSelection = document.getSelection();
+  const originalRange =
+    currentSelection && currentSelection.rangeCount > 0 ? currentSelection.getRangeAt(0) : null;
+
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+
+  const isCopied = document.execCommand('copy');
+  document.body.removeChild(textarea);
+
+  if (originalRange && currentSelection) {
+    currentSelection.removeAllRanges();
+    currentSelection.addRange(originalRange);
+  }
+
+  if (!isCopied) {
+    throw new Error('Clipboard copy is unavailable.');
+  }
+}
+
+async function copyTextToClipboard(value: string) {
+  if (window.isSecureContext && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return;
+    } catch {
+      fallbackCopyTextToClipboard(value);
+      return;
+    }
+  }
+
+  fallbackCopyTextToClipboard(value);
+}
+
 export default function ApprovePermissionRequestModal({
   open,
   request,
@@ -32,6 +76,7 @@ export default function ApprovePermissionRequestModal({
   onSubmit,
 }: ApprovePermissionRequestModalProps) {
   const [generatedPassword, setGeneratedPassword] = useState('');
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -44,8 +89,21 @@ export default function ApprovePermissionRequestModal({
     }
 
     setGeneratedPassword(generateStudentPassword(request.inscriptionNumber));
+    setCopyState('idle');
     setSubmitError('');
   }, [open, request]);
+
+  useEffect(() => {
+    if (copyState !== 'copied') {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setCopyState('idle');
+    }, 1800);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [copyState]);
 
   useEffect(() => {
     if (!open) {
@@ -170,6 +228,7 @@ export default function ApprovePermissionRequestModal({
                 variant="secondary"
                 size="sm"
                 onClick={() => {
+                  setCopyState('idle');
                   setSubmitError('');
                   setGeneratedPassword(generateStudentPassword(request.inscriptionNumber));
                 }}
@@ -181,12 +240,43 @@ export default function ApprovePermissionRequestModal({
               </Button>
             </div>
 
-            <div className="theme-card-muted mt-3 rounded-[1rem] border px-4 py-3">
+            <div className="theme-card-muted relative mt-3 rounded-[1rem] border px-4 py-3">
               <p className="theme-text-muted text-xs uppercase tracking-[0.18em]">Temporary Password</p>
-              <p className="mt-2 break-all font-mono text-sm font-semibold tracking-[0.08em] sm:text-base">
+              <p className="mt-2 break-all pr-12 font-mono text-sm font-semibold tracking-[0.08em] sm:text-base">
                 {generatedPassword}
               </p>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!generatedPassword) {
+                    setCopyState('error');
+                    return;
+                  }
+
+                  try {
+                    await copyTextToClipboard(generatedPassword);
+                    setCopyState('copied');
+                  } catch {
+                    setCopyState('error');
+                  }
+                }}
+                disabled={isSubmitting || !generatedPassword}
+                className={`absolute bottom-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                  copyState === 'copied'
+                    ? 'theme-success'
+                    : 'theme-card border-[color:var(--theme-border)] hover:bg-[rgba(255,255,255,0.9)]'
+                } disabled:pointer-events-none disabled:opacity-50`}
+                aria-label="Copy generated password"
+                title={copyState === 'copied' ? 'Copied' : 'Copy password'}
+              >
+                {copyState === 'copied' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </button>
             </div>
+            {copyState === 'error' ? (
+              <p className="mt-2 text-xs text-[color:var(--theme-danger)]">
+                Could not copy the password. Please copy it manually.
+              </p>
+            ) : null}
           </div>
 
           {submitError ? (
