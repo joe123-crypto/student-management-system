@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import authConfig from '@/auth.config';
 import { normalizePermissionRequestStatus } from '@/lib/permission-requests/serializers';
 import {
+  PermissionRequestNotFoundError,
   PermissionRequestValidationError,
   updatePermissionRequestStatus,
 } from '@/lib/permission-requests/store';
@@ -27,23 +28,29 @@ export async function PATCH(request: Request, context: RouteContext) {
   const { id } = await context.params;
 
   try {
-    const body = (await request.json()) as { status?: unknown };
+    const body = (await request.json()) as { status?: unknown; password?: unknown };
     const status = normalizePermissionRequestStatus(body.status);
+    const password = typeof body.password === 'string' ? body.password : '';
 
     if (!status || status === PermissionRequestStatus.PENDING) {
       return NextResponse.json({ error: 'Permission request status must be APPROVED or REJECTED.' }, { status: 400 });
     }
 
-    const permissionRequest = await updatePermissionRequestStatus({
+    const result = await updatePermissionRequestStatus({
       id,
       status,
       reviewedById: session.user.id,
+      password,
     });
 
-    return NextResponse.json({ permissionRequest });
+    return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof PermissionRequestValidationError) {
+    if (error instanceof PermissionRequestNotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
+    if (error instanceof PermissionRequestValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     console.error('[PERMISSION_REQUESTS] Failed to update permission request status:', error);

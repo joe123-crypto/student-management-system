@@ -4,6 +4,8 @@ import {
   Announcement,
   AttacheAgentContext,
   PermissionRequest,
+  type PermissionRequestStatusUpdateOptions,
+  type PermissionRequestStatusUpdateResult,
   StudentProfile,
   User,
   UserRole,
@@ -38,7 +40,8 @@ interface AttacheDashboardProps {
   onUpdatePermissionRequestStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
-  ) => Promise<void>;
+    options?: PermissionRequestStatusUpdateOptions,
+  ) => Promise<PermissionRequestStatusUpdateResult>;
   section: 'dashboard' | 'settings';
   onNavigateSection: (section: 'dashboard' | 'settings') => void;
   onLogout: () => void;

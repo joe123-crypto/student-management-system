@@ -1,6 +1,13 @@
 'use client';
 
-import type { Announcement, PermissionRequest, StudentProfile, User } from '@/types';
+import type {
+  Announcement,
+  PermissionRequest,
+  PermissionRequestStatusUpdateOptions,
+  PermissionRequestStatusUpdateResult,
+  StudentProfile,
+  User,
+} from '@/types';
 import { UserRole } from '@/types';
 import Redirect from '@/components/shell/Redirect';
 import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
@@ -23,7 +30,8 @@ interface AttacheAppRouterProps {
   onUpdatePermissionRequestStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
-  ) => Promise<void>;
+    options?: PermissionRequestStatusUpdateOptions,
+  ) => Promise<PermissionRequestStatusUpdateResult>;
   onNavigateAttacheSection: (section: 'dashboard' | 'settings') => void;
   onLogout: () => void;
 }
