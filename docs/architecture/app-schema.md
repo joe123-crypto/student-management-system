@@ -44,7 +44,7 @@ For full frontend data contracts (including announcements, permission requests, 
 | `id` | number | PK |
 | `given_name` | string |  |
 | `family_name` | string |  |
-| `dob` | string (date) |  |
+| `dob` | date | optional |
 | `gender` | string | values seen: `M`, `F` |
 | `home_address_id` | number | FK -> `ADDRESS.id` |
 
@@ -61,8 +61,8 @@ For full frontend data contracts (including announcements, permission requests, 
 |---|---|---|
 | `id` | number | PK |
 | `passport_no` | string |  |
-| `issue_date` | string (date) |  |
-| `expiry` | string (date) |  |
+| `issue_date` | date | optional |
+| `expiry` | date | optional |
 | `person_id` | number | FK -> `PERSON.id` |
 
 ### `CONTACT`
@@ -74,7 +74,7 @@ For full frontend data contracts (including announcements, permission requests, 
 | `value` | string |  |
 | `label` | string | examples: `primary`, `mobile`, `name`, `phone` |
 | `is_primary` | boolean |  |
-| `created_at` | string (datetime) | ISO timestamp |
+| `created_at` | datetime | stored as native timestamp |
 
 ### `ADDRESS`
 | Field | Type | Notes |
@@ -88,6 +88,7 @@ For full frontend data contracts (including announcements, permission requests, 
 |---|---|---|
 | `id` | number | PK |
 | `name` | string | province/city name |
+| `country` | string | country or territory label |
 
 ### `UNIVERSITY`
 | Field | Type | Notes |
@@ -104,42 +105,61 @@ For full frontend data contracts (including announcements, permission requests, 
 | `name` | string |  |
 | `description` | string |  |
 
-### `PROGRAMTYPE`
-| Field | Type | Notes |
-|---|---|---|
-| `id` | number | PK |
-| `name` | string | e.g. `Bachelors`, `Masters`, `PhD` |
-| `default_duration` | number | years |
-
 ### `PROGRAM`
 | Field | Type | Notes |
 |---|---|---|
 | `id` | number | PK |
 | `name` | string | major/program title |
-| `description` | string |  |
 | `department_id` | number | FK -> `DEPARTMENT.id` |
-| `programtype_id` | number | FK -> `PROGRAMTYPE.id` |
+| `system_type` | string | e.g. `LMD`, `ENGINEER` |
+| `duration_years` | number | total expected duration |
+
+### `AWARDTYPE`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | number | PK |
+| `code` | string | e.g. `LICENCE`, `MASTER`, `INGENIEUR` |
+| `label` | string | human-readable award name |
+
+### `PROGRAMAWARD`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | number | PK |
+| `program_id` | number | FK -> `PROGRAM.id` |
+| `award_type_id` | number | FK -> `AWARDTYPE.id` |
+| `sequence_no` | number | award order within the program |
+| `nominal_year` | number | expected year for that award milestone |
 
 ### `ENROLLMENT`
 | Field | Type | Notes |
 |---|---|---|
 | `id` | number | PK |
-| `registration_no` | string | unique-like identifier |
-| `date_enrolled` | string (date) |  |
-| `status` | string | values seen: `ACTIVE`, `PENDING`, `COMPLETED` |
+| `start_year` | number | enrollment start year |
+| `end_year` | number | optional expected/actual end year |
+| `current_status` | string | values seen: `active`, `dropped`, `graduated`, `pending` |
 | `student_id` | number | FK -> `STUDENT.id` |
 | `program_id` | number | FK -> `PROGRAM.id` |
 
-### `PROGRESS`
+### `ENROLLMENTPROGRESS`
 | Field | Type | Notes |
 |---|---|---|
 | `id` | number | PK |
-| `date` | string (date) |  |
-| `semester` | string |  |
-| `level` | string | e.g. `L1`, `M1` |
-| `grade` | string | stored as string |
-| `status` | string | values seen: `COMPLETED`, `PENDING` |
+| `stage_code` | string | milestone/stage code, e.g. `L1`, `M1` |
+| `academic_year` | string | academic cycle label |
+| `status_date` | date | optional milestone date |
+| `result_status` | string | values such as `passed`, `failed`, `repeated`, `pending` |
+| `moyenne` | decimal | optional numeric average/mark for the milestone |
 | `enrollment_id` | number | FK -> `ENROLLMENT.id` |
+
+### `STUDENTAWARD`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | number | PK |
+| `student_id` | number | FK -> `STUDENT.id` |
+| `enrollment_id` | number | FK -> `ENROLLMENT.id` |
+| `program_award_id` | number | FK -> `PROGRAMAWARD.id` |
+| `award_date` | date | optional award date |
+| `status` | string | values such as `awarded`, `pending`, `revoked` |
 
 ### `BANK`
 | Field | Type | Notes |
@@ -165,7 +185,7 @@ For full frontend data contracts (including announcements, permission requests, 
 | `account_no` | string |  |
 | `rib` | number | account/RIB number |
 | `currency` | string | account currency code |
-| `date_created` | string (date) |  |
+| `date_created` | date | optional |
 | `branch_id` | number | FK -> `BRANCH.id` |
 | `person_id` | number | FK -> `PERSON.id` |
 
@@ -214,8 +234,12 @@ erDiagram
   STUDENT ||--o{ ENROLLMENT : "enrolls"
   PROGRAM ||--o{ ENROLLMENT : "selected in"
   DEPARTMENT ||--o{ PROGRAM : "owns"
-  PROGRAMTYPE ||--o{ PROGRAM : "categorizes"
-  ENROLLMENT ||--o{ PROGRESS : "tracks"
+  PROGRAM ||--o{ PROGRAMAWARD : "defines awards"
+  AWARDTYPE ||--o{ PROGRAMAWARD : "classifies"
+  ENROLLMENT ||--o{ ENROLLMENTPROGRESS : "tracks"
+  STUDENT ||--o{ STUDENTAWARD : "earns"
+  ENROLLMENT ||--o{ STUDENTAWARD : "produces"
+  PROGRAMAWARD ||--o{ STUDENTAWARD : "awards"
 ```
 
 ## Notes
@@ -223,3 +247,4 @@ erDiagram
 - `CONTACT.owner_id` behaves as a polymorphic owner field in name, but current usage links it to `PERSON.id`.
 - `STUDENT` references two addresses: `PERSON.home_address_id` (home) and `STUDENT.address_id` (current/host).
 - `StudentProfile.id` is derived at the mapping layer as `student-{STUDENT.id}` rather than stored as a separate column.
+- `ENROLLMENTPROGRESS.moyenne` stores the optional numeric average for a stage; the UI compatibility layer still exposes a string `grade` alongside it.

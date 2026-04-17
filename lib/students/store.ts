@@ -80,17 +80,32 @@ const studentInclude = Prisma.validator<Prisma.StudentInclude>()({
     },
   },
   enrollments: {
-    orderBy: [{ dateEnrolled: 'desc' }, { id: 'desc' }],
+    orderBy: [{ startYear: 'desc' }, { id: 'desc' }],
     take: 1,
     include: {
       program: {
         include: {
           department: true,
-          programType: true,
+          programAwards: {
+            orderBy: [{ sequenceNo: 'asc' }, { id: 'asc' }],
+            include: {
+              awardType: true,
+            },
+          },
+        },
+      },
+      studentAwards: {
+        orderBy: [{ awardDate: 'asc' }, { id: 'asc' }],
+        include: {
+          programAward: {
+            include: {
+              awardType: true,
+            },
+          },
         },
       },
       progressRows: {
-        orderBy: [{ date: 'asc' }, { id: 'asc' }],
+        orderBy: [{ statusDate: 'asc' }, { id: 'asc' }],
       },
     },
   },
@@ -133,15 +148,27 @@ function hasText(value: string | null | undefined): boolean {
 
 function normalizeStoredStatus(value: string | null | undefined): StudentProfile['status'] {
   const normalized = (value || '').trim().toUpperCase();
-  if (normalized === 'ACTIVE' || normalized === 'COMPLETED') {
-    return normalized;
+  if (normalized === 'ACTIVE') {
+    return 'ACTIVE';
+  }
+
+  if (normalized === 'COMPLETED' || normalized === 'GRADUATED') {
+    return 'COMPLETED';
   }
 
   return 'PENDING';
 }
 
-function toStoredStatus(value: StudentProfile['status']): string {
-  return normalizeStoredStatus(value);
+function toStoredEnrollmentStatus(value: StudentProfile['status']): string {
+  if (value === 'COMPLETED') {
+    return 'graduated';
+  }
+
+  if (value === 'ACTIVE') {
+    return 'active';
+  }
+
+  return 'pending';
 }
 
 function buildFullName(givenName: string, familyName: string, fallback = ''): string {
@@ -149,23 +176,109 @@ function buildFullName(givenName: string, familyName: string, fallback = ''): st
   return combined || fallback;
 }
 
+function isValidDate(value: unknown): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime());
+}
+
+function formatDateOnly(value: Date | null | undefined): string {
+  if (!isValidDate(value)) {
+    return '';
+  }
+
+  const year = value.getUTCFullYear();
+  const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(value.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateOnly(value: string | Date | null | undefined): Date | null {
+  if (isValidDate(value)) {
+    return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const exactMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized);
+  if (exactMatch) {
+    const [, year, month, day] = exactMatch;
+    return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  }
+
+  const parsed = new Date(normalized);
+  if (!isValidDate(parsed)) {
+    return null;
+  }
+
+  return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()));
+}
+
 function formatAddress(address: { name: string; province?: { name: string } | null } | null | undefined): string {
   const parts = [address?.name?.trim() || '', address?.province?.name?.trim() || ''].filter(Boolean);
   return parts.join(', ');
 }
 
-function calculateExpectedEnd(dateEnrolled: string, duration: number | undefined): string {
-  if (!dateEnrolled) {
+function buildEnrollmentStartDate(startYear: number | null | undefined): string {
+  return typeof startYear === 'number' && Number.isFinite(startYear) ? `${startYear}-01-01` : '';
+}
+
+function extractYearFromDate(value: string | Date | null | undefined, fallback: number): number {
+  const parsed = parseDateOnly(value);
+  if (!parsed) {
+    return fallback;
+  }
+
+  return parsed.getUTCFullYear();
+}
+
+function calculateExpectedEndFromYear(startYear: number | null | undefined, duration: number | undefined): string {
+  if (typeof startYear !== 'number' || !Number.isFinite(startYear)) {
     return '';
   }
 
-  const date = new Date(`${dateEnrolled}T00:00:00Z`);
+  const date = new Date(Date.UTC(startYear, 0, 1));
   if (Number.isNaN(date.getTime())) {
     return '';
   }
 
   date.setUTCFullYear(date.getUTCFullYear() + (duration || 2));
   return date.toISOString().slice(0, 10);
+}
+
+function buildRegistrationNumber(enrollmentId: number | null | undefined, startYear: number | null | undefined, studentId: number): string {
+  if (typeof startYear !== 'number' || !Number.isFinite(startYear)) {
+    return '';
+  }
+
+  const suffix = typeof enrollmentId === 'number' && Number.isFinite(enrollmentId) ? enrollmentId : studentId;
+  return `ENR-${startYear}-${suffix}`;
+}
+
+function normalizeSystemType(value: string | null | undefined): string {
+  const normalized = (value || '').trim();
+  if (!normalized) {
+    return 'GENERAL';
+  }
+
+  return normalized.replace(/\s+/g, '_').toUpperCase();
+}
+
+function formatAwardLabel(value: string): string {
+  const normalized = value.trim();
+  if (!normalized) {
+    return 'General Award';
+  }
+
+  return normalized
+    .replace(/[_-]+/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function parseIntegerString(value: string | null | undefined, fallback: number): number {
@@ -189,6 +302,32 @@ function parseBigIntString(value: string | null | undefined, fallback: bigint): 
   } catch {
     return fallback;
   }
+}
+
+function parseMoyenne(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim().replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(normalized)) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatMoyenne(value: number | null | undefined): string {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return '';
+  }
+
+  return value.toFixed(2).replace(/\.?0+$/, '');
 }
 
 function bigIntToString(value: bigint | null | undefined): string {
@@ -251,9 +390,11 @@ function mapStudentRow(
   const bank = branch?.bank;
   const latestEnrollment = student.enrollments[0];
   const program = latestEnrollment?.program;
-  const programType = program?.programType;
+  const programAwards = program?.programAwards || [];
+  const finalProgramAward = programAwards[programAwards.length - 1];
   const department = program?.department;
   const university = selectUniversity(student, universityLookup);
+  const startDate = buildEnrollmentStartDate(latestEnrollment?.startYear);
 
   const fullName = buildFullName(
     person.givenName,
@@ -268,16 +409,16 @@ function mapStudentRow(
       givenName: person.givenName,
       familyName: person.familyName,
       inscriptionNumber: student.inscriptionNo,
-      registrationNumber: latestEnrollment?.registrationNo || '',
-      dateOfBirth: person.dob,
+      registrationNumber: buildRegistrationNumber(latestEnrollment?.id, latestEnrollment?.startYear, student.id),
+      dateOfBirth: formatDateOnly(person.dob),
       nationality: passport?.passportNo ? passport.passportNo.slice(0, 2) : '',
       gender: person.gender === 'F' ? 'F' : person.gender === 'Other' ? 'Other' : 'M',
       profilePicture: fileLinks?.profilePictureUrl,
     },
     passport: {
       passportNumber: passport?.passportNo || '',
-      issueDate: passport?.issueDate || '',
-      expiryDate: passport?.expiry || '',
+      issueDate: formatDateOnly(passport?.issueDate),
+      expiryDate: formatDateOnly(passport?.expiry),
       issuingCountry: passport?.passportNo ? passport.passportNo.slice(0, 2) : '',
     },
     university: {
@@ -288,18 +429,27 @@ function mapStudentRow(
       department: department?.name || '',
     },
     program: {
-      degreeLevel: programType?.name || '',
+      degreeLevel: finalProgramAward?.awardType.label || finalProgramAward?.awardType.code || program?.systemType || '',
       major: program?.name || '',
-      startDate: latestEnrollment?.dateEnrolled || '',
-      expectedEndDate: calculateExpectedEnd(latestEnrollment?.dateEnrolled || '', programType?.defaultDuration),
-      programType: programType?.name || '',
+      startDate,
+      expectedEndDate: calculateExpectedEndFromYear(latestEnrollment?.startYear, program?.durationYears),
+      programType: program?.systemType || '',
+      systemType: program?.systemType || '',
+      durationYears: program?.durationYears,
+      awards: programAwards.map((entry) => ({
+        id: `program-award-${entry.id}`,
+        code: entry.awardType.code,
+        label: entry.awardType.label,
+        sequenceNo: entry.sequenceNo,
+        nominalYear: entry.nominalYear,
+      })),
     },
     bankAccount: {
       accountHolderName: fullName,
       accountNumber: account?.accountNo || '',
       iban: bigIntToString(account?.rib),
       swiftCode: bank?.code ? String(bank.code) : '',
-      dateCreated: account?.dateCreated || '',
+      dateCreated: formatDateOnly(account?.dateCreated),
     },
     bank: {
       bankName: bank?.name || '',
@@ -322,15 +472,32 @@ function mapStudentRow(
       countryCode: '',
       wilaya: student.address?.province?.name || '',
     },
-    status: normalizeStoredStatus(latestEnrollment?.status),
-    academicHistory: (latestEnrollment?.progressRows || []).map((entry) => ({
-      id: `progress-${entry.id}`,
-      date: entry.date,
-      year: entry.semester,
-      level: entry.level,
-      grade: entry.grade,
+    status: normalizeStoredStatus(latestEnrollment?.currentStatus),
+    academicHistory: (latestEnrollment?.progressRows || []).map((entry) => {
+      const moyenne = parseMoyenne(entry.moyenne);
+      return {
+        id: `progress-${entry.id}`,
+        date: formatDateOnly(entry.statusDate),
+        year: entry.academicYear,
+        level: entry.stageCode,
+        grade: formatMoyenne(moyenne) || entry.resultStatus,
+        status: entry.resultStatus,
+        stageCode: entry.stageCode,
+        academicYear: entry.academicYear,
+        statusDate: formatDateOnly(entry.statusDate),
+        resultStatus: entry.resultStatus,
+        moyenne: moyenne ?? undefined,
+        proofDocument: fileLinks?.proofDocumentsByProgressId.get(entry.id),
+      };
+    }),
+    studentAwards: (latestEnrollment?.studentAwards || []).map((entry) => ({
+      id: `student-award-${entry.id}`,
+      code: entry.programAward.awardType.code,
+      label: entry.programAward.awardType.label,
+      sequenceNo: entry.programAward.sequenceNo,
+      nominalYear: entry.programAward.nominalYear,
       status: entry.status,
-      proofDocument: fileLinks?.proofDocumentsByProgressId.get(entry.id),
+      awardDate: formatDateOnly(entry.awardDate),
     })),
   });
 }
@@ -479,12 +646,13 @@ async function getOrCreateDepartment(tx: DbTx, departmentName: string): Promise<
   return created.id;
 }
 
-async function getOrCreateProgramType(tx: DbTx, programTypeName: string): Promise<number> {
-  const normalized = programTypeName.trim() || 'Program';
-  const existing = await tx.programType.findFirst({
+async function getOrCreateAwardType(tx: DbTx, awardCodeOrLabel: string): Promise<number> {
+  const normalizedCode = normalizeSystemType(awardCodeOrLabel);
+  const normalizedLabel = formatAwardLabel(awardCodeOrLabel || normalizedCode);
+  const existing = await tx.awardType.findFirst({
     where: {
-      name: {
-        equals: normalized,
+      code: {
+        equals: normalizedCode,
         mode: 'insensitive',
       },
     },
@@ -497,10 +665,10 @@ async function getOrCreateProgramType(tx: DbTx, programTypeName: string): Promis
     return existing.id;
   }
 
-  const created = await tx.programType.create({
+  const created = await tx.awardType.create({
     data: {
-      name: normalized,
-      defaultDuration: 2,
+      code: normalizedCode,
+      label: normalizedLabel,
     },
   });
 
@@ -511,13 +679,16 @@ async function getOrCreateProgram(
   tx: DbTx,
   programName: string,
   departmentId: number,
-  programTypeId: number,
+  systemType: string,
+  durationYears: number,
 ): Promise<number> {
   const normalized = programName.trim() || 'General Studies';
+  const normalizedSystemType = normalizeSystemType(systemType);
+  const normalizedDurationYears = Math.max(1, durationYears || 2);
   const existing = await tx.program.findFirst({
     where: {
       departmentId,
-      programTypeId,
+      systemType: normalizedSystemType,
       name: {
         equals: normalized,
         mode: 'insensitive',
@@ -529,15 +700,69 @@ async function getOrCreateProgram(
   });
 
   if (existing) {
+    if (existing.durationYears !== normalizedDurationYears) {
+      await tx.program.update({
+        where: { id: existing.id },
+        data: {
+          durationYears: normalizedDurationYears,
+        },
+      });
+    }
     return existing.id;
   }
 
   const created = await tx.program.create({
     data: {
       name: normalized,
-      description: normalized,
       departmentId,
-      programTypeId,
+      systemType: normalizedSystemType,
+      durationYears: normalizedDurationYears,
+    },
+  });
+
+  return created.id;
+}
+
+async function ensureDefaultProgramAward(
+  tx: DbTx,
+  programId: number,
+  awardCodeOrLabel: string,
+  nominalYear: number,
+): Promise<number | null> {
+  const normalizedAward = awardCodeOrLabel.trim();
+  if (!normalizedAward) {
+    return null;
+  }
+
+  const awardTypeId = await getOrCreateAwardType(tx, normalizedAward);
+  const normalizedNominalYear = Math.max(1, nominalYear || 1);
+  const existing = await tx.programAward.findFirst({
+    where: {
+      programId,
+      sequenceNo: 1,
+    },
+    orderBy: {
+      id: 'asc',
+    },
+  });
+
+  if (existing) {
+    await tx.programAward.update({
+      where: { id: existing.id },
+      data: {
+        awardTypeId,
+        nominalYear: normalizedNominalYear,
+      },
+    });
+    return existing.id;
+  }
+
+  const created = await tx.programAward.create({
+    data: {
+      programId,
+      awardTypeId,
+      sequenceNo: 1,
+      nominalYear: normalizedNominalYear,
     },
   });
 
@@ -712,7 +937,7 @@ async function syncContact(
       label,
       value,
       isPrimary,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     },
   });
 }
@@ -737,8 +962,8 @@ async function syncPassport(tx: DbTx, personId: number, profile: StudentProfile)
       where: { id: existing.id },
       data: {
         passportNo: profile.passport.passportNumber,
-        issueDate: profile.passport.issueDate,
-        expiry: profile.passport.expiryDate,
+        issueDate: parseDateOnly(profile.passport.issueDate),
+        expiry: parseDateOnly(profile.passport.expiryDate),
       },
     });
     return;
@@ -747,8 +972,8 @@ async function syncPassport(tx: DbTx, personId: number, profile: StudentProfile)
   await tx.passport.create({
     data: {
       passportNo: profile.passport.passportNumber,
-      issueDate: profile.passport.issueDate,
-      expiry: profile.passport.expiryDate,
+      issueDate: parseDateOnly(profile.passport.issueDate),
+      expiry: parseDateOnly(profile.passport.expiryDate),
       personId,
     },
   });
@@ -765,10 +990,96 @@ function hasEnrollmentData(profile: StudentProfile, existingEnrollment: { id: nu
     hasText(profile.program.major) ||
     hasText(profile.program.degreeLevel) ||
     hasText(profile.program.programType || '') ||
+    hasText(profile.program.systemType || '') ||
     hasText(profile.university.department || '') ||
     profile.status !== 'PENDING' ||
     Boolean(profile.academicHistory?.length)
   );
+}
+
+function resolveDurationYears(profile: StudentProfile, existingDurationYears?: number | null): number {
+  if (typeof profile.program.durationYears === 'number' && Number.isFinite(profile.program.durationYears)) {
+    return Math.max(1, profile.program.durationYears);
+  }
+
+  const startDate = parseDateOnly(profile.program.startDate);
+  const expectedEndDate = parseDateOnly(profile.program.expectedEndDate);
+  if (startDate && expectedEndDate) {
+    const yearDelta = expectedEndDate.getUTCFullYear() - startDate.getUTCFullYear();
+    if (yearDelta > 0) {
+      return yearDelta;
+    }
+  }
+
+  return Math.max(1, existingDurationYears || 2);
+}
+
+function resolveStartYear(profile: StudentProfile, existingStartYear?: number | null): number {
+  return extractYearFromDate(profile.program.startDate, existingStartYear || new Date().getUTCFullYear());
+}
+
+function resolveEndYear(
+  profile: StudentProfile,
+  startYear: number,
+  durationYears: number,
+  existingEndYear?: number | null,
+): number | null {
+  const expectedEndDate = parseDateOnly(profile.program.expectedEndDate);
+  if (expectedEndDate) {
+    return expectedEndDate.getUTCFullYear();
+  }
+
+  if (typeof existingEndYear === 'number' && Number.isFinite(existingEndYear)) {
+    return existingEndYear;
+  }
+
+  return startYear + durationYears;
+}
+
+async function syncDefaultStudentAward(
+  tx: DbTx,
+  studentId: number,
+  enrollmentId: number,
+  programAwardId: number | null,
+  enrollmentStatus: string,
+  awardDate: Date | null,
+): Promise<void> {
+  if (!programAwardId) {
+    return;
+  }
+
+  const normalizedStatus =
+    enrollmentStatus === 'graduated' ? 'awarded' : enrollmentStatus === 'dropped' ? 'revoked' : 'pending';
+  const existing = await tx.studentAward.findFirst({
+    where: {
+      enrollmentId,
+      programAwardId,
+    },
+    orderBy: {
+      id: 'asc',
+    },
+  });
+
+  if (existing) {
+    await tx.studentAward.update({
+      where: { id: existing.id },
+      data: {
+        status: normalizedStatus,
+        awardDate: normalizedStatus === 'awarded' ? awardDate : null,
+      },
+    });
+    return;
+  }
+
+  await tx.studentAward.create({
+    data: {
+      studentId,
+      enrollmentId,
+      programAwardId,
+      awardDate: normalizedStatus === 'awarded' ? awardDate : null,
+      status: normalizedStatus,
+    },
+  });
 }
 
 async function syncLatestEnrollment(
@@ -778,7 +1089,14 @@ async function syncLatestEnrollment(
 ): Promise<SyncedEnrollmentResult> {
   const latestEnrollment = await tx.enrollment.findFirst({
     where: { studentId },
-    orderBy: [{ dateEnrolled: 'desc' }, { id: 'desc' }],
+    include: {
+      program: {
+        select: {
+          durationYears: true,
+        },
+      },
+    },
+    orderBy: [{ startYear: 'desc' }, { id: 'desc' }],
   });
 
   if (!hasEnrollmentData(profile, latestEnrollment)) {
@@ -786,48 +1104,61 @@ async function syncLatestEnrollment(
   }
 
   const departmentId = await getOrCreateDepartment(tx, profile.university.department || '');
-  const programTypeId = await getOrCreateProgramType(tx, profile.program.degreeLevel || profile.program.programType || '');
-  const programId = await getOrCreateProgram(tx, profile.program.major || '', departmentId, programTypeId);
-  const registrationNo =
-    (profile.student.registrationNumber || '').trim() ||
-    latestEnrollment?.registrationNo ||
-    `REG-${new Date().getFullYear()}-${studentId}`;
-  const dateEnrolled =
-    profile.program.startDate.trim() || latestEnrollment?.dateEnrolled || new Date().toISOString().slice(0, 10);
-  const status = toStoredStatus(profile.status);
+  const durationYears = resolveDurationYears(profile, latestEnrollment?.program?.durationYears);
+  const systemType = normalizeSystemType(
+    profile.program.systemType || profile.program.programType || profile.program.degreeLevel || '',
+  );
+  const programId = await getOrCreateProgram(tx, profile.program.major || '', departmentId, systemType, durationYears);
+  const programAwardId = await ensureDefaultProgramAward(
+    tx,
+    programId,
+    profile.program.degreeLevel || profile.program.programType || systemType,
+    durationYears,
+  );
+  const startYear = resolveStartYear(profile, latestEnrollment?.startYear);
+  const endYear = resolveEndYear(profile, startYear, durationYears, latestEnrollment?.endYear);
+  const currentStatus = toStoredEnrollmentStatus(profile.status);
 
   const enrollment = latestEnrollment
     ? await tx.enrollment.update({
         where: { id: latestEnrollment.id },
         data: {
-          registrationNo,
-          dateEnrolled,
-          status,
+          startYear,
+          endYear,
+          currentStatus,
           programId,
         },
       })
     : await tx.enrollment.create({
         data: {
-          registrationNo,
-          dateEnrolled,
-          status,
+          startYear,
+          endYear,
+          currentStatus,
           studentId,
           programId,
         },
       });
 
   if (profile.academicHistory === undefined) {
+    await syncDefaultStudentAward(
+      tx,
+      studentId,
+      enrollment.id,
+      programAwardId,
+      currentStatus,
+      parseDateOnly(profile.program.expectedEndDate) || (endYear ? new Date(Date.UTC(endYear, 0, 1)) : null),
+    );
     return {
       enrollmentId: enrollment.id,
       progressRows: [],
     };
   }
 
-  const existingProgressRows = await tx.progress.findMany({
+  const existingProgressRows = await tx.enrollmentProgress.findMany({
     where: {
       enrollmentId: enrollment.id,
     },
-    orderBy: [{ date: 'asc' }, { id: 'asc' }],
+    orderBy: [{ statusDate: 'asc' }, { id: 'asc' }],
   });
 
   const syncedProgressRows: SyncedProgressRow[] = [];
@@ -836,20 +1167,20 @@ async function syncLatestEnrollment(
     const item = profile.academicHistory[index];
     const existingRow = existingProgressRows[index];
     const data = {
-      date: item.date,
-      semester: item.year,
-      level: item.level,
-      grade: item.grade,
-      status: item.status || 'PENDING',
+      stageCode: (item.stageCode || item.level || `STAGE_${index + 1}`).trim(),
+      academicYear: (item.academicYear || item.year || String(startYear + index)).trim(),
+      statusDate: parseDateOnly(item.statusDate || item.date),
+      resultStatus: (item.resultStatus || item.grade || item.status || 'pending').trim(),
+      moyenne: parseMoyenne(item.moyenne) ?? parseMoyenne(item.grade) ?? parseMoyenne(item.resultStatus),
       enrollmentId: enrollment.id,
     };
 
     const progress = existingRow
-      ? await tx.progress.update({
+      ? await tx.enrollmentProgress.update({
           where: { id: existingRow.id },
           data,
         })
-      : await tx.progress.create({
+      : await tx.enrollmentProgress.create({
           data,
         });
 
@@ -861,10 +1192,19 @@ async function syncLatestEnrollment(
 
   const extraProgressRows = existingProgressRows.slice(profile.academicHistory.length);
   for (const progress of extraProgressRows) {
-    await tx.progress.delete({
+    await tx.enrollmentProgress.delete({
       where: { id: progress.id },
     });
   }
+
+  await syncDefaultStudentAward(
+    tx,
+    studentId,
+    enrollment.id,
+    programAwardId,
+    currentStatus,
+    parseDateOnly(profile.program.expectedEndDate) || (endYear ? new Date(Date.UTC(endYear, 0, 1)) : null),
+  );
 
   return {
     enrollmentId: enrollment.id,
@@ -920,7 +1260,7 @@ async function syncBanking(tx: DbTx, personId: number, profile: StudentProfile):
   const accountNo = profile.bankAccount.accountNumber.trim() || existingAccount?.accountNo || '';
   const rib = parseBigIntString(profile.bankAccount.iban, existingAccount?.rib ?? BigInt(0));
   const dateCreated =
-    profile.bankAccount.dateCreated?.trim() || existingAccount?.dateCreated || new Date().toISOString().slice(0, 10);
+    parseDateOnly(profile.bankAccount.dateCreated) || existingAccount?.dateCreated || new Date();
 
   if (existingAccount) {
     await tx.account.update({
@@ -973,7 +1313,7 @@ async function createStudentProfileTx(tx: DbTx, profile: StudentProfile): Promis
         normalizedProfile.student.familyName ||
         fullName.split(' ').slice(1).join(' ') ||
         'Student',
-      dob: normalizedProfile.student.dateOfBirth,
+      dob: parseDateOnly(normalizedProfile.student.dateOfBirth),
       gender: normalizedProfile.student.gender,
       homeAddressId: homeAddressId ?? undefined,
     },
@@ -1117,7 +1457,7 @@ async function updateStudentProfileTx(
     data: {
       givenName: normalizedProfile.student.givenName,
       familyName: normalizedProfile.student.familyName,
-      dob: normalizedProfile.student.dateOfBirth,
+      dob: parseDateOnly(normalizedProfile.student.dateOfBirth),
       gender: normalizedProfile.student.gender,
       homeAddressId: homeAddressId ?? undefined,
     },
@@ -1150,7 +1490,8 @@ async function updateStudentProfileTx(
 
 async function clearNormalizedStudentData(tx: DbTx): Promise<void> {
   await tx.fileAsset.deleteMany();
-  await tx.progress.deleteMany();
+  await tx.studentAward.deleteMany();
+  await tx.enrollmentProgress.deleteMany();
   await tx.enrollment.deleteMany();
   await tx.account.deleteMany();
   await tx.contact.deleteMany();
@@ -1160,8 +1501,9 @@ async function clearNormalizedStudentData(tx: DbTx): Promise<void> {
   await tx.branch.deleteMany();
   await tx.bank.deleteMany();
   await tx.university.deleteMany();
+  await tx.programAward.deleteMany();
   await tx.program.deleteMany();
-  await tx.programType.deleteMany();
+  await tx.awardType.deleteMany();
   await tx.department.deleteMany();
   await tx.address.deleteMany();
   await tx.province.deleteMany();
@@ -1389,7 +1731,15 @@ export async function deleteStudentProfiles(ids: string[]): Promise<void> {
       });
 
       if (enrollmentIds.length > 0) {
-        await tx.progress.deleteMany({
+        await tx.studentAward.deleteMany({
+          where: {
+            enrollmentId: {
+              in: enrollmentIds,
+            },
+          },
+        });
+
+        await tx.enrollmentProgress.deleteMany({
           where: {
             enrollmentId: {
               in: enrollmentIds,
