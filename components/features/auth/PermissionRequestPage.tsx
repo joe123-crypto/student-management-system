@@ -63,7 +63,7 @@ export default function PermissionRequestPage({
 
     try {
       await onSubmitRequest(normalizedInscription, normalizedFullName, normalizedPassportNumber);
-      setMessage('Your request has been received and will be reviewed if the details match an eligible record.');
+      setMessage('Your request has been received and is now pending review.');
       setFullName('');
       setPassportNumber('');
       setInscriptionNumber('');
