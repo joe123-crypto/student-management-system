@@ -4,6 +4,8 @@ import {
   Announcement,
   AttacheAgentContext,
   PermissionRequest,
+  type PermissionRequestStatusUpdateOptions,
+  type PermissionRequestStatusUpdateResult,
   StudentProfile,
   User,
   UserRole,
@@ -38,7 +40,8 @@ interface AttacheDashboardProps {
   onUpdatePermissionRequestStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
-  ) => Promise<void>;
+    options?: PermissionRequestStatusUpdateOptions,
+  ) => Promise<PermissionRequestStatusUpdateResult>;
   section: 'dashboard' | 'settings';
   onNavigateSection: (section: 'dashboard' | 'settings') => void;
   onLogout: () => void;
@@ -47,7 +50,7 @@ interface AttacheDashboardProps {
 const tabItems = [
   { id: 'students', label: 'Student Records', shortLabel: 'Students' },
   { id: 'announcements', label: 'Communication Center', shortLabel: 'Messages' },
-  { id: 'permission-requests', label: 'Permission Requests', shortLabel: 'Requests' },
+  { id: 'permission-requests', label: 'Permissions', shortLabel: 'Permissions' },
 ] as const;
 
 const communicationTabItems = [

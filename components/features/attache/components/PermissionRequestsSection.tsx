@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import type { PermissionRequest } from '@/types';
+import type {
+  PermissionRequest,
+  PermissionRequestStatusUpdateOptions,
+  PermissionRequestStatusUpdateResult,
+} from '@/types';
 import { useNotifications } from '@/components/providers/NotificationProvider';
 import Skeleton from '@/components/ui/Skeleton';
 import { getErrorMessage } from '@/lib/errors';
 import { AnimatedCount, dashboardHoverLift, dashboardHoverTransition, dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
+import ApprovePermissionRequestModal from '@/components/features/attache/components/ApprovePermissionRequestModal';
 
 interface PermissionRequestsSectionProps {
   requests: PermissionRequest[];
@@ -12,7 +17,8 @@ interface PermissionRequestsSectionProps {
   onUpdateStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
-  ) => Promise<void>;
+    options?: PermissionRequestStatusUpdateOptions,
+  ) => Promise<PermissionRequestStatusUpdateResult>;
 }
 
 function statusTone(status: PermissionRequest['status']): string {
@@ -35,6 +41,7 @@ export default function PermissionRequestsSection({
   const shouldReduceMotion = useReducedMotion();
   const notifications = useNotifications();
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+  const [approvalRequest, setApprovalRequest] = useState<PermissionRequest | null>(null);
   const pendingCount = requests.filter((request) => request.status === 'PENDING').length;
   const approvedCount = requests.filter((request) => request.status === 'APPROVED').length;
   const rejectedCount = requests.filter((request) => request.status === 'REJECTED').length;
@@ -69,7 +76,7 @@ export default function PermissionRequestsSection({
     >
       <motion.div variants={dashboardStaggerItem} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="theme-heading text-lg font-bold">Permission Requests</h2>
+          <h2 className="theme-heading text-lg font-bold">Permissions</h2>
           <p className="theme-text-muted mt-1 text-sm">
             Review new access requests and clear pending approvals quickly.
           </p>
@@ -144,27 +151,8 @@ export default function PermissionRequestsSection({
                         <button
                           type="button"
                           disabled={activeRequestId === request.id}
-                          onClick={async () => {
-                            setActiveRequestId(request.id);
-                            try {
-                              await onUpdateStatus(request.id, 'APPROVED');
-                              notifications.notify({
-                                tone: 'success',
-                                title: 'Request approved',
-                                message: `${request.fullName || request.inscriptionNumber} can now continue their account access flow.`,
-                              });
-                            } catch (error) {
-                              notifications.notify({
-                                tone: 'error',
-                                title: 'Could not approve request',
-                                message: getErrorMessage(
-                                  error,
-                                  'Unable to approve permission request right now.',
-                                ),
-                              });
-                            } finally {
-                              setActiveRequestId((current) => (current === request.id ? null : current));
-                            }
+                          onClick={() => {
+                            setApprovalRequest(request);
                           }}
                           className="theme-success rounded-full border px-3 py-1 text-xs font-semibold transition hover:bg-[rgba(37,79,34,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
@@ -201,7 +189,20 @@ export default function PermissionRequestsSection({
                         </button>
                       </div>
                     ) : (
-                      <span className="theme-text-muted text-xs">No action needed</span>
+                      request.status === 'APPROVED' ? (
+                        <button
+                          type="button"
+                          disabled={activeRequestId === request.id}
+                          onClick={() => {
+                            setApprovalRequest(request);
+                          }}
+                          className="theme-success rounded-full border px-3 py-1 text-xs font-semibold transition hover:bg-[rgba(37,79,34,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Change Password
+                        </button>
+                      ) : (
+                        <span className="theme-text-muted text-xs">No action needed</span>
+                      )
                     )}
                   </td>
                 </tr>
@@ -210,6 +211,49 @@ export default function PermissionRequestsSection({
           </table>
         </motion.div>
       )}
+
+      <ApprovePermissionRequestModal
+        open={Boolean(approvalRequest)}
+        request={approvalRequest}
+        isSubmitting={Boolean(
+          approvalRequest &&
+            activeRequestId === approvalRequest.id,
+        )}
+        onClose={() => {
+          if (!activeRequestId) {
+            setApprovalRequest(null);
+          }
+        }}
+        onSubmit={async ({ password }) => {
+          if (!approvalRequest) {
+            return;
+          }
+
+          const isPasswordReset = approvalRequest.status === 'APPROVED';
+          setActiveRequestId(approvalRequest.id);
+
+          try {
+            const result = await onUpdateStatus(approvalRequest.id, 'APPROVED', { password });
+            notifications.notify({
+              tone: 'success',
+              title: isPasswordReset ? 'Password updated' : 'Request approved',
+              message: isPasswordReset
+                ? `A new temporary password was saved for ${
+                    approvalRequest.fullName || approvalRequest.inscriptionNumber
+                  }. Login ID: ${result.authUserLoginId || approvalRequest.inscriptionNumber}.`
+                : `${approvalRequest.fullName || approvalRequest.inscriptionNumber} can now sign in with ${
+                    result.authUserLoginId || approvalRequest.inscriptionNumber
+                  } and temporary password ${password}.`,
+              durationMs: 10000,
+            });
+            setApprovalRequest(null);
+          } finally {
+            setActiveRequestId((current) =>
+              current === approvalRequest.id ? null : current,
+            );
+          }
+        }}
+      />
     </motion.section>
   );
 }
