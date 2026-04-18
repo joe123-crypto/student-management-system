@@ -1,8 +1,10 @@
 import React from 'react';
 import type { StudentQueryState } from '@/components/features/attache/types';
+import { formatStudentStatus } from '@/lib/students/status';
 
 interface StudentQueryToolbarProps {
   query: StudentQueryState;
+  statusOptions: string[];
   onQueryChange: (patch: Partial<StudentQueryState>) => void;
 }
 
@@ -35,6 +37,7 @@ export function StudentSearchInput({
 
 export default function StudentQueryToolbar({
   query,
+  statusOptions,
   onQueryChange,
 }: StudentQueryToolbarProps) {
   return (
@@ -59,9 +62,11 @@ export default function StudentQueryToolbar({
             onChange={(e) => onQueryChange({ status: e.target.value as StudentQueryState['status'] })}
           >
             <option value="ALL">All Status</option>
-            <option value="ACTIVE">Active</option>
-            <option value="PENDING">Pending</option>
-            <option value="COMPLETED">Completed</option>
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>
+                {formatStudentStatus(status)}
+              </option>
+            ))}
           </select>
         </div>
       </div>

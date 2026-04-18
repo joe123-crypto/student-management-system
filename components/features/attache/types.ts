@@ -7,7 +7,6 @@ export type StudentDataField =
   | 'givenName'
   | 'familyName'
   | 'inscription'
-  | 'registrationNumber'
   | 'dateOfBirth'
   | 'gender'
   | 'nationality'
@@ -20,12 +19,11 @@ export type StudentDataField =
   | 'emergencyContactPhone'
   | 'university'
   | 'universityAcronym'
-  | 'campus'
   | 'universityCity'
   | 'department'
   | 'program'
   | 'degreeLevel'
-  | 'programType'
+  | 'systemType'
   | 'startDate'
   | 'expectedEndDate'
   | 'status'
@@ -34,18 +32,14 @@ export type StudentDataField =
   | 'branchName'
   | 'branchAddress'
   | 'branchCode'
-  | 'accountHolderName'
+  | 'bankCode'
   | 'accountNumber'
   | 'iban'
-  | 'swiftCode'
   | 'accountCreatedDate'
   | 'currentHostAddress'
   | 'homeCountryAddress'
-  | 'street'
-  | 'addressCity'
-  | 'state'
   | 'wilaya'
-  | 'countryCode';
+  | 'country';
 export type QueryField = 'all' | StudentDataField;
 export type StudentReturnField = StudentDataField;
 export type MissingDataFilter = 'ALL' | 'ANY_MISSING' | 'MISSING_PROFILE' | 'MISSING_BANK' | 'NONE';

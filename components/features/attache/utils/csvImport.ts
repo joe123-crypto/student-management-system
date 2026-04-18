@@ -88,10 +88,14 @@ export function toStudentProfile(row: Record<string, string>, index: number): St
   const inferredGivenName = givenName || fullName.split(' ')[0] || '';
   const inferredFamilyName = familyName || fullName.split(' ').slice(1).join(' ') || '';
   const rawGender = getCsvValue(row, 'gender').toUpperCase();
-  const gender = rawGender === 'F' ? 'F' : rawGender === 'OTHER' ? 'Other' : 'M';
-  const rawStatus = getCsvValue(row, 'status').toUpperCase();
-  const status: StudentProfile['status'] =
-    rawStatus === 'ACTIVE' || rawStatus === 'COMPLETED' ? rawStatus : 'PENDING';
+  const gender =
+    rawGender === 'F' || rawGender === 'FEMALE'
+      ? 'Female'
+      : rawGender === 'OTHER'
+        ? 'Other'
+        : 'Male';
+  const rawStatus = getCsvValue(row, 'status').trim();
+  const status: StudentProfile['status'] = rawStatus || 'pending';
 
   return {
     id: Math.random().toString(36).slice(2, 11) || `csv-${index}`,
@@ -101,11 +105,11 @@ export function toStudentProfile(row: Record<string, string>, index: number): St
       familyName: inferredFamilyName,
       inscriptionNumber: inscriptionNumber || `CSV-${Date.now()}-${index + 1}`,
       dateOfBirth: getCsvValue(row, 'dateOfBirth'),
-      nationality: getCsvValue(row, 'nationality') || 'Unknown',
       gender,
     },
     passport: {
       passportNumber: getCsvValue(row, 'passportNumber'),
+      nationality: getCsvValue(row, 'nationality') || 'Unknown',
       issueDate: getCsvValue(row, 'issueDate'),
       expiryDate: getCsvValue(row, 'expiryDate'),
       issuingCountry: getCsvValue(row, 'issuingCountry'),
@@ -113,7 +117,6 @@ export function toStudentProfile(row: Record<string, string>, index: number): St
     university: {
       universityName: getCsvValue(row, 'universityName') || 'Unknown University',
       acronym: getCsvValue(row, 'acronym'),
-      campus: getCsvValue(row, 'campus'),
       city: getCsvValue(row, 'city'),
     },
     program: {
@@ -121,15 +124,15 @@ export function toStudentProfile(row: Record<string, string>, index: number): St
       major: getCsvValue(row, 'major') || 'Undeclared',
       startDate: getCsvValue(row, 'startDate'),
       expectedEndDate: getCsvValue(row, 'expectedEndDate'),
+      systemType: getCsvValue(row, 'systemType'),
     },
     bankAccount: {
-      accountHolderName: getCsvValue(row, 'accountHolderName') || fullName,
       accountNumber: getCsvValue(row, 'accountNumber'),
       iban: getCsvValue(row, 'iban'),
-      swiftCode: getCsvValue(row, 'swiftCode'),
     },
     bank: {
       bankName: getCsvValue(row, 'bankName'),
+      bankCode: getCsvValue(row, 'bankCode'),
       branchName: getCsvValue(row, 'branchName'),
       branchAddress: getCsvValue(row, 'branchAddress'),
       branchCode: getCsvValue(row, 'branchCode'),
@@ -143,6 +146,8 @@ export function toStudentProfile(row: Record<string, string>, index: number): St
     address: {
       homeCountryAddress: getCsvValue(row, 'homeCountryAddress'),
       currentHostAddress: getCsvValue(row, 'currentHostAddress'),
+      wilaya: getCsvValue(row, 'wilaya'),
+      country: getCsvValue(row, 'country'),
     },
     status,
   };

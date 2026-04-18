@@ -9,15 +9,14 @@ export interface StudentDetails {
   givenName: string;
   familyName: string;
   inscriptionNumber: string;
-  registrationNumber?: string;
   dateOfBirth: string;
-  gender: 'M' | 'F' | 'Other';
-  nationality: string;
+  gender: 'Male' | 'Female' | 'Other';
   profilePicture?: string;
 }
 
 export interface PassportDetails {
   passportNumber: string;
+  nationality: string;
   issueDate: string;
   expiryDate: string;
   issuingCountry: string;
@@ -26,7 +25,6 @@ export interface PassportDetails {
 export interface UniversityDetails {
   universityName: string;
   acronym: string;
-  campus: string;
   city: string;
   department?: string;
 }
@@ -36,7 +34,6 @@ export interface ProgramDetails {
   major: string;
   startDate: string;
   expectedEndDate: string;
-  programType?: string;
   systemType?: string;
   durationYears?: number;
   awards?: ProgramAwardDetails[];
@@ -53,15 +50,14 @@ export interface ProgramAwardDetails {
 }
 
 export interface BankAccountDetails {
-  accountHolderName: string;
   accountNumber: string;
   iban: string;
-  swiftCode: string;
   dateCreated?: string;
 }
 
 export interface BankDetails {
   bankName: string;
+  bankCode: string;
   branchName: string;
   branchAddress: string;
   branchCode: string;
@@ -77,11 +73,8 @@ export interface ContactDetails {
 export interface AddressDetails {
   homeCountryAddress: string;
   currentHostAddress: string;
-  street?: string;
-  city?: string;
-  state?: string;
-  countryCode?: string;
   wilaya?: string;
+  country?: string;
 }
 
 export interface ProgressDetails {
@@ -109,7 +102,7 @@ export interface StudentProfile {
   bank: BankDetails;
   contact: ContactDetails;
   address: AddressDetails;
-  status: 'PENDING' | 'ACTIVE' | 'COMPLETED';
+  status: string;
   academicHistory?: ProgressDetails[];
   studentAwards?: ProgramAwardDetails[];
 }

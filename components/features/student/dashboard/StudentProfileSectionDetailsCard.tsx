@@ -39,7 +39,7 @@ export const profileSections: ProfileSectionDefinition[] = [
   {
     id: 'identity',
     title: 'Personal identity',
-    description: 'Name, registration details, and nationality.',
+    description: 'Name, birth details, and nationality.',
     icon: UserRound,
   },
   {
@@ -63,7 +63,7 @@ export const profileSections: ProfileSectionDefinition[] = [
   {
     id: 'passport',
     title: 'Passport record',
-    description: 'Travel document and issuing country details.',
+    description: 'Travel document, nationality, and issuing country details.',
     icon: IdCard,
   },
   {
@@ -200,10 +200,9 @@ export function StudentProfileSectionDetailsCard({
             </p>
             <div className="mt-5 grid gap-4">
               <DetailField label="Bank" value={formatValue(student.bank.bankName)} />
-              <DetailField label="Account holder" value={formatValue(student.bankAccount.accountHolderName)} />
+              <DetailField label="Bank code" value={formatValue(student.bank.bankCode)} mono />
               <DetailField label="RIB / IBAN" value={formatValue(student.bankAccount.iban)} mono />
               <DetailField label="Account number" value={formatValue(student.bankAccount.accountNumber)} />
-              <DetailField label="SWIFT code" value={formatValue(student.bankAccount.swiftCode)} mono />
             </div>
           </div>
 
@@ -241,11 +240,12 @@ export function StudentProfileSectionDetailsCard({
                     disabled={isSaving}
                   />
                   <DetailInputField
-                    label="Account holder"
-                    value={editData.bankAccount.accountHolderName || ''}
-                    onChange={(value) => onUpdateField('bankAccount', 'accountHolderName', value)}
+                    label="Bank code"
+                    value={editData.bank.bankCode || ''}
+                    onChange={(value) => onUpdateField('bank', 'bankCode', value)}
                     inputClassName={inputClassName}
                     disabled={isSaving}
+                    mono
                   />
                   <DetailInputField
                     label="RIB / IBAN"
@@ -262,31 +262,15 @@ export function StudentProfileSectionDetailsCard({
                     inputClassName={inputClassName}
                     disabled={isSaving}
                   />
-                  <DetailInputField
-                    label="SWIFT code"
-                    value={editData.bankAccount.swiftCode || ''}
-                    onChange={(value) => onUpdateField('bankAccount', 'swiftCode', value)}
-                    inputClassName={inputClassName}
-                    disabled={isSaving}
-                    mono
-                  />
                 </>
               ) : (
                 <>
                   <DetailField label="Bank" value={formatValue(student.bank.bankName)} />
-                  <DetailField
-                    label="Account holder"
-                    value={formatValue(student.bankAccount.accountHolderName)}
-                  />
+                  <DetailField label="Bank code" value={formatValue(student.bank.bankCode)} mono />
                   <DetailField label="RIB / IBAN" value={formatValue(student.bankAccount.iban)} mono />
                   <DetailField
                     label="Account number"
                     value={formatValue(student.bankAccount.accountNumber)}
-                  />
-                  <DetailField
-                    label="SWIFT code"
-                    value={formatValue(student.bankAccount.swiftCode)}
-                    mono
                   />
                 </>
               )}
@@ -352,8 +336,7 @@ export function StudentProfileSectionDetailsCard({
             <DetailField label="Family name" value={formatValue(student.student.familyName)} />
             <DetailField label="Date of birth" value={formatValue(student.student.dateOfBirth)} />
             <DetailField label="Gender" value={formatValue(student.student.gender)} />
-            <DetailField label="Nationality" value={formatValue(student.student.nationality)} emphasis="strong" />
-            <DetailField label="Registration number" value={formatValue(student.student.registrationNumber)} />
+            <DetailField label="Nationality" value={formatValue(student.passport.nationality)} emphasis="strong" />
           </div>
         );
       case 'university':
@@ -367,11 +350,10 @@ export function StudentProfileSectionDetailsCard({
             />
             <DetailField label="Program" value={formatValue(student.program.major)} emphasis="strong" />
             <DetailField label="Degree level" value={formatValue(student.program.degreeLevel)} />
-            <DetailField label="Campus" value={formatValue(student.university.campus)} />
             <DetailField label="Department" value={formatValue(student.university.department)} />
             <DetailField label="Acronym" value={formatValue(student.university.acronym)} />
             <DetailField label="City" value={formatValue(student.university.city)} />
-            <DetailField label="Program type" value={formatValue(student.program.programType)} />
+            <DetailField label="System type" value={formatValue(student.program.systemType)} />
             <DetailField label="Start date" value={formatValue(student.program.startDate)} />
             <DetailField label="Expected end date" value={formatValue(student.program.expectedEndDate)} />
           </div>
@@ -398,11 +380,8 @@ export function StudentProfileSectionDetailsCard({
               value={formatValue(student.address.currentHostAddress)}
               className="md:col-span-2"
             />
-            <DetailField label="Street" value={formatValue(student.address.street)} />
-            <DetailField label="City" value={formatValue(student.address.city)} />
-            <DetailField label="State" value={formatValue(student.address.state)} />
             <DetailField label="Wilaya" value={formatValue(student.address.wilaya)} />
-            <DetailField label="Country code" value={formatValue(student.address.countryCode)} />
+            <DetailField label="Country" value={formatValue(student.address.country)} />
           </div>
         );
       case 'passport':
@@ -414,6 +393,7 @@ export function StudentProfileSectionDetailsCard({
               mono
               emphasis="strong"
             />
+            <DetailField label="Nationality" value={formatValue(student.passport.nationality)} />
             <DetailField label="Issuing country" value={formatValue(student.passport.issuingCountry)} />
             <DetailField label="Issue date" value={formatValue(student.passport.issueDate)} />
             <DetailField label="Expiry date" value={formatValue(student.passport.expiryDate)} />

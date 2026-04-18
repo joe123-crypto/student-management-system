@@ -97,14 +97,13 @@ function prepareStudentForSave(draft: StudentProfile): StudentProfile {
       givenName: draft.student.givenName.trim() || derivedNames.givenName,
       familyName: draft.student.familyName.trim() || derivedNames.familyName,
       inscriptionNumber: draft.student.inscriptionNumber.trim().toUpperCase(),
-      registrationNumber: draft.student.registrationNumber?.trim() || '',
-      nationality: draft.student.nationality.trim(),
       dateOfBirth: draft.student.dateOfBirth.trim(),
       profilePicture: draft.student.profilePicture?.trim() || undefined,
     },
     passport: {
       ...draft.passport,
       passportNumber: draft.passport.passportNumber.trim(),
+      nationality: draft.passport.nationality.trim(),
       issueDate: draft.passport.issueDate.trim(),
       expiryDate: draft.passport.expiryDate.trim(),
       issuingCountry: draft.passport.issuingCountry.trim(),
@@ -113,7 +112,6 @@ function prepareStudentForSave(draft: StudentProfile): StudentProfile {
       ...draft.university,
       universityName: draft.university.universityName.trim(),
       acronym: draft.university.acronym.trim(),
-      campus: draft.university.campus.trim(),
       city: draft.university.city.trim(),
       department: draft.university.department?.trim() || '',
     },
@@ -123,21 +121,20 @@ function prepareStudentForSave(draft: StudentProfile): StudentProfile {
       major: draft.program.major.trim(),
       startDate: draft.program.startDate.trim(),
       expectedEndDate: draft.program.expectedEndDate.trim(),
-      programType: draft.program.programType?.trim() || '',
+      systemType: draft.program.systemType?.trim() || '',
     },
     bank: {
       ...draft.bank,
       bankName: draft.bank.bankName.trim(),
+      bankCode: draft.bank.bankCode.trim(),
       branchName: draft.bank.branchName.trim(),
       branchAddress: draft.bank.branchAddress.trim(),
       branchCode: draft.bank.branchCode.trim(),
     },
     bankAccount: {
       ...draft.bankAccount,
-      accountHolderName: draft.bankAccount.accountHolderName.trim() || fullName,
       accountNumber: draft.bankAccount.accountNumber.trim(),
       iban: draft.bankAccount.iban.trim(),
-      swiftCode: draft.bankAccount.swiftCode.trim(),
       dateCreated: draft.bankAccount.dateCreated?.trim() || '',
     },
     contact: {
@@ -151,12 +148,10 @@ function prepareStudentForSave(draft: StudentProfile): StudentProfile {
       ...draft.address,
       homeCountryAddress: draft.address.homeCountryAddress.trim(),
       currentHostAddress: draft.address.currentHostAddress.trim(),
-      street: draft.address.street?.trim() || '',
-      city: draft.address.city?.trim() || '',
-      state: draft.address.state?.trim() || '',
-      countryCode: draft.address.countryCode?.trim() || '',
       wilaya: draft.address.wilaya?.trim() || '',
+      country: draft.address.country?.trim() || '',
     },
+    status: draft.status.trim() || 'pending',
     academicHistory: (draft.academicHistory || [])
       .map((entry, index) => ({
         ...entry,
@@ -342,16 +337,6 @@ export default function EditStudentRecordModal({
         },
       } as StudentProfile;
 
-      if (section === 'student' && field === 'fullName') {
-        const currentHolderName = current.bankAccount.accountHolderName.trim();
-        if (!currentHolderName || currentHolderName === current.student.fullName.trim()) {
-          nextDraft.bankAccount = {
-            ...nextDraft.bankAccount,
-            accountHolderName: value,
-          };
-        }
-      }
-
       if (section === 'student' && (field === 'givenName' || field === 'familyName')) {
         const givenName = field === 'givenName' ? value : current.student.givenName;
         const familyName = field === 'familyName' ? value : current.student.familyName;
@@ -520,24 +505,13 @@ export default function EditStudentRecordModal({
                   onChange={(event) => updateNestedField('student', 'familyName', event.target.value)}
                 />
               </FormField>
-              <FormField label="Registration number">
+              <FormField label="Status">
                 <input
                   type="text"
                   className={inputClass}
-                  value={draft.student.registrationNumber || ''}
-                  onChange={(event) => updateNestedField('student', 'registrationNumber', event.target.value)}
-                />
-              </FormField>
-              <FormField label="Status">
-                <select
-                  className={inputClass}
                   value={draft.status}
                   onChange={(event) => updateProfileStatus(event.target.value as StudentProfile['status'])}
-                >
-                  <option value="PENDING">Pending</option>
-                  <option value="ACTIVE">Active</option>
-                  <option value="COMPLETED">Completed</option>
-                </select>
+                />
               </FormField>
               <FormField label="Date of birth">
                 <input
@@ -553,18 +527,10 @@ export default function EditStudentRecordModal({
                   value={draft.student.gender}
                   onChange={(event) => updateNestedField('student', 'gender', event.target.value)}
                 >
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
-              </FormField>
-              <FormField label="Nationality">
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={draft.student.nationality}
-                  onChange={(event) => updateNestedField('student', 'nationality', event.target.value)}
-                />
               </FormField>
             </SectionCard>
 
@@ -577,6 +543,14 @@ export default function EditStudentRecordModal({
                   className={inputClass}
                   value={draft.passport.passportNumber}
                   onChange={(event) => updateNestedField('passport', 'passportNumber', event.target.value)}
+                />
+              </FormField>
+              <FormField label="Nationality">
+                <input
+                  type="text"
+                  className={inputClass}
+                  value={draft.passport.nationality}
+                  onChange={(event) => updateNestedField('passport', 'nationality', event.target.value)}
                 />
               </FormField>
               <FormField label="Issuing country">
@@ -624,14 +598,6 @@ export default function EditStudentRecordModal({
                   onChange={(event) => updateNestedField('university', 'acronym', event.target.value)}
                 />
               </FormField>
-              <FormField label="Campus">
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={draft.university.campus}
-                  onChange={(event) => updateNestedField('university', 'campus', event.target.value)}
-                />
-              </FormField>
               <FormField label="City">
                 <input
                   type="text"
@@ -664,12 +630,12 @@ export default function EditStudentRecordModal({
                   onChange={(event) => updateNestedField('program', 'degreeLevel', event.target.value)}
                 />
               </FormField>
-              <FormField label="Program type">
+              <FormField label="System type">
                 <input
                   type="text"
                   className={inputClass}
-                  value={draft.program.programType || ''}
-                  onChange={(event) => updateNestedField('program', 'programType', event.target.value)}
+                  value={draft.program.systemType || ''}
+                  onChange={(event) => updateNestedField('program', 'systemType', event.target.value)}
                 />
               </FormField>
               <FormField label="Start date">
@@ -746,30 +712,6 @@ export default function EditStudentRecordModal({
                   onChange={(event) => updateNestedField('address', 'homeCountryAddress', event.target.value)}
                 />
               </FormField>
-              <FormField label="Street">
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={draft.address.street || ''}
-                  onChange={(event) => updateNestedField('address', 'street', event.target.value)}
-                />
-              </FormField>
-              <FormField label="City">
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={draft.address.city || ''}
-                  onChange={(event) => updateNestedField('address', 'city', event.target.value)}
-                />
-              </FormField>
-              <FormField label="State">
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={draft.address.state || ''}
-                  onChange={(event) => updateNestedField('address', 'state', event.target.value)}
-                />
-              </FormField>
               <FormField label="Wilaya">
                 <input
                   type="text"
@@ -778,12 +720,12 @@ export default function EditStudentRecordModal({
                   onChange={(event) => updateNestedField('address', 'wilaya', event.target.value)}
                 />
               </FormField>
-              <FormField label="Country code">
+              <FormField label="Country">
                 <input
                   type="text"
                   className={inputClass}
-                  value={draft.address.countryCode || ''}
-                  onChange={(event) => updateNestedField('address', 'countryCode', event.target.value)}
+                  value={draft.address.country || ''}
+                  onChange={(event) => updateNestedField('address', 'country', event.target.value)}
                 />
               </FormField>
             </SectionCard>
@@ -797,6 +739,14 @@ export default function EditStudentRecordModal({
                   className={inputClass}
                   value={draft.bank.bankName}
                   onChange={(event) => updateNestedField('bank', 'bankName', event.target.value)}
+                />
+              </FormField>
+              <FormField label="Bank code">
+                <input
+                  type="text"
+                  className={inputClass}
+                  value={draft.bank.bankCode}
+                  onChange={(event) => updateNestedField('bank', 'bankCode', event.target.value)}
                 />
               </FormField>
               <FormField label="Branch name">
@@ -823,14 +773,6 @@ export default function EditStudentRecordModal({
                   onChange={(event) => updateNestedField('bank', 'branchCode', event.target.value)}
                 />
               </FormField>
-              <FormField label="Account holder name">
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={draft.bankAccount.accountHolderName}
-                  onChange={(event) => updateNestedField('bankAccount', 'accountHolderName', event.target.value)}
-                />
-              </FormField>
               <FormField label="Account number">
                 <input
                   type="text"
@@ -845,14 +787,6 @@ export default function EditStudentRecordModal({
                   className={inputClass}
                   value={draft.bankAccount.iban}
                   onChange={(event) => updateNestedField('bankAccount', 'iban', event.target.value)}
-                />
-              </FormField>
-              <FormField label="Swift code">
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={draft.bankAccount.swiftCode}
-                  onChange={(event) => updateNestedField('bankAccount', 'swiftCode', event.target.value)}
                 />
               </FormField>
               <FormField label="Account created date">
