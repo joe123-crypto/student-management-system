@@ -3,6 +3,7 @@ import { ArrowRight, User as UserIcon } from 'lucide-react';
 import { StudentProfile } from '@/types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
+import ReviewableFormField from './ReviewableFormField';
 
 type PersonalFieldSection = 'student' | 'passport';
 
@@ -12,6 +13,9 @@ interface PersonalDetailsStepProps {
   inputClass?: string;
   mode?: 'read-only' | 'editable';
   onUpdateField?: (section: PersonalFieldSection, field: string, value: string) => void;
+  selectedReviewFields?: string[];
+  onToggleReviewField?: (fieldId: string, checked: boolean) => void;
+  onRequestReview?: (selectedFieldLabels: string[]) => void;
   onNext: () => void;
   nextLabel?: string;
 }
@@ -22,11 +26,52 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   inputClass = '',
   mode = 'read-only',
   onUpdateField,
+  selectedReviewFields = [],
+  onToggleReviewField,
+  onRequestReview,
   onNext,
   nextLabel = 'Continue',
 }) => {
   const isEditable = mode === 'editable';
   const sharedInputClass = isEditable ? inputClass : readOnlyInputClass;
+  const selectedReviewFieldSet = new Set(selectedReviewFields);
+  const reviewFieldLabels: Record<string, string> = {
+    fullName: 'Full Name',
+    inscriptionNumber: 'Inscription No.',
+    passportNumber: 'Passport Number',
+    passportExpiry: 'Passport Expiry',
+    passportIssueDate: 'Passport Issue Date',
+  };
+  const selectedFieldLabels = Object.entries(reviewFieldLabels)
+    .filter(([fieldId]) => selectedReviewFieldSet.has(fieldId))
+    .map(([, label]) => label);
+  const hasReviewSelection = selectedFieldLabels.length > 0;
+
+  const renderField = (
+    label: string,
+    fieldId: string,
+    input: React.ReactNode,
+    className?: string,
+  ) => {
+    if (isEditable) {
+      return (
+        <FormField label={label} className={className}>
+          {input}
+        </FormField>
+      );
+    }
+
+    return (
+      <ReviewableFormField
+        label={label}
+        className={className}
+        checked={selectedReviewFieldSet.has(fieldId)}
+        onCheckedChange={(checked) => onToggleReviewField?.(fieldId, checked)}
+      >
+        {input}
+      </ReviewableFormField>
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -34,25 +79,35 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         <UserIcon className="h-6 w-6 text-[color:var(--theme-primary-soft)]" />
         Personal & Passport
       </h2>
+      {!isEditable ? (
+        <p className="theme-text-muted max-w-2xl text-sm leading-6">
+          These details are managed by administration. Tick any field that needs correction, then
+          use Request review.
+        </p>
+      ) : null}
       <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 items-end">
-        <FormField label="Full Name">
+        {renderField(
+          'Full Name',
+          'fullName',
           <input
             type="text"
             className={sharedInputClass}
             value={student.student.fullName}
             readOnly={!isEditable}
             onChange={(event) => onUpdateField?.('student', 'fullName', event.target.value)}
-          />
-        </FormField>
-        <FormField label="Inscription No.">
+          />,
+        )}
+        {renderField(
+          'Inscription No.',
+          'inscriptionNumber',
           <input
             type="text"
             className={sharedInputClass}
             value={student.student.inscriptionNumber}
             readOnly={!isEditable}
             onChange={(event) => onUpdateField?.('student', 'inscriptionNumber', event.target.value)}
-          />
-        </FormField>
+          />,
+        )}
         {isEditable ? (
           <>
             <FormField label="Date of Birth">
@@ -92,41 +147,69 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             </FormField>
           </>
         ) : null}
-        <FormField label="Passport Number">
+        {renderField(
+          'Passport Number',
+          'passportNumber',
           <input
             type="text"
             className={sharedInputClass}
             value={student.passport.passportNumber}
             readOnly={!isEditable}
             onChange={(event) => onUpdateField?.('passport', 'passportNumber', event.target.value)}
-          />
-        </FormField>
-        <FormField label="Passport Expiry">
+          />,
+        )}
+        {renderField(
+          'Passport Expiry',
+          'passportExpiry',
           <input
             type="date"
             className={sharedInputClass}
             value={student.passport.expiryDate}
             readOnly={!isEditable}
             onChange={(event) => onUpdateField?.('passport', 'expiryDate', event.target.value)}
-          />
-        </FormField>
-        <FormField label="Passport Issue Date">
+          />,
+        )}
+        {renderField(
+          'Passport Issue Date',
+          'passportIssueDate',
           <input
             type="date"
             className={sharedInputClass}
             value={student.passport.issueDate}
             readOnly={!isEditable}
             onChange={(event) => onUpdateField?.('passport', 'issueDate', event.target.value)}
-          />
-        </FormField>
-        <div className="flex justify-end md:col-span-2">
-          <Button
-            onClick={onNext}
-            className="w-full rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)] md:w-auto"
-          >
-            <ArrowRight className="w-4 h-4" />
-            {nextLabel}
-          </Button>
+          />,
+        )}
+        <div className="pt-6 md:col-span-2">
+          {isEditable ? (
+            <div className="flex justify-end">
+              <Button
+                onClick={onNext}
+                className="w-full rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)] md:w-auto"
+              >
+                <ArrowRight className="w-4 h-4" />
+                {nextLabel}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <Button
+                onClick={() => onRequestReview?.(selectedFieldLabels)}
+                variant="secondary"
+                disabled={!hasReviewSelection}
+                className="w-full justify-center rounded-2xl px-6 py-3 sm:w-auto"
+              >
+                Request review
+              </Button>
+              <Button
+                onClick={onNext}
+                className="w-full rounded-2xl px-12 py-4 shadow-[0_18px_36px_rgba(37,79,34,0.16)] md:w-auto"
+              >
+                <ArrowRight className="w-4 h-4" />
+                {nextLabel}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
