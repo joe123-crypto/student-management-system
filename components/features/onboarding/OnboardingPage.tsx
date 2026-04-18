@@ -7,6 +7,7 @@ import OnboardingProgress from './components/OnboardingProgress';
 import PersonalDetailsStep from './components/PersonalDetailsStep';
 import ReviewDetailsStep from './components/ReviewDetailsStep';
 import Notice from '@/components/ui/Notice';
+import { useNotifications } from '@/components/providers/NotificationProvider';
 import { getMissingStudentOnboardingFields, mergeStudentProfile } from '@/lib/students/profile';
 import { inputClass, readOnlyInputClass } from './components/styles';
 
@@ -15,10 +16,18 @@ interface OnboardingPageProps {
   onComplete: (profilePatch: Partial<StudentProfile>) => Promise<void>;
 }
 
+type ReviewStepId = 'personal' | 'academic' | 'record';
+
 const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) => {
+  const notifications = useNotifications();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [selectedReviewFields, setSelectedReviewFields] = useState<Record<ReviewStepId, string[]>>({
+    personal: [],
+    academic: [],
+    record: [],
+  });
   const router = useRouter();
   const totalSteps = 4;
 
@@ -46,6 +55,46 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
         [field]: value,
       },
     }));
+  };
+
+  const updateReviewFieldSelection = (
+    reviewStepId: ReviewStepId,
+    fieldId: string,
+    checked: boolean,
+  ) => {
+    setSelectedReviewFields((current) => {
+      const currentFields = current[reviewStepId];
+      const nextFields = checked
+        ? currentFields.includes(fieldId)
+          ? currentFields
+          : [...currentFields, fieldId]
+        : currentFields.filter((currentFieldId) => currentFieldId !== fieldId);
+
+      return {
+        ...current,
+        [reviewStepId]: nextFields,
+      };
+    });
+  };
+
+  const handleRequestReview = (stepLabel: string, fieldLabels: string[]) => {
+    if (fieldLabels.length === 0) {
+      return;
+    }
+
+    const formattedFields =
+      fieldLabels.length === 1
+        ? fieldLabels[0]
+        : fieldLabels.length === 2
+          ? `${fieldLabels[0]} and ${fieldLabels[1]}`
+          : `${fieldLabels[0]}, ${fieldLabels[1]}, and ${fieldLabels.length - 2} more`;
+    const fieldsVerb = fieldLabels.length === 1 ? 'has' : 'have';
+
+    notifications.notify({
+      tone: 'success',
+      title: 'Review marked',
+      message: `${formattedFields} ${fieldsVerb} been marked for review in ${stepLabel}.`,
+    });
   };
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, totalSteps));
@@ -105,11 +154,27 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
             step === 1 ? 'p-5 sm:p-8 md:p-10' : 'p-5 sm:p-8 md:p-12'
           }`}
         >
-          {step === 1 && <PersonalDetailsStep student={student} readOnlyInputClass={readOnlyInputClass} onNext={nextStep} />}
+          {step === 1 && (
+            <PersonalDetailsStep
+              student={student}
+              readOnlyInputClass={readOnlyInputClass}
+              selectedReviewFields={selectedReviewFields.personal}
+              onToggleReviewField={(fieldId, checked) =>
+                updateReviewFieldSelection('personal', fieldId, checked)
+              }
+              onRequestReview={(fieldLabels) => handleRequestReview('Personal & Passport', fieldLabels)}
+              onNext={nextStep}
+            />
+          )}
           {step === 2 && (
             <AcademicInfoStep
               student={student}
               readOnlyInputClass={readOnlyInputClass}
+              selectedReviewFields={selectedReviewFields.academic}
+              onToggleReviewField={(fieldId, checked) =>
+                updateReviewFieldSelection('academic', fieldId, checked)
+              }
+              onRequestReview={(fieldLabels) => handleRequestReview('University & Program', fieldLabels)}
               onBack={prevStep}
               onNext={nextStep}
             />
@@ -127,6 +192,11 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
             <ReviewDetailsStep
               student={student}
               readOnlyInputClass={readOnlyInputClass}
+              selectedReviewFields={selectedReviewFields.record}
+              onToggleReviewField={(fieldId, checked) =>
+                updateReviewFieldSelection('record', fieldId, checked)
+              }
+              onRequestReview={(fieldLabels) => handleRequestReview('Review Record', fieldLabels)}
               onBack={prevStep}
               isSubmitting={isSubmitting}
               onComplete={handleSubmit}
