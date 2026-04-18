@@ -74,15 +74,14 @@ test('student self-service patch keeps bank updates and profile picture changes'
     student: { profilePicture: 'data:image/png;base64,abc' },
     bank: {
       bankName: 'Banque Nationale',
+      bankCode: '',
       branchName: '',
       branchAddress: '',
       branchCode: '1234',
     },
     bankAccount: {
-      accountHolderName: 'Ada Lovelace',
       accountNumber: '987654321',
       iban: '001122334455',
-      swiftCode: '',
       dateCreated: '',
     },
   });

@@ -4,13 +4,16 @@ import type {
   PermissionRequest,
   StudentProfile,
 } from '@/types';
+import {
+  buildStudentStatusCounts,
+  countStudentsWithStatus,
+} from '@/lib/students/status';
 
 type AgentScopeSummary = {
   filteredStudents: StudentProfile[];
   selectedStudents: StudentProfile[];
-  activeCount: number;
   pendingCount: number;
-  completedCount: number;
+  statusCounts: Array<{ status: string; label: string; count: number }>;
   duplicateCount: number;
   missingProfileCount: number;
   missingBankCount: number;
@@ -77,9 +80,8 @@ function summarizeScope(students: StudentProfile[], context?: AttacheAgentContex
   return {
     filteredStudents,
     selectedStudents,
-    activeCount: filteredStudents.filter((student) => student.status === 'ACTIVE').length,
-    pendingCount: filteredStudents.filter((student) => student.status === 'PENDING').length,
-    completedCount: filteredStudents.filter((student) => student.status === 'COMPLETED').length,
+    pendingCount: countStudentsWithStatus(filteredStudents, 'pending'),
+    statusCounts: buildStudentStatusCounts(filteredStudents),
     duplicateCount: countDuplicates(filteredStudents),
     missingProfileCount: filteredStudents.filter((student) => !student.student.profilePicture).length,
     missingBankCount: filteredStudents.filter((student) => !student.bankAccount.iban || !student.bank.branchCode).length,
@@ -181,13 +183,14 @@ function buildSummaryReply(summary: AgentScopeSummary, context?: AttacheAgentCon
   const universities = Array.from(
     new Set(summary.filteredStudents.map((student) => student.university.universityName).filter(Boolean)),
   ).slice(0, 3);
+  const statusLines = summary.statusCounts.length > 0
+    ? summary.statusCounts.slice(0, 4).map((entry) => `- ${entry.count} ${entry.label.toLowerCase()}`)
+    : ['- 0 unknown'];
 
   const lines = [
     `Here is the current scope summary for ${buildScopeLabel(summary, context)}.`,
     '',
-    `- ${summary.activeCount} active`,
-    `- ${summary.pendingCount} pending`,
-    `- ${summary.completedCount} completed`,
+    ...statusLines,
     `- ${summary.missingProfileCount} missing profile picture`,
     `- ${summary.missingBankCount} missing bank details`,
     `- ${summary.missingHistoryCount} missing academic history`,

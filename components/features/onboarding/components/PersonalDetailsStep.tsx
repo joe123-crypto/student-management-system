@@ -67,8 +67,8 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               <input
                 type="text"
                 className={sharedInputClass}
-                value={student.student.nationality}
-                onChange={(event) => onUpdateField?.('student', 'nationality', event.target.value)}
+                value={student.passport.nationality}
+                onChange={(event) => onUpdateField?.('passport', 'nationality', event.target.value)}
               />
             </FormField>
             <FormField label="Gender">
@@ -77,8 +77,8 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
                 value={student.student.gender}
                 onChange={(event) => onUpdateField?.('student', 'gender', event.target.value)}
               >
-                <option value="M">Male</option>
-                <option value="F">Female</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
                 <option value="Other">Other</option>
               </select>
             </FormField>

@@ -88,6 +88,17 @@ export default function StudentsSection({
     () => applyStudentQuery(students, query, duplicateStudentIds),
     [students, query, duplicateStudentIds],
   );
+  const statusOptions = useMemo(() => {
+    const uniqueStatuses = Array.from(
+      new Set(students.map((student) => student.status.trim()).filter(Boolean)),
+    ).sort((left, right) => left.localeCompare(right));
+
+    if (query.status !== 'ALL' && !uniqueStatuses.includes(query.status)) {
+      uniqueStatuses.push(query.status);
+    }
+
+    return uniqueStatuses;
+  }, [query.status, students]);
 
   const {
     tableStudents,
@@ -263,6 +274,7 @@ export default function StudentsSection({
         <motion.div variants={dashboardStaggerItem}>
           <StudentQueryToolbar
             query={query}
+            statusOptions={statusOptions}
             onQueryChange={updateQuery}
           />
         </motion.div>

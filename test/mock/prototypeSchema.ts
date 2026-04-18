@@ -19,6 +19,8 @@ export interface STUDENT {
 export interface PASSPORT {
   id: number;
   passport_no: string;
+  nationality?: string;
+  issuing_country?: string;
   issue_date: string;
   expiry: string;
   person_id: number;

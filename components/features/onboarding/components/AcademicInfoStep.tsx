@@ -57,14 +57,6 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
         </FormField>
         {isEditable ? (
           <>
-            <FormField label="Campus">
-              <input
-                type="text"
-                className={sharedInputClass}
-                value={student.university.campus}
-                onChange={(event) => onUpdateField?.('university', 'campus', event.target.value)}
-              />
-            </FormField>
             <FormField label="City">
               <input
                 type="text"
@@ -91,6 +83,15 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
             value={student.program.degreeLevel}
             readOnly={!isEditable}
             onChange={(event) => onUpdateField?.('program', 'degreeLevel', event.target.value)}
+          />
+        </FormField>
+        <FormField label="System Type">
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.program.systemType || ''}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('program', 'systemType', event.target.value)}
           />
         </FormField>
         <FormField label="Department" className={isEditable ? '' : 'md:col-span-2'}>

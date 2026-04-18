@@ -24,13 +24,12 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
 
   const [formData, setFormData] = useState<Pick<StudentProfile, 'bankAccount' | 'bank'>>({
     bankAccount: {
-      accountHolderName: student.bankAccount.accountHolderName || student.student.fullName,
       accountNumber: student.bankAccount.accountNumber || '',
       iban: student.bankAccount.iban || '',
-      swiftCode: student.bankAccount.swiftCode || '',
     },
     bank: {
       bankName: student.bank.bankName || '',
+      bankCode: student.bank.bankCode || '',
       branchName: student.bank.branchName || '',
       branchAddress: student.bank.branchAddress || '',
       branchCode: student.bank.branchCode || '',

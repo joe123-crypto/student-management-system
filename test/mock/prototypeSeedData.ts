@@ -20,11 +20,11 @@ export const INITIAL_PROTOTYPE_DATABASE: PrototypeDatabase = {
     { id: 5, person_id: 5, inscription_no: 'INS-2022-099', address_id: 10 },
   ],
   PASSPORT: [
-    { id: 1, passport_no: 'FR123456', issue_date: '2018-10-10', expiry: '2028-10-10', person_id: 1 },
-    { id: 2, passport_no: 'OM987654', issue_date: '2020-01-01', expiry: '2030-01-01', person_id: 2 },
-    { id: 3, passport_no: 'DZ661122', issue_date: '2019-03-15', expiry: '2029-03-15', person_id: 3 },
-    { id: 4, passport_no: 'DZ993344', issue_date: '2021-06-02', expiry: '2031-06-02', person_id: 4 },
-    { id: 5, passport_no: 'DZ776655', issue_date: '2017-09-20', expiry: '2027-09-20', person_id: 5 },
+    { id: 1, passport_no: 'FR123456', nationality: 'FR', issuing_country: 'FR', issue_date: '2018-10-10', expiry: '2028-10-10', person_id: 1 },
+    { id: 2, passport_no: 'OM987654', nationality: 'OM', issuing_country: 'OM', issue_date: '2020-01-01', expiry: '2030-01-01', person_id: 2 },
+    { id: 3, passport_no: 'DZ661122', nationality: 'DZ', issuing_country: 'DZ', issue_date: '2019-03-15', expiry: '2029-03-15', person_id: 3 },
+    { id: 4, passport_no: 'DZ993344', nationality: 'DZ', issuing_country: 'DZ', issue_date: '2021-06-02', expiry: '2031-06-02', person_id: 4 },
+    { id: 5, passport_no: 'DZ776655', nationality: 'DZ', issuing_country: 'DZ', issue_date: '2017-09-20', expiry: '2027-09-20', person_id: 5 },
   ],
   CONTACT: [
     { id: 1, owner_id: 1, type: 'EMAIL', value: 'jean.dupont@example.com', label: 'primary', is_primary: true, created_at: now },

@@ -3,6 +3,10 @@ import { motion, useReducedMotion } from 'framer-motion';
 import type { StudentProfile } from '@/types';
 import type { DuplicateGroup } from '@/components/features/attache/types';
 import { AnimatedCount, dashboardHoverLift, dashboardHoverTransition, dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
+import {
+  buildStudentStatusCounts,
+  getStudentStatusThemeClass,
+} from '@/lib/students/status';
 
 interface DataInsightsPanelProps {
   totalCount: number;
@@ -27,9 +31,7 @@ export function QuerySummaryCard({
 }: Pick<InsightSectionProps, 'totalCount' | 'filteredStudents' | 'searchQuery'>) {
   const shouldReduceMotion = useReducedMotion();
   const filteredCount = filteredStudents.length;
-  const activeCount = filteredStudents.filter((student) => student.status === 'ACTIVE').length;
-  const pendingCount = filteredStudents.filter((student) => student.status === 'PENDING').length;
-  const completedCount = filteredStudents.filter((student) => student.status === 'COMPLETED').length;
+  const statusCounts = buildStudentStatusCounts(filteredStudents).slice(0, 3);
   const hasQuery = searchQuery.trim().length > 0;
 
   return (
@@ -48,19 +50,23 @@ export function QuerySummaryCard({
         </p>
         <p className="theme-text-muted mt-1 text-xs">{hasQuery ? `Search: "${searchQuery.trim()}"` : 'No keyword filter applied'}</p>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="theme-success rounded-xl border px-2 py-3">
-          <p className="type-label">Active</p>
-          <p className="type-card-title"><AnimatedCount value={activeCount} /></p>
-        </div>
-        <div className="theme-warning rounded-xl border px-2 py-3">
-          <p className="type-label">Pending</p>
-          <p className="type-card-title"><AnimatedCount value={pendingCount} /></p>
-        </div>
-        <div className="theme-info rounded-xl border px-2 py-3">
-          <p className="type-label">Completed</p>
-          <p className="type-card-title"><AnimatedCount value={completedCount} /></p>
-        </div>
+      <div className="grid gap-2 text-center sm:grid-cols-3">
+        {statusCounts.length > 0 ? (
+          statusCounts.map((statusEntry) => (
+            <div
+              key={statusEntry.status}
+              className={`${getStudentStatusThemeClass(statusEntry.status)} rounded-xl border px-2 py-3`}
+            >
+              <p className="type-label">{statusEntry.label}</p>
+              <p className="type-card-title"><AnimatedCount value={statusEntry.count} /></p>
+            </div>
+          ))
+        ) : (
+          <div className="theme-card-muted rounded-xl border px-2 py-3 sm:col-span-3">
+            <p className="type-label">No Status Data</p>
+            <p className="type-card-title"><AnimatedCount value={0} /></p>
+          </div>
+        )}
       </div>
     </motion.div>
   );

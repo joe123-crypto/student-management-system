@@ -172,12 +172,14 @@ model Student {
 }
 
 model Passport {
-  id         Int       @id @default(autoincrement())
-  passportNo String    @map("passport_no")
-  issueDate  DateTime? @map("issue_date") @db.Date
-  expiry     DateTime? @db.Date
-  personId   Int       @map("person_id")
-  person     Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  id             Int       @id @default(autoincrement())
+  passportNo     String    @map("passport_no")
+  nationality    String    @default("")
+  issuingCountry String    @default("") @map("issuing_country")
+  issueDate      DateTime? @map("issue_date") @db.Date
+  expiry         DateTime? @db.Date
+  personId       Int       @map("person_id")
+  person         Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@index([personId])
   @@index([passportNo])
