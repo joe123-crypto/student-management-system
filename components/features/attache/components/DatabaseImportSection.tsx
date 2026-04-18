@@ -24,7 +24,7 @@ export default function DatabaseImportSection({
   const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const CSV_TEMPLATE =
     'fullName,email,inscriptionNumber,universityName,major,degreeLevel,status,phone,nationality,gender\n' +
-    'John Doe,john.doe@example.com,INS-2026-001,Example University,Computer Science,Masters,ACTIVE,+1 555 0100,American,M';
+    'John Doe,john.doe@example.com,INS-2026-001,Example University,Computer Science,Masters,active,+1 555 0100,American,Male';
 
   const handleDownloadTemplate = () => {
     downloadFile('student_import_template.csv', 'text/csv', CSV_TEMPLATE);

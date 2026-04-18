@@ -42,6 +42,7 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
     acronym: 'Acronym',
     major: 'Program / Major',
     degreeLevel: 'Degree Level',
+    systemType: 'System Type',
     department: 'Department',
   };
   const selectedFieldLabels = Object.entries(reviewFieldLabels)
@@ -111,14 +112,6 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
         )}
         {isEditable ? (
           <>
-            <FormField label="Campus">
-              <input
-                type="text"
-                className={sharedInputClass}
-                value={student.university.campus}
-                onChange={(event) => onUpdateField?.('university', 'campus', event.target.value)}
-              />
-            </FormField>
             <FormField label="City">
               <input
                 type="text"
@@ -149,6 +142,17 @@ const AcademicInfoStep: React.FC<AcademicInfoStepProps> = ({
             value={student.program.degreeLevel}
             readOnly={!isEditable}
             onChange={(event) => onUpdateField?.('program', 'degreeLevel', event.target.value)}
+          />,
+        )}
+        {renderField(
+          'System Type',
+          'systemType',
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.program.systemType || (isEditable ? '' : 'N/A')}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('program', 'systemType', event.target.value)}
           />,
         )}
         {renderField(

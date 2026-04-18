@@ -196,16 +196,11 @@ function upsertContact(
 }
 
 function toStatus(value: string): StudentProfile['status'] {
-  const upper = value.toUpperCase();
-  if (upper === 'ACTIVE') return 'ACTIVE';
-  if (upper === 'COMPLETED' || upper === 'GRADUATED') return 'COMPLETED';
-  return 'PENDING';
+  return value.trim() || 'pending';
 }
 
 function toEnrollmentStatus(value: StudentProfile['status']): string {
-  if (value === 'ACTIVE') return 'active';
-  if (value === 'COMPLETED') return 'graduated';
-  return 'pending';
+  return value.trim() || 'pending';
 }
 
 function extractYearFromDate(value: string | undefined, fallback: number): number {
@@ -219,15 +214,8 @@ function buildStartDate(startYear: number | null | undefined): string {
   return typeof startYear === 'number' && Number.isFinite(startYear) ? `${startYear}-01-01` : '';
 }
 
-function calculateExpectedEnd(startYear: number | null | undefined, duration: number | undefined): string {
-  if (typeof startYear !== 'number' || !Number.isFinite(startYear)) return '';
-  return `${startYear + (duration || 2)}-01-01`;
-}
-
-function buildRegistrationNumber(enrollmentId: number | null | undefined, startYear: number | null | undefined, studentId: number): string {
-  if (typeof startYear !== 'number' || !Number.isFinite(startYear)) return '';
-  const suffix = typeof enrollmentId === 'number' ? enrollmentId : studentId;
-  return `ENR-${startYear}-${suffix}`;
+function buildExpectedEnd(endYear: number | null | undefined): string {
+  return typeof endYear === 'number' && Number.isFinite(endYear) ? `${endYear}-01-01` : '';
 }
 
 function parseMoyenne(value: unknown): number | null {
@@ -341,21 +329,19 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
         givenName: person.given_name,
         familyName: person.family_name,
         inscriptionNumber: studentRow.inscription_no,
-        registrationNumber: buildRegistrationNumber(enrollment?.id, enrollment?.start_year, studentRow.id),
         dateOfBirth: person.dob,
-        nationality: passport?.passport_no ? passport.passport_no.slice(0, 2) : 'Unknown',
-        gender: person.gender === 'F' ? 'F' : person.gender === 'Other' ? 'Other' : 'M',
+        gender: person.gender === 'F' || person.gender === 'Female' ? 'Female' : person.gender === 'Other' ? 'Other' : 'Male',
       },
       passport: {
         passportNumber: passport?.passport_no || '',
+        nationality: passport?.nationality || (passport?.passport_no ? passport.passport_no.slice(0, 2) : 'Unknown'),
         issueDate: passport?.issue_date || '',
         expiryDate: passport?.expiry || '',
-        issuingCountry: passport?.passport_no ? passport.passport_no.slice(0, 2) : '',
+        issuingCountry: passport?.issuing_country || (passport?.passport_no ? passport.passport_no.slice(0, 2) : ''),
       },
       university: {
         universityName: university?.name || '',
         acronym: university?.acronym || '',
-        campus: universityAddress?.name || '',
         city: getProvinceName(db, universityAddress?.wilaya_id),
         department: department?.name || '',
       },
@@ -363,8 +349,7 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
         degreeLevel: finalAwardType?.label || finalAwardType?.code || program?.system_type || '',
         major: program?.name || '',
         startDate: buildStartDate(enrollment?.start_year),
-        expectedEndDate: calculateExpectedEnd(enrollment?.start_year, program?.duration_years),
-        programType: program?.system_type || '',
+        expectedEndDate: buildExpectedEnd(enrollment?.end_year),
         systemType: program?.system_type || '',
         durationYears: program?.duration_years,
         awards: programAwards.map((entry) => {
@@ -379,14 +364,13 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
         }),
       },
       bankAccount: {
-        accountHolderName: fullName,
         accountNumber: account?.account_no || '',
         iban: account?.rib ? String(account.rib) : '',
-        swiftCode: bank?.code ? String(bank.code) : '',
         dateCreated: account?.date_created || '',
       },
       bank: {
         bankName: bank?.name || '',
+        bankCode: bank?.code ? String(bank.code) : '',
         branchName: branch?.name || '',
         branchAddress: branchAddress?.name || '',
         branchCode: branch?.code ? String(branch.code) : '',
@@ -400,6 +384,8 @@ export function getStudentProfilesFromDatabase(db: PrototypeDatabase): StudentPr
       address: {
         homeCountryAddress: [homeAddress?.name, getProvinceName(db, homeAddress?.wilaya_id)].filter(Boolean).join(', '),
         currentHostAddress: [currentAddress?.name, getProvinceName(db, currentAddress?.wilaya_id)].filter(Boolean).join(', '),
+        wilaya: getProvinceName(db, currentAddress?.wilaya_id),
+        country: currentAddress?.wilaya_id ? db.PROVINCE.find((entry) => entry.id === currentAddress.wilaya_id)?.country || '' : '',
       },
       status,
       academicHistory: progressRows.map((entry) => {
@@ -476,14 +462,14 @@ function addStudentProfileToDatabase(db: PrototypeDatabase, profile: StudentProf
   const currentAddressId = getOrCreateAddress(nextDb, profile.address.currentHostAddress || 'Unknown address', 'Unknown');
 
   const personId = nextId(nextDb, 'PERSON');
-  nextDb.PERSON.push({
-    id: personId,
-    given_name: profile.student.givenName || profile.student.fullName.split(' ')[0] || '',
-    family_name: profile.student.familyName || profile.student.fullName.split(' ').slice(1).join(' ') || '',
-    dob: profile.student.dateOfBirth || '',
-    gender: profile.student.gender || 'M',
-    home_address_id: homeAddressId,
-  });
+    nextDb.PERSON.push({
+      id: personId,
+      given_name: profile.student.givenName || profile.student.fullName.split(' ')[0] || '',
+      family_name: profile.student.familyName || profile.student.fullName.split(' ').slice(1).join(' ') || '',
+      dob: profile.student.dateOfBirth || '',
+      gender: profile.student.gender || 'Male',
+      home_address_id: homeAddressId,
+    });
 
   const studentId = nextId(nextDb, 'STUDENT');
   nextDb.STUDENT.push({
@@ -496,6 +482,8 @@ function addStudentProfileToDatabase(db: PrototypeDatabase, profile: StudentProf
   nextDb.PASSPORT.push({
     id: nextId(nextDb, 'PASSPORT'),
     passport_no: profile.passport.passportNumber || '',
+    nationality: profile.passport.nationality || '',
+    issuing_country: profile.passport.issuingCountry || '',
     issue_date: profile.passport.issueDate || '',
     expiry: profile.passport.expiryDate || '',
     person_id: personId,
@@ -510,13 +498,13 @@ function addStudentProfileToDatabase(db: PrototypeDatabase, profile: StudentProf
   const programId = getOrCreateProgram(
     nextDb,
     profile.program.major,
-    profile.program.systemType || profile.program.programType || profile.program.degreeLevel || 'GENERAL',
+    profile.program.systemType || profile.program.degreeLevel || 'GENERAL',
     durationYears,
   );
   const programAwardId = ensureDefaultProgramAward(
     nextDb,
     programId,
-    profile.program.degreeLevel || profile.program.programType || profile.program.systemType || 'GENERAL',
+    profile.program.degreeLevel || profile.program.systemType || 'GENERAL',
     durationYears,
   );
   const startYear = extractYearFromDate(profile.program.startDate, new Date().getFullYear());
@@ -559,7 +547,7 @@ function addStudentProfileToDatabase(db: PrototypeDatabase, profile: StudentProf
     const bank = nextDb.BANK[0] || {
       id: 1,
       name: profile.bank.bankName || 'Default Bank',
-      code: 10000,
+      code: Number(profile.bank.bankCode) || 10000,
       address_id: bankAddressId,
     };
     if (!nextDb.BANK.length) nextDb.BANK.push(bank);
@@ -616,12 +604,16 @@ export function updateStudentProfileInDatabase(
   const passport = nextDb.PASSPORT.find((entry) => entry.person_id === person.id);
   if (passport) {
     passport.passport_no = merged.passport.passportNumber;
+    passport.nationality = merged.passport.nationality;
+    passport.issuing_country = merged.passport.issuingCountry;
     passport.issue_date = merged.passport.issueDate;
     passport.expiry = merged.passport.expiryDate;
   } else {
     nextDb.PASSPORT.push({
       id: nextId(nextDb, 'PASSPORT'),
       passport_no: merged.passport.passportNumber || '',
+      nationality: merged.passport.nationality || '',
+      issuing_country: merged.passport.issuingCountry || '',
       issue_date: merged.passport.issueDate || '',
       expiry: merged.passport.expiryDate || '',
       person_id: person.id,
@@ -641,13 +633,13 @@ export function updateStudentProfileInDatabase(
     const programId = getOrCreateProgram(
       nextDb,
       merged.program.major,
-      merged.program.systemType || merged.program.programType || merged.program.degreeLevel || 'GENERAL',
+      merged.program.systemType || merged.program.degreeLevel || 'GENERAL',
       durationYears,
     );
     const programAwardId = ensureDefaultProgramAward(
       nextDb,
       programId,
-      merged.program.degreeLevel || merged.program.programType || merged.program.systemType || 'GENERAL',
+      merged.program.degreeLevel || merged.program.systemType || 'GENERAL',
       durationYears,
     );
 
@@ -709,7 +701,7 @@ export function updateStudentProfileInDatabase(
       const bank = nextDb.BANK[0] || {
         id: 1,
         name: merged.bank.bankName || 'Default Bank',
-        code: Number(merged.bankAccount.swiftCode) || 10000,
+        code: Number(merged.bank.bankCode) || 10000,
         address_id: branchAddressId,
       };
       if (!nextDb.BANK.length) nextDb.BANK.push(bank);

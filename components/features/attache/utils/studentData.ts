@@ -9,6 +9,7 @@ import type {
   StudentQueryState,
 } from '@/components/features/attache/types';
 import { getLatestAcademicEntry } from '@/lib/students/academicHistory';
+import { normalizeStudentStatusKey } from '@/lib/students/status';
 
 type StudentFieldInputType = 'text' | 'email' | 'date' | 'select';
 type StudentFieldSection =
@@ -63,12 +64,6 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     patchTarget: { section: 'student', key: 'inscriptionNumber' },
   },
   {
-    key: 'registrationNumber',
-    label: 'Registration No.',
-    getValues: (student) => [student.student.registrationNumber || ''],
-    patchTarget: { section: 'student', key: 'registrationNumber' },
-  },
-  {
     key: 'dateOfBirth',
     label: 'Date of Birth',
     getValues: (student) => [student.student.dateOfBirth],
@@ -81,13 +76,13 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     getValues: (student) => [student.student.gender],
     patchTarget: { section: 'student', key: 'gender' },
     inputType: 'select',
-    options: ['M', 'F', 'Other'],
+    options: ['Male', 'Female', 'Other'],
   },
   {
     key: 'nationality',
     label: 'Nationality',
-    getValues: (student) => [student.student.nationality],
-    patchTarget: { section: 'student', key: 'nationality' },
+    getValues: (student) => [student.passport.nationality],
+    patchTarget: { section: 'passport', key: 'nationality' },
   },
   {
     key: 'passportNumber',
@@ -144,8 +139,6 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     key: 'status',
     label: 'Status',
     getValues: (student) => [student.status],
-    inputType: 'select',
-    options: ['PENDING', 'ACTIVE', 'COMPLETED'],
   },
   {
     key: 'university',
@@ -153,7 +146,6 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     getValues: (student) => [
       student.university.universityName,
       student.university.acronym,
-      student.university.campus,
       student.university.city,
     ],
     patchTarget: { section: 'university', key: 'universityName' },
@@ -163,12 +155,6 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     label: 'University Acronym',
     getValues: (student) => [student.university.acronym],
     patchTarget: { section: 'university', key: 'acronym' },
-  },
-  {
-    key: 'campus',
-    label: 'Campus',
-    getValues: (student) => [student.university.campus],
-    patchTarget: { section: 'university', key: 'campus' },
   },
   {
     key: 'universityCity',
@@ -188,7 +174,7 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     getValues: (student) => [
       student.program.major,
       student.program.degreeLevel,
-      student.program.programType || '',
+      student.program.systemType || '',
     ],
     patchTarget: { section: 'program', key: 'major' },
   },
@@ -199,10 +185,10 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     patchTarget: { section: 'program', key: 'degreeLevel' },
   },
   {
-    key: 'programType',
-    label: 'Program Type',
-    getValues: (student) => [student.program.programType || ''],
-    patchTarget: { section: 'program', key: 'programType' },
+    key: 'systemType',
+    label: 'System Type',
+    getValues: (student) => [student.program.systemType || ''],
+    patchTarget: { section: 'program', key: 'systemType' },
   },
   {
     key: 'startDate',
@@ -243,12 +229,6 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     patchTarget: { section: 'bank', key: 'branchCode' },
   },
   {
-    key: 'accountHolderName',
-    label: 'Account Holder',
-    getValues: (student) => [student.bankAccount.accountHolderName],
-    patchTarget: { section: 'bankAccount', key: 'accountHolderName' },
-  },
-  {
     key: 'accountNumber',
     label: 'Account No.',
     getValues: (student) => [student.bankAccount.accountNumber],
@@ -261,10 +241,10 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     patchTarget: { section: 'bankAccount', key: 'iban' },
   },
   {
-    key: 'swiftCode',
-    label: 'Swift Code',
-    getValues: (student) => [student.bankAccount.swiftCode],
-    patchTarget: { section: 'bankAccount', key: 'swiftCode' },
+    key: 'bankCode',
+    label: 'Bank Code',
+    getValues: (student) => [student.bank.bankCode],
+    patchTarget: { section: 'bank', key: 'bankCode' },
   },
   {
     key: 'accountCreatedDate',
@@ -286,34 +266,16 @@ const FIELD_DEFINITIONS: readonly StudentFieldDefinition[] = [
     patchTarget: { section: 'address', key: 'homeCountryAddress' },
   },
   {
-    key: 'street',
-    label: 'Street',
-    getValues: (student) => [student.address.street || ''],
-    patchTarget: { section: 'address', key: 'street' },
-  },
-  {
-    key: 'addressCity',
-    label: 'Address City',
-    getValues: (student) => [student.address.city || ''],
-    patchTarget: { section: 'address', key: 'city' },
-  },
-  {
-    key: 'state',
-    label: 'State',
-    getValues: (student) => [student.address.state || ''],
-    patchTarget: { section: 'address', key: 'state' },
-  },
-  {
     key: 'wilaya',
     label: 'Wilaya',
     getValues: (student) => [student.address.wilaya || ''],
     patchTarget: { section: 'address', key: 'wilaya' },
   },
   {
-    key: 'countryCode',
-    label: 'Country Code',
-    getValues: (student) => [student.address.countryCode || ''],
-    patchTarget: { section: 'address', key: 'countryCode' },
+    key: 'country',
+    label: 'Country',
+    getValues: (student) => [student.address.country || ''],
+    patchTarget: { section: 'address', key: 'country' },
   },
 ] as const;
 
@@ -498,7 +460,12 @@ export function applyStudentQuery(
     const matchesSearch = matchesLegacySearch && matchesClauseSearch;
     if (!matchesSearch) return false;
 
-    if (query.status !== 'ALL' && student.status !== query.status) return false;
+    if (
+      query.status !== 'ALL' &&
+      normalizeStudentStatusKey(student.status) !== normalizeStudentStatusKey(query.status)
+    ) {
+      return false;
+    }
     if (query.university !== 'ALL' && student.university.universityName !== query.university) return false;
     if (query.program !== 'ALL' && student.program.major !== query.program) return false;
 

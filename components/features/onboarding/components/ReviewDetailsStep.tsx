@@ -132,15 +132,12 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
               />
             </FormField>
             <FormField label="Status" className="md:col-span-2">
-              <select
+              <input
+                type="text"
                 className={sharedInputClass}
                 value={student.status}
                 onChange={(event) => onUpdateField?.('profile', 'status', event.target.value)}
-              >
-                <option value="PENDING">Pending</option>
-                <option value="ACTIVE">Active</option>
-                <option value="COMPLETED">Completed</option>
-              </select>
+              />
             </FormField>
           </>
         ) : null}

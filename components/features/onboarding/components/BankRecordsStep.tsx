@@ -39,6 +39,14 @@ const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
           onChange={(e) => onUpdateField('bank', 'bankName', e.target.value)}
         />
       </FormField>
+      <FormField label="Bank Code">
+        <input
+          type="text"
+          className={inputClass}
+          value={formData.bank.bankCode}
+          onChange={(e) => onUpdateField('bank', 'bankCode', e.target.value)}
+        />
+      </FormField>
       <FormField label="Account Number">
         <input
           type="text"
@@ -77,14 +85,6 @@ const BankRecordsStep: React.FC<BankRecordsStepProps> = ({
           className={inputClass}
           value={formData.bank.branchName}
           onChange={(e) => onUpdateField('bank', 'branchName', e.target.value)}
-        />
-      </FormField>
-      <FormField label="Account Holder Name">
-        <input
-          type="text"
-          className={inputClass}
-          value={formData.bankAccount.accountHolderName}
-          onChange={(e) => onUpdateField('bankAccount', 'accountHolderName', e.target.value)}
         />
       </FormField>
       <div className="pt-6 flex flex-col gap-4 md:col-span-2 sm:flex-row sm:items-center sm:justify-between">

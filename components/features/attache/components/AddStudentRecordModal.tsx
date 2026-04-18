@@ -26,7 +26,7 @@ type ValidationIssue = {
 };
 
 function createDraftStudentProfile(): StudentProfile {
-  const base = createEmptyStudentProfile({ status: 'PENDING' });
+  const base = createEmptyStudentProfile({ status: 'pending' });
 
   return {
     ...base,
@@ -37,19 +37,15 @@ function createDraftStudentProfile(): StudentProfile {
       familyName: '',
       inscriptionNumber: '',
       dateOfBirth: '',
-      nationality: '',
-      gender: 'M',
+      gender: 'Male',
     },
     passport: {
       ...base.passport,
       passportNumber: '',
+      nationality: '',
       issueDate: '',
       expiryDate: '',
       issuingCountry: '',
-    },
-    bankAccount: {
-      ...base.bankAccount,
-      accountHolderName: '',
     },
     contact: {
       ...base.contact,
@@ -60,7 +56,7 @@ function createDraftStudentProfile(): StudentProfile {
       homeCountryAddress: '',
       currentHostAddress: '',
     },
-    status: 'PENDING',
+    status: 'pending',
   };
 }
 
@@ -106,11 +102,7 @@ function buildStudentRecordDraft(draft: StudentProfile): StudentProfile {
       ...draft.contact,
       email: draft.contact.email.trim().toLowerCase(),
     },
-    bankAccount: {
-      ...draft.bankAccount,
-      accountHolderName: draft.bankAccount.accountHolderName.trim() || fullName,
-    },
-    status: draft.status,
+    status: draft.status.trim() || 'pending',
   });
 }
 
@@ -273,25 +265,13 @@ export default function AddStudentRecordModal({
     setSubmitError('');
     setDraft((current) => {
       const currentSection = current[sectionKey];
-      const nextDraft = {
+      return {
         ...current,
         [sectionKey]: {
           ...currentSection,
           [field]: value,
         },
       } as StudentProfile;
-
-      if (sectionKey === 'student' && field === 'fullName') {
-        const currentHolderName = current.bankAccount.accountHolderName.trim();
-        if (!currentHolderName || currentHolderName === current.student.fullName.trim()) {
-          nextDraft.bankAccount = {
-            ...nextDraft.bankAccount,
-            accountHolderName: value,
-          };
-        }
-      }
-
-      return nextDraft;
     });
   };
 

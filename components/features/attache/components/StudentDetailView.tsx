@@ -218,8 +218,8 @@ export default function StudentDetailView({
               <p className={fieldValueClass}>{student.program.degreeLevel || '---'}</p>
             </div>
             <div className="rounded-[1.4rem] border border-[rgba(220,205,166,0.52)] bg-[rgba(255,255,255,0.42)] px-4 py-4">
-              <p className={fieldLabelClass}>Campus</p>
-              <p className={fieldValueClass}>{student.university.campus || '---'}</p>
+              <p className={fieldLabelClass}>System type</p>
+              <p className={fieldValueClass}>{student.program.systemType || '---'}</p>
             </div>
           </div>
         </div>
@@ -235,7 +235,7 @@ export default function StudentDetailView({
             <DetailField label="Given name" value={student.student.givenName || '---'} />
             <DetailField label="Family name" value={student.student.familyName || '---'} />
             <DetailField label="Date of birth" value={student.student.dateOfBirth || '---'} />
-            <DetailField label="Nationality" value={student.student.nationality || '---'} emphasis="strong" />
+            <DetailField label="Nationality" value={student.passport.nationality || '---'} emphasis="strong" />
           </div>
         </div>
 
@@ -252,7 +252,7 @@ export default function StudentDetailView({
               <DetailField label="Program" value={student.program.major || '---'} emphasis="strong" />
             </div>
             <DetailField label="Level" value={student.program.degreeLevel || '---'} />
-            <DetailField label="Campus" value={student.university.campus || '---'} />
+            <DetailField label="System type" value={student.program.systemType || '---'} />
           </div>
         </div>
       </div>

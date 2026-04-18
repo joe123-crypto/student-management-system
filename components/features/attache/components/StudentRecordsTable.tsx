@@ -3,6 +3,7 @@ import { Check, X } from 'lucide-react';
 import type { StudentProfile } from '@/types';
 import type { StudentReturnField } from '@/components/features/attache/types';
 import Checkbox from '@/components/ui/Checkbox';
+import StatusBadge from '@/components/ui/StatusBadge';
 import {
   STUDENT_FIELD_DEFINITION_MAP,
   STUDENT_FIELD_DEFINITIONS,
@@ -68,18 +69,6 @@ function createEditDraft(student: StudentProfile): EditStudentDraft {
       getStudentFieldValue(student, definition.key),
     ]),
   ) as EditStudentDraft;
-}
-
-function getStatusClasses(status: StudentProfile['status']): string {
-  if (status === 'ACTIVE') {
-    return 'theme-chip-success';
-  }
-
-  if (status === 'COMPLETED') {
-    return 'theme-chip-warm';
-  }
-
-  return 'theme-chip-muted';
 }
 
 function getColumns(returnFields: StudentReturnField[]): TableColumn[] {
@@ -197,10 +186,6 @@ function buildStudentPatch(
   const normalizedGivenName = draft.givenName.trim();
   const normalizedFamilyName = draft.familyName.trim();
   const splitFromFullName = splitFullName(normalizedFullName);
-  const nameFieldsVisible =
-    visibleFieldSet.has('fullName') ||
-    visibleFieldSet.has('givenName') ||
-    visibleFieldSet.has('familyName');
 
   if (visibleFieldSet.has('fullName')) {
     sectionPatches.student.fullName = normalizedFullName;
@@ -234,18 +219,6 @@ function buildStudentPatch(
     patch.status = draft.status as StudentProfile['status'];
   }
 
-  const nextFullName =
-    sectionPatches.student.fullName ||
-    `${sectionPatches.student.givenName ?? student.student.givenName} ${sectionPatches.student.familyName ?? student.student.familyName}`.trim();
-
-  if (
-    nameFieldsVisible &&
-    !visibleFieldSet.has('accountHolderName') &&
-    student.bankAccount.accountHolderName.trim() === student.student.fullName.trim()
-  ) {
-    sectionPatches.bankAccount.accountHolderName = nextFullName;
-  }
-
   if (Object.keys(sectionPatches.student).length > 0) {
     patch.student = sectionPatches.student as StudentProfile['student'];
   }
@@ -277,26 +250,18 @@ function buildStudentPatch(
 function isMonospaceField(field: StudentReturnField): boolean {
   return [
     'inscription',
-    'registrationNumber',
     'passportNumber',
+    'bankCode',
     'branchCode',
     'accountNumber',
     'iban',
-    'swiftCode',
-    'countryCode',
   ].includes(field);
 }
 
 function renderReadOnlyCell(student: StudentProfile, field: StudentReturnField) {
   if (field === 'status') {
     return (
-      <span
-        className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${getStatusClasses(
-          student.status,
-        )}`}
-      >
-        {student.status}
-      </span>
+      <StatusBadge status={student.status} className="inline-flex" />
     );
   }
 

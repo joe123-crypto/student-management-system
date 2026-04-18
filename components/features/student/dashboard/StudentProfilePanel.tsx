@@ -201,9 +201,9 @@ const StudentProfilePanel: React.FC<StudentProfilePanelProps> = ({
                 transition={dashboardHoverTransition}
                 className={fieldCardClass}
               >
-                <p className={fieldLabelClass}>Campus</p>
+                <p className={fieldLabelClass}>System type</p>
                 <FieldValue
-                  value={student.university.campus}
+                  value={student.program.systemType}
                   className={fieldValueClass}
                   placeholderClassName="h-5 w-24 rounded-full"
                 />

@@ -48,16 +48,14 @@ function hasText(value: string | null | undefined): boolean {
 }
 
 function normalizeGender(value: unknown): StudentProfile['student']['gender'] {
-  const normalized = stringValue(value).toUpperCase();
-  if (normalized === 'F') return 'F';
+  const normalized = stringValue(value).trim().toUpperCase();
+  if (normalized === 'F' || normalized === 'FEMALE') return 'Female';
   if (normalized === 'OTHER') return 'Other';
-  return 'M';
+  return 'Male';
 }
 
 function normalizeStatus(value: unknown): StudentProfile['status'] {
-  const normalized = stringValue(value).toUpperCase();
-  if (normalized === 'ACTIVE' || normalized === 'COMPLETED') return normalized;
-  return 'PENDING';
+  return stringValue(value).trim() || 'pending';
 }
 
 function buildFullName(givenName: string, familyName: string, fallback = ''): string {
@@ -150,13 +148,12 @@ export function createEmptyStudentProfile(seed: StudentProfileSeed = {}): Studen
       givenName,
       familyName,
       inscriptionNumber,
-      registrationNumber: '',
       dateOfBirth: '',
-      nationality: '',
-      gender: 'M',
+      gender: 'Male',
     },
     passport: {
       passportNumber: '',
+      nationality: '',
       issueDate: '',
       expiryDate: '',
       issuingCountry: '',
@@ -164,7 +161,6 @@ export function createEmptyStudentProfile(seed: StudentProfileSeed = {}): Studen
     university: {
       universityName: '',
       acronym: '',
-      campus: '',
       city: '',
       department: '',
     },
@@ -173,20 +169,18 @@ export function createEmptyStudentProfile(seed: StudentProfileSeed = {}): Studen
       major: '',
       startDate: '',
       expectedEndDate: '',
-      programType: '',
       systemType: '',
       durationYears: undefined,
       awards: [],
     },
     bankAccount: {
-      accountHolderName: fullName,
       accountNumber: '',
       iban: '',
-      swiftCode: '',
       dateCreated: '',
     },
     bank: {
       bankName: '',
+      bankCode: '',
       branchName: '',
       branchAddress: '',
       branchCode: '',
@@ -200,13 +194,10 @@ export function createEmptyStudentProfile(seed: StudentProfileSeed = {}): Studen
     address: {
       homeCountryAddress: '',
       currentHostAddress: '',
-      street: '',
-      city: '',
-      state: '',
-      countryCode: '',
       wilaya: '',
+      country: '',
     },
-    status: seed.status || 'PENDING',
+    status: seed.status || 'pending',
     academicHistory: [],
     studentAwards: [],
   };
@@ -265,9 +256,7 @@ export function normalizeStudentProfile(
       givenName: stringValue(student.givenName, base.student.givenName),
       familyName: stringValue(student.familyName, base.student.familyName),
       inscriptionNumber: stringValue(student.inscriptionNumber, base.student.inscriptionNumber),
-      registrationNumber: stringValue(student.registrationNumber, base.student.registrationNumber),
       dateOfBirth: stringValue(student.dateOfBirth, base.student.dateOfBirth),
-      nationality: stringValue(student.nationality, base.student.nationality),
       gender:
         Object.prototype.hasOwnProperty.call(student, 'gender')
           ? normalizeGender(student.gender)
@@ -276,6 +265,7 @@ export function normalizeStudentProfile(
     },
     passport: {
       passportNumber: stringValue(passport.passportNumber, base.passport.passportNumber),
+      nationality: stringValue(passport.nationality, base.passport.nationality),
       issueDate: stringValue(passport.issueDate, base.passport.issueDate),
       expiryDate: stringValue(passport.expiryDate, base.passport.expiryDate),
       issuingCountry: stringValue(passport.issuingCountry, base.passport.issuingCountry),
@@ -283,7 +273,6 @@ export function normalizeStudentProfile(
     university: {
       universityName: stringValue(university.universityName, base.university.universityName),
       acronym: stringValue(university.acronym, base.university.acronym),
-      campus: stringValue(university.campus, base.university.campus),
       city: stringValue(university.city, base.university.city),
       department: stringValue(university.department, base.university.department),
     },
@@ -292,20 +281,18 @@ export function normalizeStudentProfile(
       major: stringValue(program.major, base.program.major),
       startDate: stringValue(program.startDate, base.program.startDate),
       expectedEndDate: stringValue(program.expectedEndDate, base.program.expectedEndDate),
-      programType: stringValue(program.programType, base.program.programType),
       systemType: stringValue(program.systemType, base.program.systemType),
       durationYears: numberValue(program.durationYears, base.program.durationYears),
       awards: normalizeProgramAwards(program.awards, base.program.awards),
     },
     bankAccount: {
-      accountHolderName: stringValue(bankAccount.accountHolderName, base.bankAccount.accountHolderName),
       accountNumber: stringValue(bankAccount.accountNumber, base.bankAccount.accountNumber),
       iban: stringValue(bankAccount.iban, base.bankAccount.iban),
-      swiftCode: stringValue(bankAccount.swiftCode, base.bankAccount.swiftCode),
       dateCreated: stringValue(bankAccount.dateCreated, base.bankAccount.dateCreated),
     },
     bank: {
       bankName: stringValue(bank.bankName, base.bank.bankName),
+      bankCode: stringValue(bank.bankCode, base.bank.bankCode),
       branchName: stringValue(bank.branchName, base.bank.branchName),
       branchAddress: stringValue(bank.branchAddress, base.bank.branchAddress),
       branchCode: stringValue(bank.branchCode, base.bank.branchCode),
@@ -319,11 +306,8 @@ export function normalizeStudentProfile(
     address: {
       homeCountryAddress: stringValue(address.homeCountryAddress, base.address.homeCountryAddress),
       currentHostAddress: stringValue(address.currentHostAddress, base.address.currentHostAddress),
-      street: stringValue(address.street, base.address.street),
-      city: stringValue(address.city, base.address.city),
-      state: stringValue(address.state, base.address.state),
-      countryCode: stringValue(address.countryCode, base.address.countryCode),
       wilaya: stringValue(address.wilaya, base.address.wilaya),
+      country: stringValue(address.country, base.address.country),
     },
     status: hasStatus ? normalizeStatus(record.status) : base.status,
     academicHistory: normalizeAcademicHistory(record.academicHistory, base.academicHistory),
@@ -338,8 +322,6 @@ export function normalizeStudentProfile(
     normalized.student.familyName,
     normalized.student.fullName || normalized.student.inscriptionNumber,
   );
-  normalized.bankAccount.accountHolderName =
-    normalized.bankAccount.accountHolderName || normalized.student.fullName;
   normalized.status = normalizeStatus(normalized.status);
 
   return normalized;
@@ -403,11 +385,12 @@ export function sanitizeStudentSelfServicePatch(
 
   const bankFields = sanitizeStringFields(
     patch.bank,
-    ['bankName', 'branchName', 'branchAddress', 'branchCode'] as const,
+    ['bankName', 'bankCode', 'branchName', 'branchAddress', 'branchCode'] as const,
   );
   if (Object.keys(bankFields).length > 0) {
     sanitized.bank = {
       bankName: bankFields.bankName ?? existing.bank.bankName,
+      bankCode: bankFields.bankCode ?? existing.bank.bankCode,
       branchName: bankFields.branchName ?? existing.bank.branchName,
       branchAddress: bankFields.branchAddress ?? existing.bank.branchAddress,
       branchCode: bankFields.branchCode ?? existing.bank.branchCode,
@@ -416,15 +399,12 @@ export function sanitizeStudentSelfServicePatch(
 
   const bankAccountFields = sanitizeStringFields(
     patch.bankAccount,
-    ['accountHolderName', 'accountNumber', 'iban', 'swiftCode', 'dateCreated'] as const,
+    ['accountNumber', 'iban', 'dateCreated'] as const,
   );
   if (Object.keys(bankAccountFields).length > 0) {
     sanitized.bankAccount = {
-      accountHolderName:
-        bankAccountFields.accountHolderName ?? existing.bankAccount.accountHolderName,
       accountNumber: bankAccountFields.accountNumber ?? existing.bankAccount.accountNumber,
       iban: bankAccountFields.iban ?? existing.bankAccount.iban,
-      swiftCode: bankAccountFields.swiftCode ?? existing.bankAccount.swiftCode,
       dateCreated: bankAccountFields.dateCreated ?? existing.bankAccount.dateCreated,
     };
   }

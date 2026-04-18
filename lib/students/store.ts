@@ -125,7 +125,6 @@ type StudentFileLinks = Awaited<ReturnType<typeof listStudentFileLinks>>;
 type UniversityLookup = {
   byAddressId: Map<number, UniversityRow>;
   byProvinceId: Map<number, UniversityRow>;
-  fallback: UniversityRow | null;
 };
 
 function buildStudentProfileId(studentId: number): string {
@@ -147,28 +146,11 @@ function hasText(value: string | null | undefined): boolean {
 }
 
 function normalizeStoredStatus(value: string | null | undefined): StudentProfile['status'] {
-  const normalized = (value || '').trim().toUpperCase();
-  if (normalized === 'ACTIVE') {
-    return 'ACTIVE';
-  }
-
-  if (normalized === 'COMPLETED' || normalized === 'GRADUATED') {
-    return 'COMPLETED';
-  }
-
-  return 'PENDING';
+  return (value || '').trim() || 'pending';
 }
 
 function toStoredEnrollmentStatus(value: StudentProfile['status']): string {
-  if (value === 'COMPLETED') {
-    return 'graduated';
-  }
-
-  if (value === 'ACTIVE') {
-    return 'active';
-  }
-
-  return 'pending';
+  return value.trim() || 'pending';
 }
 
 function buildFullName(givenName: string, familyName: string, fallback = ''): string {
@@ -219,13 +201,57 @@ function parseDateOnly(value: string | Date | null | undefined): Date | null {
   return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()));
 }
 
-function formatAddress(address: { name: string; province?: { name: string } | null } | null | undefined): string {
-  const parts = [address?.name?.trim() || '', address?.province?.name?.trim() || ''].filter(Boolean);
+function normalizeAddressParts(value: string): string[] {
+  return value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function normalizeLocationToken(value: string | null | undefined): string {
+  return (value || '').trim().toLowerCase();
+}
+
+function stripTrailingLocationTokens(
+  addressValue: string,
+  locationTokens: Array<string | null | undefined>,
+): string {
+  const disallowedTokens = new Set(
+    locationTokens
+      .map((token) => normalizeLocationToken(token))
+      .filter(Boolean),
+  );
+
+  if (disallowedTokens.size === 0) {
+    return normalizeAddressParts(addressValue).join(', ');
+  }
+
+  const parts = normalizeAddressParts(addressValue);
+
+  while (parts.length > 0 && disallowedTokens.has(normalizeLocationToken(parts[parts.length - 1]))) {
+    parts.pop();
+  }
+
   return parts.join(', ');
+}
+
+function formatAddress(address: { name: string; province?: { name: string; country?: string } | null } | null | undefined): string {
+  return stripTrailingLocationTokens(address?.name?.trim() || '', [
+    address?.province?.name,
+    address?.province?.country,
+  ]);
+}
+
+function sanitizeAddressNameForStorage(addressName: string, provinceName: string, countryName: string): string {
+  return stripTrailingLocationTokens(addressName.trim(), [provinceName, countryName]);
 }
 
 function buildEnrollmentStartDate(startYear: number | null | undefined): string {
   return typeof startYear === 'number' && Number.isFinite(startYear) ? `${startYear}-01-01` : '';
+}
+
+function buildEnrollmentEndDate(endYear: number | null | undefined): string {
+  return typeof endYear === 'number' && Number.isFinite(endYear) ? `${endYear}-01-01` : '';
 }
 
 function extractYearFromDate(value: string | Date | null | undefined, fallback: number): number {
@@ -237,27 +263,17 @@ function extractYearFromDate(value: string | Date | null | undefined, fallback: 
   return parsed.getUTCFullYear();
 }
 
-function calculateExpectedEndFromYear(startYear: number | null | undefined, duration: number | undefined): string {
-  if (typeof startYear !== 'number' || !Number.isFinite(startYear)) {
-    return '';
+function normalizeStoredGender(value: string | null | undefined): StudentProfile['student']['gender'] {
+  const normalized = (value || '').trim().toUpperCase();
+  if (normalized === 'F' || normalized === 'FEMALE') {
+    return 'Female';
   }
 
-  const date = new Date(Date.UTC(startYear, 0, 1));
-  if (Number.isNaN(date.getTime())) {
-    return '';
+  if (normalized === 'OTHER') {
+    return 'Other';
   }
 
-  date.setUTCFullYear(date.getUTCFullYear() + (duration || 2));
-  return date.toISOString().slice(0, 10);
-}
-
-function buildRegistrationNumber(enrollmentId: number | null | undefined, startYear: number | null | undefined, studentId: number): string {
-  if (typeof startYear !== 'number' || !Number.isFinite(startYear)) {
-    return '';
-  }
-
-  const suffix = typeof enrollmentId === 'number' && Number.isFinite(enrollmentId) ? enrollmentId : studentId;
-  return `ENR-${startYear}-${suffix}`;
+  return 'Male';
 }
 
 function normalizeSystemType(value: string | null | undefined): string {
@@ -362,7 +378,6 @@ function buildUniversityLookup(universities: UniversityRow[]): UniversityLookup 
   return {
     byAddressId,
     byProvinceId,
-    fallback: universities[0] || null,
   };
 }
 
@@ -373,7 +388,6 @@ function selectUniversity(student: StudentRow, universityLookup: UniversityLooku
   return (
     (currentAddressId ? universityLookup.byAddressId.get(currentAddressId) : null) ||
     (currentProvinceId ? universityLookup.byProvinceId.get(currentProvinceId) : null) ||
-    universityLookup.fallback ||
     null
   );
 }
@@ -409,22 +423,20 @@ function mapStudentRow(
       givenName: person.givenName,
       familyName: person.familyName,
       inscriptionNumber: student.inscriptionNo,
-      registrationNumber: buildRegistrationNumber(latestEnrollment?.id, latestEnrollment?.startYear, student.id),
       dateOfBirth: formatDateOnly(person.dob),
-      nationality: passport?.passportNo ? passport.passportNo.slice(0, 2) : '',
-      gender: person.gender === 'F' ? 'F' : person.gender === 'Other' ? 'Other' : 'M',
+      gender: normalizeStoredGender(person.gender),
       profilePicture: fileLinks?.profilePictureUrl,
     },
     passport: {
       passportNumber: passport?.passportNo || '',
+      nationality: passport?.nationality || '',
       issueDate: formatDateOnly(passport?.issueDate),
       expiryDate: formatDateOnly(passport?.expiry),
-      issuingCountry: passport?.passportNo ? passport.passportNo.slice(0, 2) : '',
+      issuingCountry: passport?.issuingCountry || '',
     },
     university: {
       universityName: university?.name || '',
       acronym: university?.acronym || '',
-      campus: university?.address?.name || '',
       city: university?.address?.province?.name || '',
       department: department?.name || '',
     },
@@ -432,8 +444,7 @@ function mapStudentRow(
       degreeLevel: finalProgramAward?.awardType.label || finalProgramAward?.awardType.code || program?.systemType || '',
       major: program?.name || '',
       startDate,
-      expectedEndDate: calculateExpectedEndFromYear(latestEnrollment?.startYear, program?.durationYears),
-      programType: program?.systemType || '',
+      expectedEndDate: buildEnrollmentEndDate(latestEnrollment?.endYear),
       systemType: program?.systemType || '',
       durationYears: program?.durationYears,
       awards: programAwards.map((entry) => ({
@@ -445,14 +456,13 @@ function mapStudentRow(
       })),
     },
     bankAccount: {
-      accountHolderName: fullName,
       accountNumber: account?.accountNo || '',
       iban: bigIntToString(account?.rib),
-      swiftCode: bank?.code ? String(bank.code) : '',
       dateCreated: formatDateOnly(account?.dateCreated),
     },
     bank: {
       bankName: bank?.name || '',
+      bankCode: bank?.code ? String(bank.code) : '',
       branchName: branch?.name || '',
       branchAddress: branch?.address?.name || '',
       branchCode: branch?.code ? String(branch.code) : '',
@@ -466,11 +476,8 @@ function mapStudentRow(
     address: {
       homeCountryAddress: formatAddress(person.homeAddress),
       currentHostAddress: formatAddress(student.address),
-      street: student.address?.name || '',
-      city: student.address?.province?.name || '',
-      state: student.address?.province?.name || '',
-      countryCode: '',
       wilaya: student.address?.province?.name || '',
+      country: student.address?.province?.country || '',
     },
     status: normalizeStoredStatus(latestEnrollment?.currentStatus),
     academicHistory: (latestEnrollment?.progressRows || []).map((entry) => {
@@ -549,18 +556,35 @@ type SyncedEnrollmentResult = {
   progressRows: SyncedProgressRow[];
 } | null;
 
-async function getOrCreateProvince(tx: DbTx, provinceName: string): Promise<number | null> {
+async function getOrCreateProvince(
+  tx: DbTx,
+  provinceName: string,
+  countryName = '',
+): Promise<number | null> {
   const normalized = provinceName.trim();
+  const normalizedCountry = countryName.trim();
   if (!normalized) {
     return null;
   }
 
   const existing = await tx.province.findFirst({
     where: {
-      name: {
-        equals: normalized,
-        mode: 'insensitive',
-      },
+      AND: [
+        {
+          name: {
+            equals: normalized,
+            mode: 'insensitive',
+          },
+        },
+        normalizedCountry
+          ? {
+              country: {
+                equals: normalizedCountry,
+                mode: 'insensitive',
+              },
+            }
+          : {},
+      ],
     },
     orderBy: {
       id: 'asc',
@@ -568,25 +592,39 @@ async function getOrCreateProvince(tx: DbTx, provinceName: string): Promise<numb
   });
 
   if (existing) {
+    if (normalizedCountry && existing.country !== normalizedCountry) {
+      await tx.province.update({
+        where: { id: existing.id },
+        data: {
+          country: existing.country || normalizedCountry,
+        },
+      });
+    }
     return existing.id;
   }
 
   const created = await tx.province.create({
     data: {
       name: normalized,
+      country: normalizedCountry,
     },
   });
 
   return created.id;
 }
 
-async function getOrCreateAddress(tx: DbTx, addressName: string, provinceName: string): Promise<number | null> {
+async function getOrCreateAddress(
+  tx: DbTx,
+  addressName: string,
+  provinceName: string,
+  countryName = '',
+): Promise<number | null> {
   const normalizedAddress = addressName.trim();
   if (!normalizedAddress) {
     return null;
   }
 
-  const provinceId = await getOrCreateProvince(tx, provinceName.trim());
+  const provinceId = await getOrCreateProvince(tx, provinceName.trim(), countryName.trim());
   const existing = await tx.address.findFirst({
     where: {
       AND: [
@@ -852,7 +890,6 @@ async function ensureUniversityReference(tx: DbTx, profile: StudentProfile): Pro
   const hasUniversityData = [
     profile.university.universityName,
     profile.university.acronym,
-    profile.university.campus,
     profile.university.city,
   ].some(hasText);
 
@@ -862,7 +899,14 @@ async function ensureUniversityReference(tx: DbTx, profile: StudentProfile): Pro
 
   const normalizedName = profile.university.universityName.trim();
   const normalizedAcronym = profile.university.acronym.trim();
-  const addressId = await getOrCreateAddress(tx, profile.university.campus, profile.university.city);
+  const provinceId = hasText(profile.university.city)
+    ? await getOrCreateProvince(tx, profile.university.city, profile.address.country || '')
+    : null;
+
+  if (!normalizedName && !normalizedAcronym) {
+    return;
+  }
+
   const existing = await tx.university.findFirst({
     where: {
       name: {
@@ -880,12 +924,20 @@ async function ensureUniversityReference(tx: DbTx, profile: StudentProfile): Pro
   });
 
   if (existing) {
+    if (existing.addressId && provinceId) {
+      await tx.address.update({
+        where: { id: existing.addressId },
+        data: {
+          wilayaId: provinceId,
+        },
+      });
+    }
+
     await tx.university.update({
       where: { id: existing.id },
       data: {
         name: normalizedName || existing.name,
         acronym: normalizedAcronym || existing.acronym,
-        addressId: existing.addressId ?? addressId ?? undefined,
       },
     });
     return;
@@ -895,7 +947,6 @@ async function ensureUniversityReference(tx: DbTx, profile: StudentProfile): Pro
     data: {
       name: normalizedName || 'Unknown University',
       acronym: normalizedAcronym,
-      addressId: addressId ?? undefined,
     },
   });
 }
@@ -962,6 +1013,8 @@ async function syncPassport(tx: DbTx, personId: number, profile: StudentProfile)
       where: { id: existing.id },
       data: {
         passportNo: profile.passport.passportNumber,
+        nationality: profile.passport.nationality,
+        issuingCountry: profile.passport.issuingCountry,
         issueDate: parseDateOnly(profile.passport.issueDate),
         expiry: parseDateOnly(profile.passport.expiryDate),
       },
@@ -972,6 +1025,8 @@ async function syncPassport(tx: DbTx, personId: number, profile: StudentProfile)
   await tx.passport.create({
     data: {
       passportNo: profile.passport.passportNumber,
+      nationality: profile.passport.nationality,
+      issuingCountry: profile.passport.issuingCountry,
       issueDate: parseDateOnly(profile.passport.issueDate),
       expiry: parseDateOnly(profile.passport.expiryDate),
       personId,
@@ -985,14 +1040,12 @@ function hasEnrollmentData(profile: StudentProfile, existingEnrollment: { id: nu
   }
 
   return (
-    hasText(profile.student.registrationNumber) ||
     hasText(profile.program.startDate) ||
     hasText(profile.program.major) ||
     hasText(profile.program.degreeLevel) ||
-    hasText(profile.program.programType || '') ||
     hasText(profile.program.systemType || '') ||
     hasText(profile.university.department || '') ||
-    profile.status !== 'PENDING' ||
+    profile.status.trim().toLowerCase() !== 'pending' ||
     Boolean(profile.academicHistory?.length)
   );
 }
@@ -1106,13 +1159,13 @@ async function syncLatestEnrollment(
   const departmentId = await getOrCreateDepartment(tx, profile.university.department || '');
   const durationYears = resolveDurationYears(profile, latestEnrollment?.program?.durationYears);
   const systemType = normalizeSystemType(
-    profile.program.systemType || profile.program.programType || profile.program.degreeLevel || '',
+    profile.program.systemType || profile.program.degreeLevel || '',
   );
   const programId = await getOrCreateProgram(tx, profile.program.major || '', departmentId, systemType, durationYears);
   const programAwardId = await ensureDefaultProgramAward(
     tx,
     programId,
-    profile.program.degreeLevel || profile.program.programType || systemType,
+    profile.program.degreeLevel || systemType,
     durationYears,
   );
   const startYear = resolveStartYear(profile, latestEnrollment?.startYear);
@@ -1220,9 +1273,9 @@ function hasBankingData(profile: StudentProfile, existingAccount: { id: number }
   return [
     profile.bankAccount.accountNumber,
     profile.bankAccount.iban,
-    profile.bankAccount.swiftCode,
     profile.bankAccount.dateCreated || '',
     profile.bank.bankName,
+    profile.bank.bankCode,
     profile.bank.branchName,
     profile.bank.branchAddress,
     profile.bank.branchCode,
@@ -1241,12 +1294,13 @@ async function syncBanking(tx: DbTx, personId: number, profile: StudentProfile):
     return;
   }
 
-  const provinceName = profile.address.wilaya || profile.address.city || profile.university.city || 'Unknown';
-  const branchAddressId = await getOrCreateAddress(tx, profile.bank.branchAddress, provinceName);
+  const provinceName = profile.address.wilaya || profile.university.city || 'Unknown';
+  const countryName = profile.address.country || '';
+  const branchAddressId = await getOrCreateAddress(tx, profile.bank.branchAddress, provinceName, countryName);
   const bankId = await getOrCreateBank(
     tx,
     profile.bank.bankName,
-    parseIntegerString(profile.bankAccount.swiftCode, 10000),
+    parseIntegerString(profile.bank.bankCode, 10000),
     branchAddressId,
   );
   const branchId = await getOrCreateBranch(
@@ -1288,22 +1342,31 @@ async function syncBanking(tx: DbTx, personId: number, profile: StudentProfile):
 }
 
 function getPrimaryProvinceName(profile: StudentProfile): string {
-  return profile.address.wilaya || profile.address.city || profile.university.city || 'Unknown';
+  return profile.address.wilaya || profile.university.city || 'Unknown';
 }
 
 function getHomeAddressName(profile: StudentProfile): string {
-  return profile.address.homeCountryAddress || profile.address.street || '';
+  return sanitizeAddressNameForStorage(
+    profile.address.homeCountryAddress || '',
+    profile.address.wilaya || profile.university.city || '',
+    profile.address.country || '',
+  );
 }
 
 function getCurrentAddressName(profile: StudentProfile): string {
-  return profile.address.currentHostAddress || profile.address.street || '';
+  return sanitizeAddressNameForStorage(
+    profile.address.currentHostAddress || '',
+    profile.address.wilaya || profile.university.city || '',
+    profile.address.country || '',
+  );
 }
 
 async function createStudentProfileTx(tx: DbTx, profile: StudentProfile): Promise<number> {
   const normalizedProfile = normalizeStudentProfile(profile);
   const provinceName = getPrimaryProvinceName(normalizedProfile);
-  const homeAddressId = await getOrCreateAddress(tx, getHomeAddressName(normalizedProfile), provinceName);
-  const currentAddressId = await getOrCreateAddress(tx, getCurrentAddressName(normalizedProfile), provinceName);
+  const countryName = normalizedProfile.address.country || '';
+  const homeAddressId = await getOrCreateAddress(tx, getHomeAddressName(normalizedProfile), provinceName, countryName);
+  const currentAddressId = await getOrCreateAddress(tx, getCurrentAddressName(normalizedProfile), provinceName, countryName);
   const fullName = normalizedProfile.student.fullName || normalizedProfile.student.inscriptionNumber;
 
   const person = await tx.person.create({
@@ -1449,8 +1512,9 @@ async function updateStudentProfileTx(
   const previousInscriptionNumber = student.inscriptionNo.trim().toUpperCase();
   const nextInscriptionNumber = normalizedProfile.student.inscriptionNumber.trim().toUpperCase();
   const provinceName = getPrimaryProvinceName(normalizedProfile);
-  const homeAddressId = await getOrCreateAddress(tx, getHomeAddressName(normalizedProfile), provinceName);
-  const currentAddressId = await getOrCreateAddress(tx, getCurrentAddressName(normalizedProfile), provinceName);
+  const countryName = normalizedProfile.address.country || '';
+  const homeAddressId = await getOrCreateAddress(tx, getHomeAddressName(normalizedProfile), provinceName, countryName);
+  const currentAddressId = await getOrCreateAddress(tx, getCurrentAddressName(normalizedProfile), provinceName, countryName);
 
   await tx.person.update({
     where: { id: student.personId },
@@ -1603,7 +1667,7 @@ export async function ensureStudentProfileForIdentity(
   const profile = createEmptyStudentProfile({
     inscriptionNumber: normalizedInscription,
     fullName: normalizedInscription,
-    status: 'PENDING',
+    status: 'pending',
   });
 
   const studentId = await prisma.$transaction(
