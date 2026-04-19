@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
 
 export default function Redirect({ to }: { to: string }) {
   const router = useRouter();
@@ -17,5 +18,5 @@ export default function Redirect({ to }: { to: string }) {
     router.replace(to);
   }, [router, pathname, to]);
 
-  return null;
+  return <AppLoadingScreen label="Taking you to the right page..." />;
 }
