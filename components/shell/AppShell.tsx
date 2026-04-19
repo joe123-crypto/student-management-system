@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useAppError } from '@/components/providers/AppErrorProvider';
 import { clearCacheByPrefix, getRuntimeCachePrefix } from '@/components/shell/shared/browser-cache';
 import type { AppRoute } from '@/components/shell/routes';
 import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
+import LogoutConfirmationDialog from '@/components/shell/LogoutConfirmationDialog';
 import { useAnnouncements } from '@/components/shell/domains/announcements/useAnnouncements';
 import { useAuth } from '@/components/shell/domains/auth/useAuth';
 import { usePermissionRequests } from '@/components/shell/domains/permissions/usePermissionRequests';
@@ -40,6 +41,8 @@ export default function AppShell({
 }) {
   const router = useRouter();
   const { reportError } = useAppError();
+  const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { user, changeStudentPassword, isHydrated: isAuthHydrated } = useAuth();
   const effectiveUser = user ?? initialUser;
   const {
@@ -73,6 +76,18 @@ export default function AppShell({
     route === '/attache/settings';
 
   const handleLogout = useCallback(() => {
+    if (isLoggingOut) return;
+    setIsLogoutPromptOpen(true);
+  }, [isLoggingOut]);
+
+  const handleCancelLogout = useCallback(() => {
+    setIsLogoutPromptOpen(false);
+  }, []);
+
+  const handleConfirmLogout = useCallback(() => {
+    setIsLogoutPromptOpen(false);
+    setIsLoggingOut(true);
+
     void (async () => {
       try {
         if (effectiveUser) {
@@ -84,17 +99,31 @@ export default function AppShell({
           title: 'Logout completed with a warning',
           fallback: 'You were signed out, but we could not clear local cached data.',
         });
-      } finally {
+      }
+
+      try {
         await signOut({ callbackUrl: '/login' });
+      } catch (error) {
+        console.error('[AUTH] Failed to complete logout:', error);
+        reportError(error, {
+          title: 'Logout failed',
+          fallback: 'We could not sign you out. Please try again.',
+        });
+        setIsLoggingOut(false);
       }
     })();
   }, [effectiveUser, reportError]);
+
+  if (isLoggingOut) {
+    return <AppLoadingScreen label="Good Bye" />;
+  }
 
   if (isProtectedRoute && !isAuthHydrated && !initialUser) {
     return <AppLoadingScreen label="Loading your application..." />;
   }
 
-  switch (route) {
+  const routeContent = (() => {
+    switch (route) {
     case '/':
     case '/login':
     case '/request-permission':
@@ -181,5 +210,17 @@ export default function AppShell({
       const unreachable: never = route;
       return unreachable;
     }
-  }
+    }
+  })();
+
+  return (
+    <>
+      {routeContent}
+      <LogoutConfirmationDialog
+        open={isLogoutPromptOpen}
+        onCancel={handleCancelLogout}
+        onConfirm={handleConfirmLogout}
+      />
+    </>
+  );
 }

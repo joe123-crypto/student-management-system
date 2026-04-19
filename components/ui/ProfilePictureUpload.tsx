@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import Button from './Button';
 
 interface ProfilePictureUploadProps {
   imageSrc?: string;
   onChange: (file: File) => void | Promise<void>;
-  onRemove?: () => void;
+  onRemove?: () => void | Promise<void>;
   className?: string;
   isUploading?: boolean;
 }
@@ -17,6 +18,7 @@ export default function ProfilePictureUpload({
   isUploading = false,
 }: ProfilePictureUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isRemovePromptOpen, setIsRemovePromptOpen] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -26,6 +28,11 @@ export default function ProfilePictureUpload({
     }
 
     void onChange(file);
+  };
+
+  const handleConfirmRemove = () => {
+    setIsRemovePromptOpen(false);
+    void onRemove?.();
   };
 
   return (
@@ -75,11 +82,46 @@ export default function ProfilePictureUpload({
           {isUploading ? 'Uploading...' : 'Upload New Picture'}
         </Button>
         {imageSrc && onRemove && (
-          <Button variant="danger" size="sm" onClick={onRemove} disabled={isUploading}>
+          <Button variant="danger" size="sm" onClick={() => setIsRemovePromptOpen(true)} disabled={isUploading}>
             Remove
           </Button>
         )}
       </div>
+
+      {isRemovePromptOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            aria-hidden="true"
+            className="theme-overlay absolute inset-0"
+            onClick={() => setIsRemovePromptOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remove-profile-picture-title"
+            aria-describedby="remove-profile-picture-description"
+            className="theme-card animate-notification-modal relative w-full max-w-md rounded-2xl border p-6 shadow-xl"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger)]">
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <h3 id="remove-profile-picture-title" className="theme-heading mt-5 text-xl font-bold">
+              Remove profile picture?
+            </h3>
+            <p id="remove-profile-picture-description" className="theme-text-muted mt-2 text-sm leading-6">
+              This will clear the current picture from your student profile. You can upload a new one later.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <Button variant="secondary" onClick={() => setIsRemovePromptOpen(false)} className="w-full">
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleConfirmRemove} className="w-full">
+                Remove
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
