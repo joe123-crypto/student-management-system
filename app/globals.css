@@ -195,6 +195,10 @@ body {
   box-shadow: inset 3px 0 0 var(--theme-primary-soft);
 }
 
+.theme-nav-active-compact {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-primary) 16%, transparent);
+}
+
 .theme-nav-inactive {
   color: var(--theme-text-muted);
 }

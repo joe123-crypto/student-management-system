@@ -1,5 +1,6 @@
 import React, { startTransition, useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Mail, ShieldCheck, UsersRound } from 'lucide-react';
 import {
   Announcement,
   AttacheAgentContext,
@@ -11,7 +12,6 @@ import {
   UserRole,
 } from '@/types';
 import Layout from '@/components/layout/Layout';
-import Tabs from '@/components/ui/Tabs';
 import StudentsSection from '@/components/features/attache/components/StudentsSection';
 import AnnouncementsSection from '@/components/features/attache/components/AnnouncementsSection';
 import CommunicationCenter from '@/components/features/attache/components/CommunicationCenter';
@@ -48,20 +48,14 @@ interface AttacheDashboardProps {
 }
 
 const tabItems = [
-  { id: 'students', label: 'Student Records', shortLabel: 'Students' },
-  { id: 'announcements', label: 'Communication Center', shortLabel: 'Messages' },
-  { id: 'permission-requests', label: 'Permissions', shortLabel: 'Permissions' },
-] as const;
-
-const communicationTabItems = [
-  { id: 'announcements', label: 'Announcements', shortLabel: 'Announcements' },
-  { id: 'messaging', label: 'Direct Messaging', shortLabel: 'Messaging' },
+  { id: 'students', label: 'Student Records', icon: UsersRound },
+  { id: 'announcements', label: 'Communication Center', icon: Mail },
+  { id: 'permission-requests', label: 'Permissions', icon: ShieldCheck },
 ] as const;
 
 const makeId = () => Math.random().toString(36).slice(2, 11);
 
 type ActiveView = (typeof tabItems)[number]['id'];
-type ActiveCommunicationView = (typeof communicationTabItems)[number]['id'];
 
 function buildDefaultAgentContext(students: StudentProfile[]): AttacheAgentContext {
   return {
@@ -94,9 +88,10 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
   onLogout,
 }) => {
   const [activeView, setActiveView] = useState<ActiveView>('students');
-  const [activeCommunicationView, setActiveCommunicationView] = useState<ActiveCommunicationView>('announcements');
+  const [managedStudentId, setManagedStudentId] = useState<string | null>(null);
   const [communicationLogs, setCommunicationLogs] = useState<CommunicationLogEntry[]>([]);
   const [agentContext, setAgentContext] = useState<AttacheAgentContext>(() => buildDefaultAgentContext(students));
+  const isDashboardHomeView = section === 'dashboard' && activeView === 'students' && managedStudentId === null;
 
   useEffect(() => {
     setAgentContext((current) => pruneAgentContextStudentIds(current, students));
@@ -130,14 +125,26 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
 
   const handleViewChange = (nextView: ActiveView) => {
     startTransition(() => {
+      if (nextView !== 'students') {
+        setManagedStudentId(null);
+      }
       setActiveView(nextView);
     });
   };
 
-  const handleCommunicationViewChange = (nextView: ActiveCommunicationView) => {
-    startTransition(() => {
-      setActiveCommunicationView(nextView);
-    });
+  const handleSidebarTabChange = (nextTab: string) => {
+    if (nextTab === 'settings') {
+      setManagedStudentId(null);
+      onNavigateSection('settings');
+      return;
+    }
+
+    if (tabItems.some((item) => item.id === nextTab)) {
+      handleViewChange(nextTab as ActiveView);
+      if (section !== 'dashboard') {
+        onNavigateSection('dashboard');
+      }
+    }
   };
 
   return (
@@ -146,89 +153,71 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
       user={user}
       title={section === 'dashboard' ? 'Attache Dashboard' : 'Settings'}
       onLogout={onLogout}
-      activeTab={section === 'dashboard' ? 'home' : 'settings'}
-      setActiveTab={(tab: string) => onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')}
+      activeTab={section === 'dashboard' ? activeView : 'settings'}
+      setActiveTab={handleSidebarTabChange}
       showSettingsMenu
+      showPageTitle={section !== 'dashboard'}
+      showBreadcrumb={section !== 'dashboard'}
+      showFooter={!isDashboardHomeView}
+      fitViewport={isDashboardHomeView}
+      sidebarNavItems={tabItems}
       sidebarFooterVariant="logout-only"
       agentContext={agentContext}
     >
       {section === 'dashboard' ? (
-        <>
-          <Tabs
-            items={tabItems}
-            activeTab={activeView}
-            onChange={(tab) => handleViewChange(tab as ActiveView)}
-            className="mb-8"
-            mobileLayout="grid"
-          />
-          <AnimatePresence mode="wait">
-            {activeView === 'students' ? (
-              <motion.div key="attache-students" {...dashboardPanelMotion}>
-                <StudentsSection
-                  students={students}
-                  isLoading={isStudentsLoading}
-                  onDeleteStudents={onDeleteStudents}
-                  onImportStudents={onImportStudents}
-                  onUpdateStudent={onUpdateStudent}
-                  onLogCommunication={appendCommunicationLog}
-                  onAgentContextChange={handleAgentContextChange}
+        <AnimatePresence mode="wait">
+          {activeView === 'students' ? (
+            <motion.div key="attache-students" {...dashboardPanelMotion} className="h-full min-h-0">
+              <StudentsSection
+                students={students}
+                isLoading={isStudentsLoading}
+                onDeleteStudents={onDeleteStudents}
+                onImportStudents={onImportStudents}
+                onUpdateStudent={onUpdateStudent}
+                onLogCommunication={appendCommunicationLog}
+                onAgentContextChange={handleAgentContextChange}
+                selectedStudentId={managedStudentId}
+                onSelectedStudentIdChange={setManagedStudentId}
+                fitViewport={isDashboardHomeView}
+              />
+            </motion.div>
+          ) : null}
+          {activeView === 'announcements' ? (
+            <motion.section key="attache-communications" {...dashboardPanelMotion} className="space-y-6">
+              <motion.div {...dashboardPanelMotion}>
+                <AnnouncementsSection
+                  announcements={announcements}
+                  isLoading={isAnnouncementsLoading}
+                  onAddAnnouncement={onAddAnnouncement}
+                  onDeleteAnnouncement={onDeleteAnnouncement}
                 />
               </motion.div>
-            ) : null}
-            {activeView === 'announcements' ? (
-              <motion.section key="attache-communications" {...dashboardPanelMotion} className="space-y-6">
-                <div className="flex justify-start sm:justify-end">
-                  <Tabs
-                    items={communicationTabItems}
-                    activeTab={activeCommunicationView}
-                    onChange={(tab) => handleCommunicationViewChange(tab as ActiveCommunicationView)}
-                    className="w-full sm:w-auto"
-                    mobileLayout="grid"
-                  />
-                </div>
-                <AnimatePresence mode="wait">
-                  {activeCommunicationView === 'announcements' ? (
-                    <motion.div key="attache-announcements-feed" {...dashboardPanelMotion}>
-                      <AnnouncementsSection
-                        announcements={announcements}
-                        isLoading={isAnnouncementsLoading}
-                        onAddAnnouncement={onAddAnnouncement}
-                        onDeleteAnnouncement={onDeleteAnnouncement}
-                      />
-                    </motion.div>
-                  ) : null}
-                  {activeCommunicationView === 'messaging' ? (
-                    <motion.div key="attache-direct-messaging" {...dashboardPanelMotion} className="space-y-4">
-                      <div className="max-w-3xl">
-                        <CommunicationCenter
-                          selectedCount={0}
-                          filteredCount={students.length}
-                          onSend={({ channel, template, scope }) =>
-                            appendCommunicationLog({
-                              channel,
-                              template,
-                              recipientCount: scope === 'SELECTED' ? 0 : students.length,
-                            })
-                          }
-                          logs={communicationLogs}
-                        />
-                      </div>
-                    </motion.div>
-                  ) : null}
-                </AnimatePresence>
-              </motion.section>
-            ) : null}
-            {activeView === 'permission-requests' ? (
-              <motion.div key="attache-permission-requests" {...dashboardPanelMotion}>
-                <PermissionRequestsSection
-                  requests={permissionRequests}
-                  isLoading={isPermissionRequestsLoading}
-                  onUpdateStatus={onUpdatePermissionRequestStatus}
+              <motion.div {...dashboardPanelMotion} className="max-w-3xl">
+                <CommunicationCenter
+                  selectedCount={0}
+                  filteredCount={students.length}
+                  onSend={({ channel, template, scope }) =>
+                    appendCommunicationLog({
+                      channel,
+                      template,
+                      recipientCount: scope === 'SELECTED' ? 0 : students.length,
+                    })
+                  }
+                  logs={communicationLogs}
                 />
               </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </>
+            </motion.section>
+          ) : null}
+          {activeView === 'permission-requests' ? (
+            <motion.div key="attache-permission-requests" {...dashboardPanelMotion}>
+              <PermissionRequestsSection
+                requests={permissionRequests}
+                isLoading={isPermissionRequestsLoading}
+                onUpdateStatus={onUpdatePermissionRequestStatus}
+              />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       ) : (
         <motion.div {...dashboardPanelMotion}>
           <DatabaseImportSection students={students} onImportStudents={onImportStudents} />

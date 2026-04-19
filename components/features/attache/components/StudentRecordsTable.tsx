@@ -23,6 +23,7 @@ interface StudentRecordsTableProps {
   onCancelEdit: () => void;
   onManage: (studentId: string) => void;
   onSaveEdit: (studentId: string, patch: Partial<StudentProfile>) => Promise<void>;
+  fitViewport?: boolean;
 }
 
 interface TableColumn {
@@ -276,7 +277,7 @@ function renderReadOnlyCell(student: StudentProfile, field: StudentReturnField) 
       ? 'theme-heading text-sm font-semibold'
       : 'theme-text-muted text-sm';
 
-  return <span className={baseClassName}>{value}</span>;
+  return <span className={`${baseClassName} break-words [overflow-wrap:anywhere]`}>{value}</span>;
 }
 
 function EditableCell({
@@ -328,6 +329,7 @@ export default function StudentRecordsTable({
   onCancelEdit,
   onManage,
   onSaveEdit,
+  fitViewport = false,
 }: StudentRecordsTableProps) {
   const [draft, setDraft] = useState<EditStudentDraft | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -340,10 +342,11 @@ export default function StudentRecordsTable({
     [returnFields],
   );
   const isInlineEditing = editingStudentId !== null;
-  const tableMinWidth = useMemo(
-    () => Math.max(760, 72 + columns.length * 170),
-    [columns.length],
-  );
+  const tableViewportClassName = fitViewport
+    ? 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+    : 'h-[400px] overflow-y-auto overflow-x-hidden';
+  const headerCellClassName = fitViewport ? 'px-4 py-3' : 'px-6 py-4';
+  const bodyCellClassName = fitViewport ? 'px-4 py-3' : 'px-6 py-4';
 
   useEffect(() => {
     if (!editingStudentId) {
@@ -406,9 +409,9 @@ export default function StudentRecordsTable({
   };
 
   return (
-    <div className="theme-card overflow-hidden rounded-[1.75rem] border">
+    <div className={`theme-card overflow-hidden rounded-[1.75rem] border ${fitViewport ? 'flex h-full min-h-0 flex-col' : ''}`}>
       {isLoading ? (
-        <div className="h-[400px] overflow-auto">
+        <div className={tableViewportClassName}>
           <div className="theme-table-header sticky top-0 z-10 border-b">
             <div className="grid grid-cols-[56px_repeat(4,minmax(0,1fr))] gap-4 px-4 py-4">
               <div className="theme-skeleton h-4 w-4 rounded" />
@@ -435,7 +438,7 @@ export default function StudentRecordsTable({
           </div>
         </div>
       ) : (
-        <div className="h-[400px] overflow-auto">
+        <div className={tableViewportClassName}>
           <div className="theme-table-header border-b px-4 py-3 md:hidden">
             <label className="theme-text-muted inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
               <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
@@ -528,18 +531,25 @@ export default function StudentRecordsTable({
             })}
           </div>
 
-          <table className="hidden w-full text-left md:table" style={{ minWidth: `${tableMinWidth}px` }}>
+          <table className="hidden w-full table-fixed text-left md:table">
+            <colgroup>
+              <col style={{ width: '4rem' }} />
+              {columns.map((column) => (
+                <col key={column.key} />
+              ))}
+              <col style={{ width: isInlineEditing ? '6.5rem' : '4rem' }} />
+            </colgroup>
             <thead className="sticky top-0 z-10">
               <tr className="theme-table-header theme-text-muted type-label shadow-[inset_0_-1px_0_rgba(220,205,166,0.65)]">
-                <th className="px-4 py-4">
+                <th className="px-4 py-3">
                   <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
                 </th>
                 {columns.map((column) => (
-                  <th key={column.key} className="px-6 py-4">
+                  <th key={column.key} className={headerCellClassName}>
                     {column.label}
                   </th>
                 ))}
-                <th className="px-6 py-4 text-right">
+                <th className={`${headerCellClassName} text-right`}>
                   <span className="sr-only">Row actions</span>
                 </th>
               </tr>
@@ -566,7 +576,7 @@ export default function StudentRecordsTable({
                       }
                     }}
                   >
-                    <td className="px-4 py-4 align-top" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-4 py-3 align-top" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={isSelected}
                         onChange={(e) => onToggleSelectOne(student.id, e.target.checked)}
@@ -575,7 +585,7 @@ export default function StudentRecordsTable({
                     {columns.map((column, index) => (
                       <td
                         key={column.key}
-                        className="px-6 py-4 align-top"
+                        className={`${bodyCellClassName} break-words align-top`}
                         onClick={(event) => isEditing && event.stopPropagation()}
                       >
                         {isEditing && draft ? (
@@ -596,7 +606,7 @@ export default function StudentRecordsTable({
                         )}
                       </td>
                     ))}
-                    <td className="px-6 py-4 text-right align-top" onClick={(event) => event.stopPropagation()}>
+                    <td className={`${bodyCellClassName} text-right align-top`} onClick={(event) => event.stopPropagation()}>
                       {isEditing ? (
                         <div className="flex items-start justify-end gap-2">
                           <button

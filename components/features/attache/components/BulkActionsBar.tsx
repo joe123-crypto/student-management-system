@@ -37,6 +37,7 @@ interface BulkActionsBarProps {
   isEditDisabled?: boolean;
   isExportDisabled?: boolean;
   isInsightsDisabled?: boolean;
+  compact?: boolean;
 }
 
 interface ActionIconButtonProps {
@@ -49,6 +50,7 @@ interface ActionIconButtonProps {
   tooltipId?: string;
   onTooltipOpen: (label: string, element: HTMLElement) => void;
   onTooltipClose: () => void;
+  compact?: boolean;
 }
 
 interface ToolbarAction {
@@ -84,6 +86,7 @@ function ActionIconButton({
   tooltipId,
   onTooltipOpen,
   onTooltipClose,
+  compact = false,
 }: ActionIconButtonProps) {
   return (
     <div
@@ -98,11 +101,11 @@ function ActionIconButton({
         variant={variant}
         onClick={onClick}
         disabled={disabled}
-        className="h-11 w-11 px-0"
+        className={`${compact ? 'h-10 w-10' : 'h-11 w-11'} px-0`}
         aria-label={label}
         aria-describedby={isTooltipActive ? tooltipId : undefined}
       >
-        <Icon className="h-6 w-6 stroke-[2.25]" />
+        <Icon className={`${compact ? 'h-5 w-5' : 'h-6 w-6'} stroke-[2.25]`} />
       </Button>
     </div>
   );
@@ -126,6 +129,7 @@ export default function BulkActionsBar({
   isEditDisabled = false,
   isExportDisabled = false,
   isInsightsDisabled = false,
+  compact = false,
 }: BulkActionsBarProps) {
   const shouldReduceMotion = useReducedMotion();
   const hasSelection = selectedCount > 0;
@@ -261,14 +265,16 @@ export default function BulkActionsBar({
 
   return (
     <motion.div
-      className="theme-toolbar group relative w-full max-w-full overflow-hidden rounded-[1.75rem] border px-4 py-4"
+      className={`theme-toolbar group relative w-full max-w-full overflow-hidden border ${
+        compact ? 'rounded-3xl px-3 py-3' : 'rounded-[1.75rem] px-4 py-4'
+      }`}
       variants={dashboardStaggerContainer}
       initial="hidden"
       animate="visible"
     >
-      <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className={`${compact ? 'mb-3 gap-3' : 'mb-4 gap-4'} grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-start`}>
         <motion.div variants={dashboardStaggerItem} className="min-w-0">
-          <p className="theme-accent-soft type-label">Action Center</p>
+          <p className="theme-accent-soft type-label">Attache Dashboard</p>
           <p className="theme-heading text-sm font-semibold sm:text-base">
             {hasSelection ? (
               <AnimatedCount
@@ -280,24 +286,26 @@ export default function BulkActionsBar({
             )}
           </p>
         </motion.div>
-        <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:justify-end">
+        <div className="flex w-full min-w-0 flex-col gap-3 sm:items-center lg:w-auto lg:justify-self-center">
           {filters ? (
             <motion.div variants={dashboardStaggerItem} className="min-w-0">
               {filters}
             </motion.div>
           ) : null}
-          <motion.span
-            variants={dashboardStaggerItem}
-            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full border px-3 text-xs font-semibold ${
-              hasSelection ? 'theme-chip-success' : 'theme-chip-muted'
-            }`}
-          >
-            {hasSelection ? 'Batch mode' : 'Browse mode'}
-          </motion.span>
+        </div>
+        <div className="flex justify-start lg:justify-end">
+          {hasSelection ? (
+            <motion.span
+              variants={dashboardStaggerItem}
+              className="theme-chip-success inline-flex h-10 shrink-0 items-center justify-center rounded-full border px-3 text-xs font-semibold"
+            >
+              Batch mode
+            </motion.span>
+          ) : null}
         </div>
       </div>
 
-      <div className="theme-toolbar-well relative flex items-center border-t pt-4">
+      <div className={`theme-toolbar-well relative flex items-center justify-center border-t ${compact ? 'pt-3' : 'pt-4'}`}>
         <div
           ref={scrollRef}
           className="-mt-4 w-full overflow-x-auto overflow-y-hidden pt-4 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
@@ -305,7 +313,7 @@ export default function BulkActionsBar({
           onScroll={updateScrollState}
         >
           <motion.div
-            className="flex w-max items-center gap-2 px-0 pr-10 md:pr-1"
+            className={`mx-auto flex w-max items-center justify-center ${compact ? 'gap-1.5' : 'gap-2'} px-1`}
             variants={dashboardStaggerContainer}
             initial="hidden"
             animate="visible"
@@ -340,6 +348,7 @@ export default function BulkActionsBar({
                   tooltipId={TOOLTIP_ID}
                   onTooltipOpen={handleTooltipOpen}
                   onTooltipClose={handleTooltipClose}
+                  compact={compact}
                 />
               </motion.div>
             ))}

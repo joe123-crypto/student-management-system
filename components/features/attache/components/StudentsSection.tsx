@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
 import StudentQueryToolbar from '@/components/features/attache/components/StudentQueryToolbar';
@@ -40,6 +40,9 @@ interface StudentsSectionProps {
     recipientCount: number;
   }) => void;
   onAgentContextChange?: (context: AttacheAgentContext) => void;
+  selectedStudentId?: string | null;
+  onSelectedStudentIdChange?: (studentId: string | null) => void;
+  fitViewport?: boolean;
 }
 
 const DEFAULT_REPORT_COLUMNS = ['fullName', 'email', 'inscriptionNumber', 'status', 'university', 'program'];
@@ -52,9 +55,12 @@ export default function StudentsSection({
   onUpdateStudent,
   onLogCommunication,
   onAgentContextChange,
+  selectedStudentId: controlledSelectedStudentId,
+  onSelectedStudentIdChange,
+  fitViewport = false,
 }: StudentsSectionProps) {
   const notifications = useNotifications();
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [uncontrolledSelectedStudentId, setUncontrolledSelectedStudentId] = useState<string | null>(null);
   const [exportPopupOpen, setExportPopupOpen] = useState(false);
   const [dataQualityOpen, setDataQualityOpen] = useState(false);
   const [duplicateDetectionOpen, setDuplicateDetectionOpen] = useState(false);
@@ -62,6 +68,14 @@ export default function StudentsSection({
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [editStudentOpen, setEditStudentOpen] = useState(false);
   const [inlineEditingStudentId, setInlineEditingStudentId] = useState<string | null>(null);
+  const isSelectedStudentControlled = controlledSelectedStudentId !== undefined;
+  const selectedStudentId = isSelectedStudentControlled ? controlledSelectedStudentId : uncontrolledSelectedStudentId;
+  const setSelectedStudentId = useCallback((studentId: string | null) => {
+    if (!isSelectedStudentControlled) {
+      setUncontrolledSelectedStudentId(studentId);
+    }
+    onSelectedStudentIdChange?.(studentId);
+  }, [isSelectedStudentControlled, onSelectedStudentIdChange]);
 
   const {
     query,
@@ -250,12 +264,12 @@ export default function StudentsSection({
 
   return (
     <motion.div
-      className="space-y-6"
+      className={fitViewport ? 'flex h-full min-h-0 flex-col gap-4' : 'space-y-6'}
       variants={dashboardStaggerContainer}
       initial="hidden"
       animate="visible"
     >
-      <div className="space-y-6">
+      <div className={fitViewport ? 'flex min-h-0 flex-1 flex-col gap-4' : 'space-y-6'}>
         <motion.div variants={dashboardStaggerItem}>
           <BulkActionsBar
             selectedCount={selectedStudentIds.size}
@@ -288,10 +302,11 @@ export default function StudentsSection({
             isEditDisabled={!singleSelectedStudent || isLoading}
             isExportDisabled={isLoading}
             isInsightsDisabled={isLoading}
+            compact={fitViewport}
           />
         </motion.div>
 
-        <motion.div variants={dashboardStaggerItem}>
+        <motion.div variants={dashboardStaggerItem} className={fitViewport ? 'min-h-0 flex-1' : undefined}>
           <StudentRecordsTable
             students={filteredStudents}
             isLoading={isLoading}
@@ -303,6 +318,7 @@ export default function StudentsSection({
             editingStudentId={inlineEditingStudentId}
             onCancelEdit={() => setInlineEditingStudentId(null)}
             onManage={setSelectedStudentId}
+            fitViewport={fitViewport}
             onSaveEdit={async (studentId, patch) => {
               await onUpdateStudent(studentId, patch);
               setInlineEditingStudentId(null);
