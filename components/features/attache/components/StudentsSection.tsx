@@ -5,7 +5,6 @@ import StudentQueryToolbar from '@/components/features/attache/components/Studen
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
 import DatabaseQueryModal from '@/components/features/attache/components/DatabaseQueryModal';
 import StudentRecordsTable from '@/components/features/attache/components/StudentRecordsTable';
-import StudentTablePagination from '@/components/features/attache/components/StudentTablePagination';
 import {
   DataQualityCard,
   DuplicateDetectionCard,
@@ -16,7 +15,6 @@ import ExportRecordsModal from '@/components/features/attache/components/ExportR
 import AddStudentRecordModal from '@/components/features/attache/components/AddStudentRecordModal';
 import useStudentFilters from '@/components/features/attache/hooks/useStudentFilters';
 import useStudentSelection from '@/components/features/attache/hooks/useStudentSelection';
-import useStudentTable from '@/components/features/attache/hooks/useStudentTable';
 import useStudentExports from '@/components/features/attache/hooks/useStudentExports';
 import { useNotifications } from '@/components/providers/NotificationProvider';
 import { isSameAgentContext } from '@/components/features/attache/utils/agentContext';
@@ -45,8 +43,6 @@ interface StudentsSectionProps {
 }
 
 const DEFAULT_REPORT_COLUMNS = ['fullName', 'email', 'inscriptionNumber', 'status', 'university', 'program'];
-const PAGE_SIZE_OPTIONS = [25, 50, 100];
-const DEFAULT_PAGE_SIZE = 50;
 
 export default function StudentsSection({
   students,
@@ -101,17 +97,6 @@ export default function StudentsSection({
   }, [query.status, students]);
 
   const {
-    tableStudents,
-    isStudentTableLoading,
-    currentPage,
-    pageSize,
-    totalPages,
-    paginatedTableStudents,
-    setCurrentPage,
-    setPageSize,
-  } = useStudentTable(students, query, duplicateStudentIds, DEFAULT_PAGE_SIZE);
-
-  const {
     selectedStudentIds,
     reviewedStudentIds,
     clearSelection,
@@ -120,7 +105,7 @@ export default function StudentsSection({
     handleMarkReviewed,
     handleDeleteSelected,
   } = useStudentSelection(filteredStudents, {
-    isReady: !isStudentTableLoading,
+    isReady: !isLoading,
     onDeleteStudents,
     onAfterDelete: (deletedIds) => {
       if (selectedStudentId && deletedIds.includes(selectedStudentId)) {
@@ -167,12 +152,12 @@ export default function StudentsSection({
 
     const hasSingleSelectedStudent =
       selectedStudentIds.size === 1 && selectedStudentIds.has(inlineEditingStudentId);
-    const isEditedStudentOnCurrentPage = paginatedTableStudents.some((student) => student.id === inlineEditingStudentId);
+    const isEditedStudentVisible = filteredStudents.some((student) => student.id === inlineEditingStudentId);
 
-    if (!hasSingleSelectedStudent || !isEditedStudentOnCurrentPage) {
+    if (!hasSingleSelectedStudent || !isEditedStudentVisible) {
       setInlineEditingStudentId(null);
     }
-  }, [inlineEditingStudentId, paginatedTableStudents, selectedStudentIds]);
+  }, [filteredStudents, inlineEditingStudentId, selectedStudentIds]);
 
   const agentContext = useMemo<AttacheAgentContext>(() => ({
     filteredStudentIds: filteredStudents.map((student) => student.id),
@@ -272,16 +257,15 @@ export default function StudentsSection({
     >
       <div className="space-y-6">
         <motion.div variants={dashboardStaggerItem}>
-          <StudentQueryToolbar
-            query={query}
-            statusOptions={statusOptions}
-            onQueryChange={updateQuery}
-          />
-        </motion.div>
-
-        <motion.div variants={dashboardStaggerItem}>
           <BulkActionsBar
             selectedCount={selectedStudentIds.size}
+            filters={(
+              <StudentQueryToolbar
+                query={query}
+                statusOptions={statusOptions}
+                onQueryChange={updateQuery}
+              />
+            )}
             onAddStudent={() => {
               setAddStudentOpen(true);
             }}
@@ -301,7 +285,7 @@ export default function StudentsSection({
             onClearSelection={clearSelection}
             onDeleteSelected={handleDeleteSelected}
             isEditActive={inlineEditingStudentId !== null}
-            isEditDisabled={!singleSelectedStudent || isLoading || isStudentTableLoading}
+            isEditDisabled={!singleSelectedStudent || isLoading}
             isExportDisabled={isLoading}
             isInsightsDisabled={isLoading}
           />
@@ -309,12 +293,12 @@ export default function StudentsSection({
 
         <motion.div variants={dashboardStaggerItem}>
           <StudentRecordsTable
-            students={paginatedTableStudents}
-            isLoading={isLoading || isStudentTableLoading}
+            students={filteredStudents}
+            isLoading={isLoading}
             returnFields={query.returnFields}
             selectedStudentIds={selectedStudentIds}
             reviewedStudentIds={reviewedStudentIds}
-            onToggleSelectAll={(checked) => handleToggleSelectAll(paginatedTableStudents, checked)}
+            onToggleSelectAll={(checked) => handleToggleSelectAll(filteredStudents, checked)}
             onToggleSelectOne={handleToggleSelectOne}
             editingStudentId={inlineEditingStudentId}
             onCancelEdit={() => setInlineEditingStudentId(null)}
@@ -343,21 +327,6 @@ export default function StudentsSection({
             }}
           />
         </motion.div>
-        {!isLoading && !isStudentTableLoading ? (
-          <motion.div variants={dashboardStaggerItem}>
-            <StudentTablePagination
-              totalItems={tableStudents.length}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              pageSizeOptions={PAGE_SIZE_OPTIONS}
-              onPageChange={(page) => setCurrentPage(Math.min(Math.max(page, 1), totalPages))}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }}
-            />
-          </motion.div>
-        ) : null}
       </div>
 
       <ExportRecordsModal
@@ -383,7 +352,6 @@ export default function StudentsSection({
             queryClauses,
             returnFields,
           });
-          setCurrentPage(1);
         }}
       />
 

@@ -41,34 +41,38 @@ export default function StudentQueryToolbar({
   onQueryChange,
 }: StudentQueryToolbarProps) {
   return (
-    <div className="theme-card-muted flex flex-col gap-4 rounded-[1.75rem] border px-4 py-4 md:flex-row md:items-center md:justify-between">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="theme-card flex items-center gap-2 rounded-2xl border px-4 py-3 shadow-[0_10px_24px_-20px_rgba(96,83,55,0.4)]">
-          <span className="theme-text-muted type-label">Sort:</span>
-          <select
-            className="theme-heading cursor-pointer bg-transparent text-xs font-bold outline-none"
-            value={query.sortBy}
-            onChange={(e) => onQueryChange({ sortBy: e.target.value as StudentQueryState['sortBy'] })}
-          >
-            <option value="name">Name (A-Z)</option>
-            <option value="inscription">Inscription No.</option>
-          </select>
-        </div>
-        <div className="theme-card flex items-center gap-2 rounded-2xl border px-4 py-3 shadow-[0_10px_24px_-20px_rgba(96,83,55,0.4)]">
-          <span className="theme-text-muted type-label">Status:</span>
-          <select
-            className="theme-heading cursor-pointer bg-transparent text-xs font-bold outline-none"
-            value={query.status}
-            onChange={(e) => onQueryChange({ status: e.target.value as StudentQueryState['status'] })}
-          >
-            <option value="ALL">All Status</option>
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {formatStudentStatus(status)}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+      <div className="theme-card flex min-h-11 min-w-0 items-center gap-2 rounded-2xl border px-4 py-2.5 shadow-[0_10px_24px_-20px_rgba(96,83,55,0.4)] sm:min-w-60">
+        <label htmlFor="student-sort" className="theme-text-muted type-label shrink-0">
+          Sort:
+        </label>
+        <select
+          id="student-sort"
+          className="theme-heading min-w-0 flex-1 cursor-pointer bg-transparent text-xs font-bold outline-none"
+          value={query.sortBy}
+          onChange={(e) => onQueryChange({ sortBy: e.target.value as StudentQueryState['sortBy'] })}
+        >
+          <option value="name">Name (A-Z)</option>
+          <option value="inscription">Inscription No.</option>
+        </select>
+      </div>
+      <div className="theme-card flex min-h-11 min-w-0 items-center gap-2 rounded-2xl border px-4 py-2.5 shadow-[0_10px_24px_-20px_rgba(96,83,55,0.4)] sm:min-w-56">
+        <label htmlFor="student-status" className="theme-text-muted type-label shrink-0">
+          Status:
+        </label>
+        <select
+          id="student-status"
+          className="theme-heading min-w-0 flex-1 cursor-pointer bg-transparent text-xs font-bold outline-none"
+          value={query.status}
+          onChange={(e) => onQueryChange({ status: e.target.value as StudentQueryState['status'] })}
+        >
+          <option value="ALL">All Status</option>
+          {statusOptions.map((status) => (
+            <option key={status} value={status}>
+              {formatStudentStatus(status)}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );

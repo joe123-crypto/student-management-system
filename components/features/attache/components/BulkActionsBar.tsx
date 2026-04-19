@@ -21,6 +21,7 @@ import {
 
 interface BulkActionsBarProps {
   selectedCount: number;
+  filters?: React.ReactNode;
   onAddStudent: () => void;
   onEditSelected: () => void;
   onOpenDatabaseQuery: () => void;
@@ -109,6 +110,7 @@ function ActionIconButton({
 
 export default function BulkActionsBar({
   selectedCount,
+  filters,
   onAddStudent,
   onEditSelected,
   onOpenDatabaseQuery,
@@ -264,7 +266,7 @@ export default function BulkActionsBar({
       initial="hidden"
       animate="visible"
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <motion.div variants={dashboardStaggerItem} className="min-w-0">
           <p className="theme-accent-soft type-label">Action Center</p>
           <p className="theme-heading text-sm font-semibold sm:text-base">
@@ -278,14 +280,21 @@ export default function BulkActionsBar({
             )}
           </p>
         </motion.div>
-        <motion.span
-          variants={dashboardStaggerItem}
-          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
-            hasSelection ? 'theme-chip-success' : 'theme-chip-muted'
-          }`}
-        >
-          {hasSelection ? 'Batch mode' : 'Browse mode'}
-        </motion.span>
+        <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:justify-end">
+          {filters ? (
+            <motion.div variants={dashboardStaggerItem} className="min-w-0">
+              {filters}
+            </motion.div>
+          ) : null}
+          <motion.span
+            variants={dashboardStaggerItem}
+            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full border px-3 text-xs font-semibold ${
+              hasSelection ? 'theme-chip-success' : 'theme-chip-muted'
+            }`}
+          >
+            {hasSelection ? 'Batch mode' : 'Browse mode'}
+          </motion.span>
+        </div>
       </div>
 
       <div className="theme-toolbar-well relative flex items-center border-t pt-4">
@@ -296,7 +305,7 @@ export default function BulkActionsBar({
           onScroll={updateScrollState}
         >
           <motion.div
-            className="mx-auto flex w-max items-center gap-2 px-0 pr-10 md:pr-1"
+            className="flex w-max items-center gap-2 px-0 pr-10 md:pr-1"
             variants={dashboardStaggerContainer}
             initial="hidden"
             animate="visible"
