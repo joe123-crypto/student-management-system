@@ -8,52 +8,20 @@ import {
   StudentSelfServicePatchError,
 } from '@/lib/students/profile';
 
-test('student onboarding stays required until all banking fields are present', () => {
+test('student onboarding does not require bank details', () => {
   const student = createEmptyStudentProfile({
     id: 'student-1',
     inscriptionNumber: 'INS-2023-001',
     fullName: 'Ada Lovelace',
   });
-
-  assert.deepEqual(getMissingStudentOnboardingFields(student), [
-    'bank name',
-    'branch code',
-    'account number',
-    'RIB key',
-  ]);
-  assert.equal(requiresStudentOnboarding(student), true);
-});
-
-test('student onboarding completion ignores whitespace-only banking values', () => {
-  const student = createEmptyStudentProfile({
-    id: 'student-1',
-    inscriptionNumber: 'INS-2023-001',
-    fullName: 'Ada Lovelace',
-  });
-
-  student.bank.bankName = '  ';
-  student.bank.branchCode = '1234';
-  student.bankAccount.accountNumber = '987654321';
-  student.bankAccount.iban = '   ';
-
-  assert.deepEqual(getMissingStudentOnboardingFields(student), ['bank name', 'RIB key']);
-  assert.equal(requiresStudentOnboarding(student), true);
-});
-
-test('student onboarding clears once the required banking fields are saved', () => {
-  const student = createEmptyStudentProfile({
-    id: 'student-1',
-    inscriptionNumber: 'INS-2023-001',
-    fullName: 'Ada Lovelace',
-  });
-
-  student.bank.bankName = 'Banque Nationale';
-  student.bank.branchCode = '1234';
-  student.bankAccount.accountNumber = '987654321';
-  student.bankAccount.iban = '001122334455';
 
   assert.deepEqual(getMissingStudentOnboardingFields(student), []);
   assert.equal(requiresStudentOnboarding(student), false);
+});
+
+test('student onboarding returns missing profile when student is null', () => {
+  assert.deepEqual(getMissingStudentOnboardingFields(null), ['student profile']);
+  assert.equal(requiresStudentOnboarding(null), true);
 });
 
 test('student self-service patch keeps bank updates and profile picture changes', () => {
@@ -83,6 +51,35 @@ test('student self-service patch keeps bank updates and profile picture changes'
       accountNumber: '987654321',
       iban: '001122334455',
       dateCreated: '',
+    },
+  });
+});
+
+test('student self-service patch allows contact and address updates', () => {
+  const student = createEmptyStudentProfile({
+    id: 'student-1',
+    inscriptionNumber: 'INS-2023-001',
+    fullName: 'Ada Lovelace',
+    email: 'ada@example.com',
+  });
+
+  const patch = sanitizeStudentSelfServicePatch(student, {
+    contact: { email: 'ada.new@example.com', phone: '+213555123456' },
+    address: { currentHostAddress: '123 Rue de Paris, Alger' },
+  });
+
+  assert.deepEqual(patch, {
+    contact: {
+      email: 'ada.new@example.com',
+      phone: '+213555123456',
+      emergencyContactName: '',
+      emergencyContactPhone: '',
+    },
+    address: {
+      homeCountryAddress: '',
+      currentHostAddress: '123 Rue de Paris, Alger',
+      wilaya: '',
+      country: '',
     },
   });
 });
