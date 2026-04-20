@@ -1,6 +1,6 @@
 import React, { startTransition, useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Mail, ShieldCheck, UsersRound } from 'lucide-react';
+import { ATTACHE_NAV_ITEMS } from './constants';
 import {
   Announcement,
   AttacheAgentContext,
@@ -47,11 +47,7 @@ interface AttacheDashboardProps {
   onLogout: () => void;
 }
 
-const tabItems = [
-  { id: 'students', label: 'Student Records', icon: UsersRound },
-  { id: 'announcements', label: 'Communication Center', icon: Mail },
-  { id: 'permission-requests', label: 'Permissions', icon: ShieldCheck },
-] as const;
+const tabItems = ATTACHE_NAV_ITEMS;
 
 const makeId = () => Math.random().toString(36).slice(2, 11);
 

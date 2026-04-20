@@ -2,6 +2,7 @@
 
 import Layout from '@/components/layout/Layout';
 import DatabaseImportSection from '@/components/features/attache/components/DatabaseImportSection';
+import { ATTACHE_NAV_ITEMS } from './constants';
 import type { AttacheAgentContext, StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
 
@@ -22,6 +23,14 @@ export default function AttacheSettingsPage({
   onNavigateSection,
   onLogout,
 }: AttacheSettingsPageProps) {
+  const handleTabChange = (tab: string) => {
+    if (tab === 'settings') {
+      onNavigateSection('settings');
+    } else if (ATTACHE_NAV_ITEMS.some((item) => item.id === tab)) {
+      onNavigateSection('dashboard');
+    }
+  };
+
   return (
     <Layout
       role={UserRole.ATTACHE}
@@ -29,10 +38,9 @@ export default function AttacheSettingsPage({
       title="Settings"
       onLogout={onLogout}
       activeTab="settings"
-      setActiveTab={(tab: string) =>
-        onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')
-      }
+      setActiveTab={handleTabChange}
       showSettingsMenu
+      sidebarNavItems={ATTACHE_NAV_ITEMS}
       sidebarFooterVariant="logout-only"
       agentContext={agentContext}
     >

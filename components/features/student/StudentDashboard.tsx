@@ -1,6 +1,7 @@
 import React, { startTransition, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Announcement, ProgressDetails, StudentProfile, UserRole } from '@/types';
+import { STUDENT_NAV_ITEMS } from './constants';
 import Layout from '@/components/layout/Layout';
 import Tabs from '@/components/ui/Tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -39,10 +40,12 @@ interface StudentDashboardProps {
   onLogout: () => void;
 }
 
+import { Home, UserCircle, GraduationCap } from 'lucide-react';
+
 const tabItems = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'profile', label: 'My Profile', shortLabel: 'Profile' },
-  { id: 'academic', label: 'Academic Progress', shortLabel: 'Academics' },
+  { id: 'overview', label: 'Overview', icon: Home },
+  { id: 'profile', label: 'My Profile', icon: UserCircle, shortLabel: 'Profile' },
+  { id: 'academic', label: 'Academic Progress', icon: GraduationCap, shortLabel: 'Academics' },
 ] as const;
 
 type ActiveTab = (typeof tabItems)[number]['id'];
@@ -489,6 +492,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       }
       profilePicture={visibleStudent?.student.profilePicture}
       showSettingsMenu
+      sidebarNavItems={STUDENT_NAV_ITEMS}
     >
       {section === 'dashboard' ? (
         <>

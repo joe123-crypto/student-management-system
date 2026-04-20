@@ -2,6 +2,7 @@
 
 import Layout from '@/components/layout/Layout';
 import StudentPasswordSettings from '@/components/features/student/dashboard/StudentPasswordSettings';
+import { STUDENT_NAV_ITEMS } from './constants';
 import { UserRole } from '@/types';
 
 interface StudentSettingsPageProps {
@@ -14,7 +15,6 @@ interface StudentSettingsPageProps {
   onLogout: () => void;
 }
 
-
 const INPUT_CLASS =
   'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none transition-all';
 
@@ -24,17 +24,24 @@ export default function StudentSettingsPage({
   onNavigateSection,
   onLogout,
 }: StudentSettingsPageProps) {
+  const handleTabChange = (tab: string) => {
+    if (tab === 'settings') {
+      onNavigateSection('settings');
+    } else if (STUDENT_NAV_ITEMS.some((item) => item.id === tab)) {
+      onNavigateSection('dashboard');
+    }
+  };
+
   return (
     <Layout
       role={UserRole.STUDENT}
       title="Settings"
       onLogout={onLogout}
       activeTab="settings"
-      setActiveTab={(tab: string) =>
-        onNavigateSection(tab === 'settings' ? 'settings' : 'dashboard')
-      }
+      setActiveTab={handleTabChange}
       profilePicture={profilePicture}
       showSettingsMenu
+      sidebarNavItems={STUDENT_NAV_ITEMS}
     >
       <StudentPasswordSettings
         onChangePassword={onChangePassword}
