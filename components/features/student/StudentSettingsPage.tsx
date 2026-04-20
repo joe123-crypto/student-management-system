@@ -14,8 +14,6 @@ interface StudentSettingsPageProps {
   onLogout: () => void;
 }
 
-const inputClass =
-  'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none transition-all';
 
 export default function StudentSettingsPage({
   profilePicture,
@@ -23,6 +21,9 @@ export default function StudentSettingsPage({
   onNavigateSection,
   onLogout,
 }: StudentSettingsPageProps) {
+  const inputClass =
+    'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none transition-all';
+
   return (
     <Layout
       role={UserRole.STUDENT}
