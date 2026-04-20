@@ -291,7 +291,7 @@ export default function BulkActionsBar({
       <div className="theme-toolbar-well relative flex items-center border-t pt-4">
         <div
           ref={scrollRef}
-          className="w-full overflow-x-auto overflow-y-hidden touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="-mt-4 w-full overflow-x-auto overflow-y-hidden pt-4 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onScroll={updateScrollState}
         >
