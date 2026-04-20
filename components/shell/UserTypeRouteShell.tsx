@@ -28,35 +28,27 @@ export default function UserTypeRouteShell({
     return null;
   }
 
-  if (userType === 'student') {
-    return (
-      <AppShell
-        route={section === 'settings' ? '/student/settings' : '/student/dashboard'}
-        initialUser={initialUser}
-        initialStudents={initialStudents}
-        initialCurrentStudent={initialCurrentStudent}
-        initialAnnouncements={initialAnnouncements}
-        initialPermissionRequests={initialPermissionRequests}
-        // Always true since this layout fetches fresh server data on navigation.
-        // Note: If data fetching here ever becomes conditional or cached differently,
-        // this could silently start serving stale data without triggering a refresh.
-        initialDataFresh
-      />
-    );
-  }
+  const route =
+    userType === 'student'
+      ? section === 'settings'
+        ? '/student/settings'
+        : '/student/dashboard'
+      : section === 'settings'
+        ? '/attache/settings'
+        : '/attache/dashboard';
 
   return (
     <AppShell
-      route={section === 'settings' ? '/attache/settings' : '/attache/dashboard'}
+      route={route}
       initialUser={initialUser}
       initialStudents={initialStudents}
       initialCurrentStudent={initialCurrentStudent}
       initialAnnouncements={initialAnnouncements}
       initialPermissionRequests={initialPermissionRequests}
-      // Always true since this layout fetches fresh server data on navigation.
+      // Set to 'layout-ssr' since this layout fetches fresh server data on navigation.
       // Note: If data fetching here ever becomes conditional or cached differently,
       // this could silently start serving stale data without triggering a refresh.
-      initialDataFresh
+      initialDataSource="layout-ssr"
     />
   );
 }

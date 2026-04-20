@@ -12,7 +12,7 @@ export default async function OnboardingRoutePage() {
       initialStudents={initialData.students}
       initialAnnouncements={initialData.announcements}
       initialPermissionRequests={initialData.permissionRequests}
-      initialDataFresh
+      initialDataSource="layout-ssr"
     />
   );
 }

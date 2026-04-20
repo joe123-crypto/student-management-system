@@ -26,8 +26,9 @@ export default async function UserTypeSectionPage({ params }: UserTypeSectionPag
     notFound();
   }
 
-  // The page renders nothing and fully delegates to the layout handling AppShell.
-  // Note: if you need to add page-specific metadata (export const metadata)
-  // or per-section logic in the future, you may need to introduce a thin component wrapper here.
+  // This page intentionally renders nothing.
+  // All UI is rendered by UserTypeRouteShell in the parent layout.
+  // Navigation to /[user-type]/[section] triggers layout data re-fetch,
+  // which updates AppShell's route prop via usePathname().
   return null;
 }

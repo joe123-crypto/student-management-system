@@ -27,7 +27,7 @@ export default function AppShell({
   latestAnnouncement = null,
   initialAnnouncements = EMPTY_ANNOUNCEMENTS,
   initialCurrentStudent = null,
-  initialDataFresh = false,
+  initialDataSource = 'client',
   initialPermissionRequests = EMPTY_PERMISSION_REQUESTS,
   initialStudents = EMPTY_STUDENTS,
   initialUser = null,
@@ -36,7 +36,7 @@ export default function AppShell({
   latestAnnouncement?: Announcement | null;
   initialAnnouncements?: Announcement[];
   initialCurrentStudent?: StudentProfile | null;
-  initialDataFresh?: boolean;
+  initialDataSource?: 'layout-ssr' | 'client';
   initialPermissionRequests?: PermissionRequest[];
   initialStudents?: StudentProfile[];
   initialUser?: User | null;
@@ -54,7 +54,7 @@ export default function AppShell({
     ? `${effectiveUser.role}:${effectiveUser.id}:${effectiveUser.loginId}`
     : null;
   const shouldSkipInitialClientRefresh = Boolean(
-    initialDataFresh && initialUserKey && initialUserKey === effectiveUserKey,
+    initialDataSource === 'layout-ssr' && initialUserKey && initialUserKey === effectiveUserKey,
   );
   const {
     students,

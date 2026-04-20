@@ -15,15 +15,15 @@ interface StudentSettingsPageProps {
 }
 
 
+const INPUT_CLASS =
+  'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none transition-all';
+
 export default function StudentSettingsPage({
   profilePicture,
   onChangePassword,
   onNavigateSection,
   onLogout,
 }: StudentSettingsPageProps) {
-  const inputClass =
-    'theme-input w-full rounded-2xl border px-5 py-3.5 outline-none transition-all';
-
   return (
     <Layout
       role={UserRole.STUDENT}
@@ -38,7 +38,7 @@ export default function StudentSettingsPage({
     >
       <StudentPasswordSettings
         onChangePassword={onChangePassword}
-        inputClassName={inputClass}
+        inputClassName={INPUT_CLASS}
       />
     </Layout>
   );
