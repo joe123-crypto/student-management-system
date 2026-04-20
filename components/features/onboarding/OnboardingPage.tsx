@@ -8,7 +8,7 @@ import PersonalDetailsStep from './components/PersonalDetailsStep';
 import ReviewDetailsStep from './components/ReviewDetailsStep';
 import Notice from '@/components/ui/Notice';
 import { useNotifications } from '@/components/providers/NotificationProvider';
-import { getMissingStudentOnboardingFields, mergeStudentProfile } from '@/lib/students/profile';
+import { mergeStudentProfile } from '@/lib/students/profile';
 import { inputClass, readOnlyInputClass } from './components/styles';
 
 interface OnboardingPageProps {
@@ -17,6 +17,7 @@ interface OnboardingPageProps {
 }
 
 type ReviewStepId = 'personal' | 'academic' | 'record';
+type ContactFieldSection = 'contact' | 'address' | 'profile';
 
 const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) => {
   const notifications = useNotifications();
@@ -45,6 +46,23 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
     },
   });
 
+  const [contactFormData, setContactFormData] = useState<
+    Pick<StudentProfile, 'contact' | 'address'>
+  >({
+    contact: {
+      email: student.contact.email || '',
+      phone: student.contact.phone || '',
+      emergencyContactName: student.contact.emergencyContactName || '',
+      emergencyContactPhone: student.contact.emergencyContactPhone || '',
+    },
+    address: {
+      homeCountryAddress: student.address.homeCountryAddress || '',
+      currentHostAddress: student.address.currentHostAddress || '',
+      wilaya: student.address.wilaya || '',
+      country: student.address.country || '',
+    },
+  });
+
   const updateField = (section: 'bankAccount' | 'bank', field: string, value: string) => {
     setSubmitError('');
     setFormData((prev) => ({
@@ -54,6 +72,25 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
         [field]: value,
       },
     }));
+  };
+
+  const updateContactField = (
+    section: ContactFieldSection,
+    field: string,
+    value: string,
+  ) => {
+    setSubmitError('');
+    if (section === 'contact') {
+      setContactFormData((prev) => ({
+        ...prev,
+        contact: { ...prev.contact, [field]: value },
+      }));
+    } else if (section === 'address') {
+      setContactFormData((prev) => ({
+        ...prev,
+        address: { ...prev.address, [field]: value },
+      }));
+    }
   };
 
   const updateReviewFieldSelection = (
@@ -102,20 +139,12 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
   const draftProfile = mergeStudentProfile(student, {
     bank: formData.bank,
     bankAccount: formData.bankAccount,
+    contact: contactFormData.contact,
+    address: contactFormData.address,
   });
-  const missingOnboardingFields = getMissingStudentOnboardingFields(draftProfile);
 
   const handleSubmit = async () => {
     if (isSubmitting) {
-      return;
-    }
-
-    if (missingOnboardingFields.length > 0) {
-      const requirementLabel = missingOnboardingFields.length === 1 ? 'field' : 'fields';
-      setSubmitError(
-        `Complete the required onboarding ${requirementLabel}: ${missingOnboardingFields.join(', ')}.`,
-      );
-      setStep(3);
       return;
     }
 
@@ -126,6 +155,8 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
       await onComplete({
         bank: formData.bank,
         bankAccount: formData.bankAccount,
+        contact: contactFormData.contact,
+        address: contactFormData.address,
       });
       router.replace('/student/dashboard');
     } catch (error) {
@@ -142,7 +173,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
         {submitError ? (
           <Notice
             tone="error"
-            title="Onboarding details incomplete"
+            title="Something went wrong"
             message={submitError}
             className="mb-6 rounded-3xl px-5 py-4"
           />
@@ -189,13 +220,11 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
           )}
           {step === 4 && (
             <ReviewDetailsStep
-              student={student}
+              student={draftProfile}
               readOnlyInputClass={readOnlyInputClass}
-              selectedReviewFields={selectedReviewFields.record}
-              onToggleReviewField={(fieldId, checked) =>
-                updateReviewFieldSelection('record', fieldId, checked)
-              }
-              onRequestReview={(fieldLabels) => handleRequestReview('Review Record', fieldLabels)}
+              inputClass={inputClass}
+              mode="editable"
+              onUpdateField={updateContactField}
               onBack={prevStep}
               isSubmitting={isSubmitting}
               onComplete={handleSubmit}
@@ -208,4 +237,3 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ student, onComplete }) 
 };
 
 export default OnboardingPage;
-

@@ -409,6 +409,32 @@ export function sanitizeStudentSelfServicePatch(
     };
   }
 
+  const contactFields = sanitizeStringFields(
+    patch.contact,
+    ['email', 'phone', 'emergencyContactName', 'emergencyContactPhone'] as const,
+  );
+  if (Object.keys(contactFields).length > 0) {
+    sanitized.contact = {
+      email: contactFields.email ?? existing.contact.email,
+      phone: contactFields.phone ?? existing.contact.phone,
+      emergencyContactName: contactFields.emergencyContactName ?? existing.contact.emergencyContactName,
+      emergencyContactPhone: contactFields.emergencyContactPhone ?? existing.contact.emergencyContactPhone,
+    };
+  }
+
+  const addressFields = sanitizeStringFields(
+    patch.address,
+    ['homeCountryAddress', 'currentHostAddress', 'wilaya', 'country'] as const,
+  );
+  if (Object.keys(addressFields).length > 0) {
+    sanitized.address = {
+      homeCountryAddress: addressFields.homeCountryAddress ?? existing.address.homeCountryAddress,
+      currentHostAddress: addressFields.currentHostAddress ?? existing.address.currentHostAddress,
+      wilaya: addressFields.wilaya ?? existing.address.wilaya,
+      country: addressFields.country ?? existing.address.country,
+    };
+  }
+
   if (Array.isArray(patch.academicHistory)) {
     const existingHistory = existing.academicHistory ?? [];
     const normalizedIncoming = normalizeAcademicHistory(patch.academicHistory, existingHistory);
@@ -467,25 +493,9 @@ export function getMissingStudentOnboardingFields(student: StudentProfile | null
     return ['student profile'];
   }
 
-  const missingFields: string[] = [];
-
-  if (!hasText(student.bank.bankName)) {
-    missingFields.push('bank name');
-  }
-
-  if (!hasText(student.bank.branchCode)) {
-    missingFields.push('branch code');
-  }
-
-  if (!hasText(student.bankAccount.accountNumber)) {
-    missingFields.push('account number');
-  }
-
-  if (!hasText(student.bankAccount.iban)) {
-    missingFields.push('RIB key');
-  }
-
-  return missingFields;
+  // Bank details are no longer required during onboarding.
+  // Students can add them later from their dashboard.
+  return [];
 }
 
 export function requiresStudentOnboarding(student: StudentProfile | null): boolean {
