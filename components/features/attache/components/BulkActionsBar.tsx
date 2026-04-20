@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import Button from '@/components/ui/Button';
 import { AnimatedCount, dashboardHoverLift, dashboardHoverTransition, dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
@@ -43,6 +44,10 @@ interface ActionIconButtonProps {
   variant: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
   onClick: () => void;
   disabled?: boolean;
+  isTooltipActive?: boolean;
+  tooltipId?: string;
+  onTooltipOpen: (label: string, element: HTMLElement) => void;
+  onTooltipClose: () => void;
 }
 
 interface ToolbarAction {
@@ -53,15 +58,40 @@ interface ToolbarAction {
   disabled: boolean;
 }
 
+interface ActiveTooltip {
+  label: string;
+  left: number;
+  top: number;
+  placement: 'above' | 'below';
+}
+
+const TOOLTIP_ID = 'bulk-actions-tooltip';
+const INITIAL_TOOLTIP_DELAY = 450;
+const WARM_TOOLTIP_DELAY = 35;
+const TOOLTIP_CLOSE_DELAY = 70;
+const TOOLTIP_WARM_WINDOW = 900;
+const TOOLTIP_EDGE_PADDING = 14;
+const TOOLTIP_VERTICAL_OFFSET = 8;
+
 function ActionIconButton({
   icon: Icon,
   label,
   variant,
   onClick,
   disabled = false,
+  isTooltipActive = false,
+  tooltipId,
+  onTooltipOpen,
+  onTooltipClose,
 }: ActionIconButtonProps) {
   return (
-    <div className="group/action relative shrink-0">
+    <div
+      className="group/action relative shrink-0"
+      onPointerEnter={(event) => onTooltipOpen(label, event.currentTarget)}
+      onPointerLeave={onTooltipClose}
+      onFocus={(event) => onTooltipOpen(label, event.currentTarget)}
+      onBlur={onTooltipClose}
+    >
       <Button
         size="sm"
         variant={variant}
@@ -69,7 +99,7 @@ function ActionIconButton({
         disabled={disabled}
         className="h-11 w-11 px-0"
         aria-label={label}
-        title={label}
+        aria-describedby={isTooltipActive ? tooltipId : undefined}
       >
         <Icon className="h-6 w-6 stroke-[2.25]" />
       </Button>
@@ -99,8 +129,15 @@ export default function BulkActionsBar({
   const hasSelection = selectedCount > 0;
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const scrollTimerRef = useRef<number | null>(null);
+  const tooltipOpenTimerRef = useRef<number | null>(null);
+  const tooltipCloseTimerRef = useRef<number | null>(null);
+  const tooltipWarmTimerRef = useRef<number | null>(null);
+  const isTooltipWarmRef = useRef(false);
+  const isTooltipOpenRef = useRef(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
+  const [isTooltipMounted, setIsTooltipMounted] = useState(false);
 
   const updateScrollState = () => {
     const container = scrollRef.current;
@@ -113,7 +150,79 @@ export default function BulkActionsBar({
     setCanScrollRight(nextCanScrollRight);
   };
 
+  const clearTooltipTimer = (timerRef: React.MutableRefObject<number | null>) => {
+    if (timerRef.current) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const markTooltipWarm = () => {
+    isTooltipWarmRef.current = true;
+    clearTooltipTimer(tooltipWarmTimerRef);
+    tooltipWarmTimerRef.current = window.setTimeout(() => {
+      isTooltipWarmRef.current = false;
+      tooltipWarmTimerRef.current = null;
+    }, TOOLTIP_WARM_WINDOW);
+  };
+
+  const getTooltipPosition = (element: HTMLElement): Omit<ActiveTooltip, 'label'> => {
+    const rect = element.getBoundingClientRect();
+    const left = Math.min(
+      Math.max(rect.left + rect.width / 2, TOOLTIP_EDGE_PADDING),
+      window.innerWidth - TOOLTIP_EDGE_PADDING,
+    );
+    const shouldPlaceAbove = rect.bottom + 38 > window.innerHeight;
+
+    return {
+      left,
+      top: shouldPlaceAbove ? rect.top - TOOLTIP_VERTICAL_OFFSET : rect.bottom + TOOLTIP_VERTICAL_OFFSET,
+      placement: shouldPlaceAbove ? 'above' : 'below',
+    };
+  };
+
+  const showTooltip = (label: string, element: HTMLElement) => {
+    const nextTooltip = {
+      label,
+      ...getTooltipPosition(element),
+    };
+
+    setActiveTooltip(nextTooltip);
+    isTooltipOpenRef.current = true;
+    markTooltipWarm();
+  };
+
+  const handleTooltipOpen = (label: string, element: HTMLElement) => {
+    clearTooltipTimer(tooltipOpenTimerRef);
+    clearTooltipTimer(tooltipCloseTimerRef);
+    clearTooltipTimer(tooltipWarmTimerRef);
+
+    const delay = isTooltipOpenRef.current || isTooltipWarmRef.current ? WARM_TOOLTIP_DELAY : INITIAL_TOOLTIP_DELAY;
+
+    tooltipOpenTimerRef.current = window.setTimeout(() => {
+      showTooltip(label, element);
+      tooltipOpenTimerRef.current = null;
+    }, delay);
+  };
+
+  const handleTooltipClose = () => {
+    clearTooltipTimer(tooltipOpenTimerRef);
+    clearTooltipTimer(tooltipCloseTimerRef);
+
+    const shouldKeepTooltipWarm = isTooltipOpenRef.current || isTooltipWarmRef.current;
+    if (shouldKeepTooltipWarm) {
+      markTooltipWarm();
+    }
+
+    tooltipCloseTimerRef.current = window.setTimeout(() => {
+      setActiveTooltip(null);
+      isTooltipOpenRef.current = false;
+      tooltipCloseTimerRef.current = null;
+    }, TOOLTIP_CLOSE_DELAY);
+  };
+
   useEffect(() => {
+    setIsTooltipMounted(true);
     updateScrollState();
 
     const handleResize = () => updateScrollState();
@@ -124,6 +233,9 @@ export default function BulkActionsBar({
       if (scrollTimerRef.current) {
         window.clearInterval(scrollTimerRef.current);
       }
+      clearTooltipTimer(tooltipOpenTimerRef);
+      clearTooltipTimer(tooltipCloseTimerRef);
+      clearTooltipTimer(tooltipWarmTimerRef);
     };
   }, []);
 
@@ -215,6 +327,10 @@ export default function BulkActionsBar({
                   variant={action.variant}
                   onClick={action.onClick}
                   disabled={action.disabled}
+                  isTooltipActive={activeTooltip?.label === action.label}
+                  tooltipId={TOOLTIP_ID}
+                  onTooltipOpen={handleTooltipOpen}
+                  onTooltipClose={handleTooltipClose}
                 />
               </motion.div>
             ))}
@@ -259,6 +375,25 @@ export default function BulkActionsBar({
           </div>
         ) : null}
       </div>
+
+      {isTooltipMounted && activeTooltip
+        ? createPortal(
+            <div
+              id={TOOLTIP_ID}
+              role="tooltip"
+              className={`pointer-events-none fixed z-[1000] max-w-[min(16rem,calc(100vw-1.5rem))] -translate-x-1/2 rounded-md border border-[color:var(--theme-border)] bg-[color:var(--theme-card)] px-2.5 py-1.5 text-xs font-semibold text-[color:var(--theme-text)] shadow-[0_12px_28px_rgba(37,79,34,0.14)] ${
+                activeTooltip.placement === 'above' ? '-translate-y-full' : ''
+              }`}
+              style={{
+                left: activeTooltip.left,
+                top: activeTooltip.top,
+              }}
+            >
+              {activeTooltip.label}
+            </div>,
+            document.body,
+          )
+        : null}
     </motion.div>
   );
 }
