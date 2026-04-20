@@ -42,6 +42,8 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
   const reviewFieldLabels: Record<string, string> = {
     email: 'Email',
     phone: 'Phone Number',
+    emergencyContactName: 'Emergency Contact Name',
+    emergencyContactPhone: 'Emergency Phone',
     hostAddress: 'Host Address',
   };
   const selectedFieldLabels = Object.entries(reviewFieldLabels)
@@ -110,6 +112,28 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
           />,
         )}
         {renderField(
+          'Emergency Contact Name',
+          'emergencyContactName',
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.contact.emergencyContactName || (isEditable ? '' : '---')}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('contact', 'emergencyContactName', event.target.value)}
+          />,
+        )}
+        {renderField(
+          'Emergency Phone',
+          'emergencyContactPhone',
+          <input
+            type="text"
+            className={sharedInputClass}
+            value={student.contact.emergencyContactPhone || (isEditable ? '' : '---')}
+            readOnly={!isEditable}
+            onChange={(event) => onUpdateField?.('contact', 'emergencyContactPhone', event.target.value)}
+          />,
+        )}
+        {renderField(
           'Host Address',
           'hostAddress',
           <input
@@ -129,14 +153,6 @@ const ReviewDetailsStep: React.FC<ReviewDetailsStepProps> = ({
                 className={sharedInputClass}
                 value={student.address.homeCountryAddress}
                 onChange={(event) => onUpdateField?.('address', 'homeCountryAddress', event.target.value)}
-              />
-            </FormField>
-            <FormField label="Status" className="md:col-span-2">
-              <input
-                type="text"
-                className={sharedInputClass}
-                value={student.status}
-                onChange={(event) => onUpdateField?.('profile', 'status', event.target.value)}
               />
             </FormField>
           </>
