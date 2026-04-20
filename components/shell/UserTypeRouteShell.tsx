@@ -37,6 +37,9 @@ export default function UserTypeRouteShell({
         initialCurrentStudent={initialCurrentStudent}
         initialAnnouncements={initialAnnouncements}
         initialPermissionRequests={initialPermissionRequests}
+        // Always true since this layout fetches fresh server data on navigation.
+        // Note: If data fetching here ever becomes conditional or cached differently,
+        // this could silently start serving stale data without triggering a refresh.
         initialDataFresh
       />
     );
@@ -50,6 +53,9 @@ export default function UserTypeRouteShell({
       initialCurrentStudent={initialCurrentStudent}
       initialAnnouncements={initialAnnouncements}
       initialPermissionRequests={initialPermissionRequests}
+      // Always true since this layout fetches fresh server data on navigation.
+      // Note: If data fetching here ever becomes conditional or cached differently,
+      // this could silently start serving stale data without triggering a refresh.
       initialDataFresh
     />
   );
