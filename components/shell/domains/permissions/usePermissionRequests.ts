@@ -33,8 +33,12 @@ function upsertPermissionRequest(
 export function usePermissionRequests(
   user: User | null,
   initialPermissionRequests: PermissionRequest[] = EMPTY_PERMISSION_REQUESTS,
+  options: {
+    skipInitialRefresh?: boolean;
+  } = {},
 ) {
   const { reportError } = useAppError();
+  const { skipInitialRefresh = false } = options;
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const [permissionRequests, setPermissionRequests] = useState<PermissionRequest[]>(
     initialPermissionRequests,
@@ -88,6 +92,11 @@ export function usePermissionRequests(
         return;
       }
 
+      if (skipInitialRefresh) {
+        setHydratedKey(userKey);
+        return;
+      }
+
       try {
         const response = await fetch('/api/permission-requests', {
           method: 'GET',
@@ -131,7 +140,7 @@ export function usePermissionRequests(
       isCancelled = true;
       controller.abort();
     };
-  }, [reportError, user, userKey]);
+  }, [reportError, skipInitialRefresh, user, userKey]);
 
   async function submitPermissionRequest(
     inscriptionNumber: string,

@@ -1,10 +1,19 @@
+'use client';
+
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import type { AttacheAgentContext, User } from '../../types';
 import { UserRole } from '../../types';
 import Button from '@/components/ui/Button';
-import FloatingChatWidget from '@/components/layout/FloatingChatWidget';
 import { ChevronRight, Home, LogOut, Menu, PanelLeftClose, Settings } from 'lucide-react';
+
+const FloatingChatWidget = dynamic(
+  () => import('@/components/layout/FloatingChatWidget'),
+  {
+    loading: () => null,
+  },
+);
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -245,3 +254,4 @@ const Layout: React.FC<LayoutProps> = ({
 };
 
 export default Layout;
+

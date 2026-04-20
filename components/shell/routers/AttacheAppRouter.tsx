@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import type {
   Announcement,
   PermissionRequest,
@@ -11,7 +12,15 @@ import type {
 import { UserRole } from '@/types';
 import Redirect from '@/components/shell/Redirect';
 import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
-import AttacheDashboard from '@/components/features/attache/AttacheeDashboard';
+import AttacheSettingsPage from '@/components/features/attache/AttacheSettingsPage';
+import type { AttacheAgentContext } from '@/types';
+
+const AttacheDashboard = dynamic(
+  () => import('@/components/features/attache/AttacheeDashboard'),
+  {
+    loading: () => <AppLoadingScreen label="Loading attache workspace..." />,
+  },
+);
 
 interface AttacheAppRouterProps {
   route: '/attache/dashboard' | '/attache/settings';
@@ -57,11 +66,35 @@ export default function AttacheAppRouter({
   if (user?.role !== UserRole.ATTACHE) {
     return <Redirect to="/login" />;
   }
-  if (isStudentsLoading) {
+  const section = route === '/attache/settings' ? 'settings' : 'dashboard';
+
+  if (section === 'dashboard' && isStudentsLoading) {
     return <AppLoadingScreen label="Loading student records..." />;
   }
 
-  const section = route === '/attache/settings' ? 'settings' : 'dashboard';
+  const agentContext: AttacheAgentContext = {
+    filteredStudentIds: students.map((student) => student.id),
+    selectedStudentIds: [],
+    searchQuery: '',
+    statusFilter: 'ALL',
+    university: 'ALL',
+    program: 'ALL',
+    duplicatesOnly: false,
+  };
+
+  if (section === 'settings') {
+    return (
+      <AttacheSettingsPage
+        user={user}
+        students={students}
+        agentContext={agentContext}
+        onImportStudents={onImportStudents}
+        onNavigateSection={onNavigateAttacheSection}
+        onLogout={onLogout}
+      />
+    );
+  }
+
   return (
     <AttacheDashboard
       user={user}

@@ -1,15 +1,23 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import type { StudentProfile, User } from '@/types';
 import { UserRole } from '@/types';
 import Redirect from '@/components/shell/Redirect';
 import AppLoadingScreen from '@/components/shell/AppLoadingScreen';
 import OnboardingPage from '@/components/features/onboarding/OnboardingPage';
-import StudentDashboard from '@/components/features/student/StudentDashboard';
+import StudentSettingsPage from '@/components/features/student/StudentSettingsPage';
 import type { Announcement } from '@/types';
 import { requiresStudentOnboarding } from '@/lib/students/profile';
 import Button from '@/components/ui/Button';
 import Notice from '@/components/ui/Notice';
+
+const StudentDashboard = dynamic(
+  () => import('@/components/features/student/StudentDashboard'),
+  {
+    loading: () => <AppLoadingScreen label="Loading your student workspace..." />,
+  },
+);
 
 interface StudentAppRouterProps {
   route: '/onboarding' | '/student/dashboard' | '/student/settings';
@@ -119,24 +127,13 @@ export default function StudentAppRouter({
       if (user?.role !== UserRole.STUDENT) {
         return <Redirect to="/login" />;
       }
-      if (isStudentLoading) {
-        return <AppLoadingScreen label="Loading your student record..." />;
-      }
-      if (!isStudentLoading && !currentStudent) {
-        return <StudentProfileUnavailableState onLogout={onLogout} />;
-      }
       if (currentStudent && !isStudentLoading && requiresStudentOnboarding(currentStudent)) {
         return <Redirect to="/onboarding" />;
       }
 
       return (
-        <StudentDashboard
-          student={currentStudent}
-          announcements={announcements}
-          isStudentLoading={isStudentLoading}
-          isAnnouncementsLoading={isAnnouncementsLoading}
-          onUpdate={onUpdateStudent}
-          section="settings"
+        <StudentSettingsPage
+          profilePicture={currentStudent?.student.profilePicture}
           onNavigateSection={onNavigateStudentSection}
           onChangePassword={onChangePassword}
           onLogout={onLogout}
