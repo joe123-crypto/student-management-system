@@ -24,8 +24,12 @@ function prependAnnouncement(announcements: Announcement[], nextAnnouncement: An
 export function useAnnouncements(
   user: User | null,
   initialAnnouncements: Announcement[] = EMPTY_ANNOUNCEMENTS,
+  options: {
+    skipInitialRefresh?: boolean;
+  } = {},
 ) {
   const { reportError } = useAppError();
+  const { skipInitialRefresh = false } = options;
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements);
   const [hydratedKey, setHydratedKey] = useState<string | null>(
@@ -93,6 +97,11 @@ export function useAnnouncements(
         return;
       }
 
+      if (skipInitialRefresh) {
+        setHydratedKey(userKey);
+        return;
+      }
+
       const cacheKey = getRuntimeCacheKey(user, 'announcements');
       let hasCachedAnnouncements = false;
 
@@ -156,7 +165,7 @@ export function useAnnouncements(
         controller.abort();
       }
     };
-  }, [reportError, user, userKey]);
+  }, [reportError, skipInitialRefresh, user, userKey]);
 
   async function addAnnouncement(input: { title: string; content: string }) {
     if (!input.title.trim() || !input.content.trim()) {

@@ -11,6 +11,7 @@ export default async function OnboardingRoutePage() {
       initialCurrentStudent={initialData.currentStudent}
       initialStudents={initialData.students}
       initialAnnouncements={initialData.announcements}
+      initialDataFresh
     />
   );
 }

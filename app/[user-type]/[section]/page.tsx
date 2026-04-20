@@ -1,6 +1,4 @@
-import AppShell from '@/components/shell/AppShell';
 import { notFound } from 'next/navigation';
-import { loadAppShellInitialData } from '@/lib/app-shell/initial-data';
 interface UserTypeSectionPageProps {
   params: Promise<{
     'user-type': string;
@@ -28,16 +26,5 @@ export default async function UserTypeSectionPage({ params }: UserTypeSectionPag
     notFound();
   }
 
-  const initialData = await loadAppShellInitialData();
-
-  return (
-    <AppShell
-      route={route}
-      initialUser={initialData.user}
-      initialStudents={initialData.students}
-      initialCurrentStudent={initialData.currentStudent}
-      initialAnnouncements={initialData.announcements}
-      initialPermissionRequests={initialData.permissionRequests}
-    />
-  );
+  return null;
 }

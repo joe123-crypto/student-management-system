@@ -27,6 +27,7 @@ export default function AppShell({
   latestAnnouncement = null,
   initialAnnouncements = EMPTY_ANNOUNCEMENTS,
   initialCurrentStudent = null,
+  initialDataFresh = false,
   initialPermissionRequests = EMPTY_PERMISSION_REQUESTS,
   initialStudents = EMPTY_STUDENTS,
   initialUser = null,
@@ -35,6 +36,7 @@ export default function AppShell({
   latestAnnouncement?: Announcement | null;
   initialAnnouncements?: Announcement[];
   initialCurrentStudent?: StudentProfile | null;
+  initialDataFresh?: boolean;
   initialPermissionRequests?: PermissionRequest[];
   initialStudents?: StudentProfile[];
   initialUser?: User | null;
@@ -45,6 +47,15 @@ export default function AppShell({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { user, changeStudentPassword, isHydrated: isAuthHydrated } = useAuth();
   const effectiveUser = user ?? initialUser;
+  const initialUserKey = initialUser
+    ? `${initialUser.role}:${initialUser.id}:${initialUser.loginId}`
+    : null;
+  const effectiveUserKey = effectiveUser
+    ? `${effectiveUser.role}:${effectiveUser.id}:${effectiveUser.loginId}`
+    : null;
+  const shouldSkipInitialClientRefresh = Boolean(
+    initialDataFresh && initialUserKey && initialUserKey === effectiveUserKey,
+  );
   const {
     students,
     currentStudent,
@@ -55,19 +66,25 @@ export default function AppShell({
   } = useStudents(effectiveUser, {
     students: initialStudents,
     currentStudent: initialCurrentStudent,
+  }, {
+    skipInitialRefresh: shouldSkipInitialClientRefresh,
   });
   const {
     announcements,
     addAnnouncement,
     deleteAnnouncement,
     isHydrated: isAnnouncementsHydrated,
-  } = useAnnouncements(effectiveUser, initialAnnouncements);
+  } = useAnnouncements(effectiveUser, initialAnnouncements, {
+    skipInitialRefresh: shouldSkipInitialClientRefresh,
+  });
   const {
     permissionRequests,
     submitPermissionRequest,
     updatePermissionRequestStatus,
     isHydrated: isPermissionRequestsHydrated,
-  } = usePermissionRequests(effectiveUser, initialPermissionRequests);
+  } = usePermissionRequests(effectiveUser, initialPermissionRequests, {
+    skipInitialRefresh: shouldSkipInitialClientRefresh,
+  });
   const isProtectedRoute =
     route === '/onboarding' ||
     route === '/student/dashboard' ||

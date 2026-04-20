@@ -55,8 +55,12 @@ export function useStudents(
     students?: StudentProfile[];
     currentStudent?: StudentProfile | null;
   } = {},
+  options: {
+    skipInitialRefresh?: boolean;
+  } = {},
 ) {
   const { reportError } = useAppError();
+  const { skipInitialRefresh = false } = options;
   const userKey = user ? `${user.role}:${user.id}:${user.loginId}` : 'anonymous';
   const [students, setStudents] = useState<StudentProfile[]>(initialData.students || []);
   const [currentStudent, setCurrentStudent] = useState<StudentProfile | null>(
@@ -225,6 +229,11 @@ export function useStudents(
         return;
       }
 
+      if (skipInitialRefresh) {
+        setHydratedKey(userKey);
+        return;
+      }
+
       const cacheKey = getStudentsCacheKey(user);
       let hasCachedStudents = false;
 
@@ -277,7 +286,7 @@ export function useStudents(
       isCancelled = true;
       controller.abort();
     };
-  }, [reportError, user, userKey]);
+  }, [reportError, skipInitialRefresh, user, userKey]);
 
   async function updateStudent(id: string, profile: Partial<StudentProfile>) {
     if (isMockDbEnabled()) {
