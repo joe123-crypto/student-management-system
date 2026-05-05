@@ -1,12 +1,11 @@
 import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PROGRESS_DATA } from '@/constants';
 import Footer from '@/components/layout/Footer';
-import AcademicStatusCard from '@/components/ui/AcademicStatusCard';
 import Button from '@/components/ui/Button';
+import StatCard from '@/components/ui/StatCard';
 import type { Announcement } from '@/types';
-import { ArrowRight, BarChart3, Bell, CalendarDays, DollarSign, FolderOpen, Globe2, MessageSquare, Search, User } from 'lucide-react';
+import { ArrowRight, BarChart3, Bell, CalendarDays, CheckCircle2, FolderOpen, Globe2, GraduationCap, MessageSquare, Search, ShieldCheck, User } from 'lucide-react';
 
 interface LandingPageProps {
   latestAnnouncement?: Announcement | null;
@@ -37,11 +36,34 @@ const STUDENT_STEPS = [
   },
 ] as const;
 
+const TRUST_STATS = [
+  { label: 'Students', value: 400, suffix: '+', supportingText: 'Student records supported across the portal.' },
+  { label: 'Years', value: 2, suffix: '+', supportingText: 'Built around real academic workflows.' },
+  { label: 'Free', value: 100, suffix: '%', supportingText: 'Open access for eligible students.' },
+  { label: 'Support', value: 24, suffix: '/7', supportingText: 'Help and updates remain easy to reach.' },
+] as const;
+
 const TOOLS = [
-  { name: 'FAST RECORD FINDER', icon: 'search' },
-  { name: 'DOCUMENT VAULT', icon: 'folder' },
-  { name: 'ACADEMIC TRACKER', icon: 'chart' },
-  { name: 'SUPPORT PORTAL', icon: 'chat' },
+  {
+    title: 'Fast Record Finder',
+    description: 'Search student profile, academic, and scholarship details without digging through forms.',
+    icon: 'search',
+  },
+  {
+    title: 'Document Vault',
+    description: 'Keep important files organized and available when administrators need to review them.',
+    icon: 'folder',
+  },
+  {
+    title: 'Academic Tracker',
+    description: 'Follow progress, status updates, and key academic milestones from one clear view.',
+    icon: 'chart',
+  },
+  {
+    title: 'Support Portal',
+    description: 'Get guidance, request help, and keep conversations tied to your student record.',
+    icon: 'chat',
+  },
 ] as const;
 
 const COUNTER_FORMATTERS = new Map<string, Intl.NumberFormat>();
@@ -345,24 +367,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
       <main className="relative z-10 pt-32 pb-32 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="relative mb-24">
-            <HeroStudentImage
-              className="reveal-on-scroll left-[45%] top-16 z-20 hidden h-[24rem] w-[14rem] -translate-x-1/2 lg:block xl:left-[44%] xl:top-10 xl:h-[29rem] xl:w-[20rem]"
-              sizes="(max-width: 1279px) 224px, 320px"
-              absolute
-              priority
-              data-reveal=""
-              data-reveal-variant="pop"
-            />
-
             <div className="grid items-center gap-12 sm:gap-14 lg:grid-cols-2 lg:gap-20">
-              <div className="reveal-on-scroll relative z-10 pb-20 sm:pb-24 lg:pb-0 lg:pr-10 xl:pr-16" data-reveal="" data-reveal-variant="left">
-                <HeroStudentImage
-                  className="right-[-0.75rem] -bottom-16 z-0 h-[13rem] w-[8.75rem] sm:right-6 sm:-bottom-24 sm:h-[18rem] sm:w-[12rem] lg:hidden"
-                  sizes="(max-width: 639px) 152px, 192px"
-                  absolute
-                  priority
-                />
-
+              <div className="reveal-on-scroll relative z-10 lg:pr-10 xl:pr-16" data-reveal="" data-reveal-variant="left">
                 <div className="relative z-10 space-y-6 sm:space-y-8">
                   <div className="reveal-on-scroll theme-accent-subtle inline-flex items-center gap-2 rounded-full border px-3 py-1.5" data-reveal="" style={{ '--reveal-delay': '80ms' } as React.CSSProperties}>
                     <Globe2 className="h-3.5 w-3.5" />
@@ -391,49 +397,65 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                 </div>
               </div>
 
-              <div className="relative z-20 -mt-6 sm:-mt-16 lg:z-auto lg:mt-0 xl:pl-8">
-                <div className="reveal-on-scroll hero-dashboard-float" data-reveal="" data-reveal-variant="right" style={{ '--reveal-delay': '180ms' } as React.CSSProperties}>
-                  <AcademicStatusCard
-                    title="Academic Status"
-                    status="ACTIVE"
-                    metricLabel="Moyenne"
-                    metricValue={<CountUpNumber value={19.92} decimals={2} />}
-                    chartData={PROGRESS_DATA}
-                    chartDataKey="gpa"
-                    chartSeriesLabel="Moyenne"
-                    yDomain={[0, 4]}
-                    className="relative z-10 shadow-[0_32px_120px_-20px_rgba(37,79,34,0.18)] transition-transform duration-700 hover:scale-[1.02]"
-                    chartHeightClassName="h-32 sm:h-48"
+              <div className="relative z-20 lg:z-auto">
+                <div className="reveal-on-scroll relative min-h-[30rem] overflow-hidden rounded-[2.5rem] border border-[color:color-mix(in_srgb,var(--theme-border)_62%,white)] bg-[color:var(--theme-primary-strong)] shadow-[0_32px_90px_rgba(37,79,34,0.18)]" data-reveal="" data-reveal-variant="right" style={{ '--reveal-delay': '180ms' } as React.CSSProperties}>
+                  <Image
+                    src="/student-background.png"
+                    alt="Student using the ScholarsAlger platform"
+                    fill
+                    priority
+                    sizes="(max-width: 1023px) 100vw, 48vw"
+                    className="object-cover object-center"
                   />
-                </div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[rgba(27,59,25,0.36)] via-[rgba(37,79,34,0.12)] to-[rgba(245,130,74,0.28)]" />
+                  <HeroStudentImage
+                    className="bottom-0 right-3 h-[26rem] w-[17rem] sm:right-10 sm:h-[29rem] sm:w-[20rem]"
+                    sizes="(max-width: 639px) 272px, 320px"
+                    absolute
+                    priority
+                  />
 
-                <div className="reveal-on-scroll theme-panel-soft hero-floating-chip absolute top-12 -right-16 z-20 hidden rounded-[2rem] border p-6 md:block" data-reveal="" data-reveal-variant="right" style={{ '--reveal-delay': '340ms' } as React.CSSProperties}>
-                  <div className="flex items-center gap-4">
-                    <div className="theme-chip-success flex h-12 w-12 items-center justify-center rounded-2xl border">
-                      <DollarSign className="w-6 h-6" />
+                  <div className="absolute left-5 top-5 max-w-[15rem] rounded-[1.5rem] border border-white/25 bg-white/80 p-4 shadow-[0_18px_48px_rgba(27,59,25,0.16)] backdrop-blur-md sm:left-8 sm:top-8 sm:p-5">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--theme-primary)] text-white">
+                      <GraduationCap className="h-5 w-5" />
                     </div>
-                    <div>
-                      <p className="theme-text-muted type-label mb-1">Deposit Status</p>
-                      <p className="theme-heading type-section-title">
-                        <CountUpNumber value={2450} decimals={2} prefix="+$" />
-                      </p>
+                    <p className="theme-heading type-card-title">One student portal</p>
+                    <p className="theme-text-muted type-body-sm mt-2">Profiles, banking details, announcements, and progress in one secure place.</p>
+                  </div>
+
+                  <div className="absolute bottom-5 left-5 right-5 rounded-[1.5rem] border border-white/25 bg-[rgba(255,253,248,0.9)] p-4 shadow-[0_18px_48px_rgba(27,59,25,0.14)] backdrop-blur-md sm:left-auto sm:right-8 sm:w-[18rem]">
+                    <div className="flex items-center gap-3">
+                      <div className="theme-chip-success flex h-10 w-10 items-center justify-center rounded-2xl border">
+                        <ShieldCheck className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="theme-text-muted type-label">Student Access</p>
+                        <p className="theme-heading text-sm font-bold">Secure and organized</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="reveal-on-scroll theme-panel-soft hero-floating-card absolute bottom-[-18px] left-48 z-30 hidden min-h-[8.5rem] w-[23.5rem] flex-col justify-end rounded-[2.5rem] border border-[color:rgba(218,203,171,0.94)] bg-[color:rgba(248,243,230,0.985)] px-8 py-5 shadow-[0_32px_82px_rgba(37,79,34,0.2)] backdrop-blur-sm md:flex xl:-left-52 xl:w-[25.5rem]" data-reveal="" data-reveal-variant="pop" style={{ '--reveal-delay': '420ms' } as React.CSSProperties}>
-                  <div className="mb-3 flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-[color:color-mix(in_srgb,var(--theme-surface)_48%,white)]" />
-                    <div className="space-y-1">
-                      <div className="h-2.5 w-24 rounded-full bg-[color:color-mix(in_srgb,var(--theme-border)_58%,white)]" />
-                      <div className="h-2.5 w-16 rounded-full bg-[color:color-mix(in_srgb,var(--theme-border)_42%,white)]" />
-                    </div>
-                  </div>
-                  <div className="mb-2 h-1.5 w-full rounded-full bg-[color:var(--theme-primary-soft)]" />
-                  <p className="theme-text-muted type-label">Progress to Degree</p>
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="mb-24 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {TRUST_STATS.map((stat, index) => (
+              <div
+                key={stat.label}
+                className="reveal-on-scroll"
+                data-reveal=""
+                data-reveal-variant="up"
+                style={{ '--reveal-delay': `${index * 80}ms` } as React.CSSProperties}
+              >
+                <StatCard
+                  label={stat.label}
+                  value={<CountUpNumber value={stat.value} />}
+                  suffix={stat.suffix}
+                  supportingText={stat.supportingText}
+                />
+              </div>
+            ))}
           </div>
 
           <div id="how-it-works" ref={howItWorksRef} className="mb-24 scroll-mt-24">
@@ -488,21 +510,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
             <h2 className="reveal-on-scroll theme-heading type-section-title mb-10" data-reveal="">
               Explore Tools
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {TOOLS.map((tool, i) => (
                 <div
-                  key={i}
-                  className="reveal-on-scroll theme-panel-soft group relative flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-[2rem] border shadow-sm transition-all hover:scale-105"
+                  key={tool.title}
+                  className="reveal-on-scroll theme-panel-soft group relative min-h-[14rem] cursor-pointer overflow-hidden rounded-[2rem] border p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[color:color-mix(in_srgb,var(--theme-secondary)_72%,white)] hover:shadow-[0_24px_56px_rgba(37,79,34,0.12)]"
                   data-reveal=""
                   data-reveal-variant="pop"
                   style={{ '--reveal-delay': `${i * 80}ms` } as React.CSSProperties}
                 >
-                  <div className="absolute inset-0 bg-[color:color-mix(in_srgb,var(--theme-surface)_46%,white)] opacity-0 transition-opacity group-hover:opacity-100" />
-                  <div className="relative z-10 flex flex-col items-center gap-3 w-full px-4">
-                    <div className="theme-icon-well flex h-10 w-10 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--theme-border)_58%,white)] transition-transform group-hover:rotate-12">
+                  <div className="absolute inset-x-0 top-0 h-1 bg-[color:var(--theme-secondary)] opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div className="relative z-10 flex h-full flex-col">
+                    <div className="theme-icon-well mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-[color:color-mix(in_srgb,var(--theme-border)_58%,white)] transition-transform group-hover:rotate-6 group-hover:scale-105">
                       {getIcon(tool.icon)}
                     </div>
-                    <span className="theme-text-muted type-label text-center">{tool.name}</span>
+                    <h3 className="theme-heading type-card-title">{tool.title}</h3>
+                    <p className="theme-text-muted type-body-sm mt-3">{tool.description}</p>
+                    <div className="mt-auto pt-5 text-[color:var(--theme-primary-soft)] transition-transform group-hover:translate-x-1">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -516,9 +542,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
               <span className="theme-text-muted type-label">Latest Updates</span>
             </div>
 
-            <div className="reveal-on-scroll theme-panel-glass group relative overflow-hidden rounded-[3rem] border p-8 md:p-12" data-reveal="" data-reveal-variant="up" style={{ '--reveal-delay': '120ms' } as React.CSSProperties}>
-              <div className="absolute top-0 right-0 p-8">
-                <div className="theme-accent-subtle flex h-16 w-16 items-center justify-center rounded-full border animate-pulse">
+            <div className={`reveal-on-scroll theme-panel-glass group relative overflow-hidden border ${latestAnnouncement ? 'rounded-[3rem] p-8 md:p-12' : 'rounded-[2rem] p-5 sm:p-6'}`} data-reveal="" data-reveal-variant="up" style={{ '--reveal-delay': '120ms' } as React.CSSProperties}>
+              <div className={latestAnnouncement ? 'absolute top-0 right-0 p-8' : 'absolute right-5 top-5'}>
+                <div className={`theme-accent-subtle flex items-center justify-center rounded-full border ${latestAnnouncement ? 'h-16 w-16 animate-pulse' : 'h-10 w-10'}`}>
                   <Bell className="w-8 h-8" />
                 </div>
               </div>
@@ -555,23 +581,37 @@ const LandingPage: React.FC<LandingPageProps> = ({ latestAnnouncement = null }) 
                   </div>
                 </div>
               ) : (
-                <div className="max-w-3xl">
-                  <div className="theme-chip-muted mb-6 inline-flex items-center gap-2 rounded-full border px-3 py-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--theme-text-muted)]" />
-                    <span className="type-label">Announcements Feed</span>
+                <div className="flex items-center gap-4 pr-12">
+                  <div className="theme-chip-success hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border sm:flex">
+                    <CheckCircle2 className="h-5 w-5" />
                   </div>
-
-                  <h3 className="theme-heading type-section-title mb-6">
-                    Announcements will appear here once they are published
-                  </h3>
-
-                  <p className="theme-text-muted type-body-lg">
-                    The live announcement feed is empty right now. Attache updates will show up here as soon as they are available.
-                  </p>
+                  <div>
+                    <h3 className="theme-heading type-card-title">Announcements will appear here once they are published</h3>
+                    <p className="theme-text-muted type-body-sm mt-1">
+                      The live announcement feed is empty right now. Attache updates will show up here as soon as they are available.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
           </div>
+
+          <section className="reveal-on-scroll theme-panel-glass mb-4 overflow-hidden rounded-[2.5rem] border p-8 text-center md:p-12" data-reveal="" data-reveal-variant="up">
+            <div className="mx-auto max-w-2xl">
+              <p className="theme-accent type-label mb-3">Start Your Portal</p>
+              <h2 className="theme-heading type-section-title">Ready to get started?</h2>
+              <p className="theme-text-muted type-body mt-4">
+                Open your student portal and keep your academic profile, banking details, and updates in one place.
+              </p>
+              <Button
+                onClick={() => router.push('/login')}
+                className="group mt-7 inline-flex items-center gap-2 rounded-full px-8 py-3 font-bold shadow-[0_18px_36px_rgba(37,79,34,0.14)]"
+              >
+                Get Started for Free
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </div>
+          </section>
         </div>
       </main>
 
