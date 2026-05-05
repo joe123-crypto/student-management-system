@@ -14,7 +14,7 @@ interface UseStudentSelectionResult {
   handleToggleSelectAll: (studentsOnPage: StudentProfile[], checked: boolean) => void;
   handleToggleSelectOne: (studentId: string, checked: boolean) => void;
   handleMarkReviewed: () => void;
-  handleDeleteSelected: () => void;
+  handleDeleteSelected: () => boolean;
 }
 
 function areSetsEqual(left: Set<string>, right: Set<string>): boolean {
@@ -79,12 +79,12 @@ export default function useStudentSelection(
   }, [selectedStudentIds]);
 
   const handleDeleteSelected = useCallback(() => {
-    if (!onDeleteStudents || selectedStudentIds.size === 0) return;
+    if (!onDeleteStudents || selectedStudentIds.size === 0) return false;
 
     const shouldDelete = window.confirm(
       `Delete ${selectedStudentIds.size} selected record${selectedStudentIds.size === 1 ? '' : 's'}? This cannot be undone.`,
     );
-    if (!shouldDelete) return;
+    if (!shouldDelete) return false;
 
     const idsToDelete = Array.from(selectedStudentIds);
     onDeleteStudents(idsToDelete);
@@ -95,6 +95,7 @@ export default function useStudentSelection(
       return next;
     });
     onAfterDelete?.(idsToDelete);
+    return true;
   }, [onAfterDelete, onDeleteStudents, selectedStudentIds]);
 
   return {

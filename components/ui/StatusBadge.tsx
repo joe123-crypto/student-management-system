@@ -1,29 +1,32 @@
 import React from 'react';
 import { cn } from './cn';
-import {
-  formatStudentStatus,
-  getStudentStatusThemeClass,
-  normalizeStudentStatusKey,
-} from '@/lib/students/status';
 
 interface StatusBadgeProps {
   status: string;
   className?: string;
 }
 
+const statusClassMap: Record<string, string> = {
+  ACTIVE: 'theme-success',
+  PENDING: 'theme-warning',
+  COMPLETED: 'theme-info',
+};
+
 export default function StatusBadge({ status, className }: StatusBadgeProps) {
-  const normalizedStatus = normalizeStudentStatusKey(status);
+  const displayStatus = status
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 
   return (
     <span
       className={cn(
-        'rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.03em]',
-        getStudentStatusThemeClass(status),
-        normalizedStatus === 'pending' && 'theme-attention-pulse',
+        'rounded-full px-3 py-1.5 text-sm font-bold',
+        statusClassMap[status] || 'theme-card-muted theme-text-muted',
         className,
       )}
     >
-      {formatStudentStatus(status)}
+      {displayStatus}
     </span>
   );
 }

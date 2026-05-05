@@ -1,15 +1,8 @@
 import React, { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import type {
-  PermissionRequest,
-  PermissionRequestStatusUpdateOptions,
-  PermissionRequestStatusUpdateResult,
-} from '@/types';
-import { useNotifications } from '@/components/providers/NotificationProvider';
+import type { PermissionRequest } from '@/types';
 import Skeleton from '@/components/ui/Skeleton';
-import { getErrorMessage } from '@/lib/errors';
-import { AnimatedCount, dashboardHoverLift, dashboardHoverTransition, dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
-import ApprovePermissionRequestModal from '@/components/features/attache/components/ApprovePermissionRequestModal';
+import { useNotification } from '@/components/providers/NotificationProvider';
+import { ClipboardCheck } from 'lucide-react';
 
 interface PermissionRequestsSectionProps {
   requests: PermissionRequest[];
@@ -17,8 +10,7 @@ interface PermissionRequestsSectionProps {
   onUpdateStatus: (
     requestId: string,
     status: Exclude<PermissionRequest['status'], 'PENDING'>,
-    options?: PermissionRequestStatusUpdateOptions,
-  ) => Promise<PermissionRequestStatusUpdateResult>;
+  ) => Promise<void>;
 }
 
 function statusTone(status: PermissionRequest['status']): string {
@@ -38,13 +30,9 @@ export default function PermissionRequestsSection({
   isLoading = false,
   onUpdateStatus,
 }: PermissionRequestsSectionProps) {
-  const shouldReduceMotion = useReducedMotion();
-  const notifications = useNotifications();
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
-  const [approvalRequest, setApprovalRequest] = useState<PermissionRequest | null>(null);
-  const pendingCount = requests.filter((request) => request.status === 'PENDING').length;
-  const approvedCount = requests.filter((request) => request.status === 'APPROVED').length;
-  const rejectedCount = requests.filter((request) => request.status === 'REJECTED').length;
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { notify } = useNotification();
 
   if (isLoading) {
     return (
@@ -68,54 +56,21 @@ export default function PermissionRequestsSection({
   }
 
   return (
-    <motion.section
-      className="theme-card rounded-2xl border p-6"
-      variants={dashboardStaggerContainer}
-      initial="hidden"
-      animate="visible"
-    >
-      <motion.div variants={dashboardStaggerItem} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="theme-heading text-lg font-bold">Permissions</h2>
-          <p className="theme-text-muted mt-1 text-sm">
-            Review new access requests and clear pending approvals quickly.
-          </p>
-        </div>
-      </motion.div>
-
-      <motion.div variants={dashboardStaggerItem} className="mt-6 grid gap-3 md:grid-cols-3">
-        <motion.div
-          whileHover={shouldReduceMotion ? undefined : dashboardHoverLift}
-          transition={dashboardHoverTransition}
-          className="theme-card-muted rounded-2xl border p-4"
-        >
-          <p className="theme-text-muted type-label">Pending</p>
-          <p className="theme-heading mt-2 text-2xl font-bold"><AnimatedCount value={pendingCount} /></p>
-        </motion.div>
-        <motion.div
-          whileHover={shouldReduceMotion ? undefined : dashboardHoverLift}
-          transition={dashboardHoverTransition}
-          className="theme-success rounded-2xl border p-4"
-        >
-          <p className="type-label">Approved</p>
-          <p className="mt-2 text-2xl font-bold"><AnimatedCount value={approvedCount} /></p>
-        </motion.div>
-        <motion.div
-          whileHover={shouldReduceMotion ? undefined : dashboardHoverLift}
-          transition={dashboardHoverTransition}
-          className="theme-danger rounded-2xl border p-4"
-        >
-          <p className="type-label">Rejected</p>
-          <p className="mt-2 text-2xl font-bold"><AnimatedCount value={rejectedCount} /></p>
-        </motion.div>
-      </motion.div>
+    <section className="theme-card rounded-2xl border p-6">
+      <h2 className="theme-heading text-lg font-bold">Permission Requests</h2>
+      <p className="theme-text-muted mt-1 text-sm">Student requests submitted from the login page.</p>
+      {errorMessage ? <p className="mt-4 text-sm text-[color:var(--theme-danger)]">{errorMessage}</p> : null}
 
       {requests.length === 0 ? (
-        <p className="theme-card-muted theme-text-muted mt-6 rounded-xl border border-dashed p-4 text-sm">
-          No requests yet.
-        </p>
+        <div className="theme-card-muted mt-6 flex flex-col items-center rounded-2xl border border-dashed p-8 text-center">
+          <div className="theme-success flex h-14 w-14 items-center justify-center rounded-2xl border">
+            <ClipboardCheck className="h-7 w-7" />
+          </div>
+          <h3 className="theme-heading mt-4 text-base font-bold">No permission requests yet</h3>
+          <p className="theme-text-muted mt-2 max-w-md text-sm">Student login access requests will appear here when submitted.</p>
+        </div>
       ) : (
-        <motion.div variants={dashboardStaggerItem} className="mt-6 overflow-x-auto">
+        <div className="mt-6 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="theme-text-muted border-b border-[rgba(220,205,166,0.55)] text-xs uppercase tracking-wider">
@@ -129,7 +84,7 @@ export default function PermissionRequestsSection({
             </thead>
             <tbody>
               {requests.map((request) => (
-                <tr key={request.id} className="border-b border-[rgba(220,205,166,0.42)] text-[color:var(--theme-text)] transition-colors hover:bg-[rgba(255,255,255,0.34)]">
+                <tr key={request.id} className="border-b border-[rgba(220,205,166,0.42)] text-[color:var(--theme-text)]">
                   <td className="py-3 pr-4 font-semibold">{request.fullName || '-'}</td>
                   <td className="py-3 pr-4 font-mono">{request.passportNumber || '-'}</td>
                   <td className="py-3 pr-4 font-mono font-semibold text-[color:var(--theme-primary-soft)]">
@@ -137,11 +92,7 @@ export default function PermissionRequestsSection({
                   </td>
                   <td className="py-3 pr-4">{new Date(request.submittedAt).toLocaleString()}</td>
                   <td className="py-3 pr-4">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        statusTone(request.status)
-                      } ${request.status === 'PENDING' ? 'theme-attention-pulse' : ''}`}
-                    >
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone(request.status)}`}>
                       {request.status}
                     </span>
                   </td>
@@ -151,8 +102,21 @@ export default function PermissionRequestsSection({
                         <button
                           type="button"
                           disabled={activeRequestId === request.id}
-                          onClick={() => {
-                            setApprovalRequest(request);
+                          onClick={async () => {
+                            setErrorMessage(null);
+                            setActiveRequestId(request.id);
+                            try {
+                              await onUpdateStatus(request.id, 'APPROVED');
+                              notify('Permission request approved.');
+                            } catch (error) {
+                              setErrorMessage(
+                                error instanceof Error
+                                  ? error.message
+                                  : 'Unable to approve permission request right now.',
+                              );
+                            } finally {
+                              setActiveRequestId((current) => (current === request.id ? null : current));
+                            }
                           }}
                           className="theme-success rounded-full border px-3 py-1 text-xs font-semibold transition hover:bg-[rgba(37,79,34,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
@@ -162,23 +126,17 @@ export default function PermissionRequestsSection({
                           type="button"
                           disabled={activeRequestId === request.id}
                           onClick={async () => {
+                            setErrorMessage(null);
                             setActiveRequestId(request.id);
                             try {
                               await onUpdateStatus(request.id, 'REJECTED');
-                              notifications.notify({
-                                tone: 'warning',
-                                title: 'Request rejected',
-                                message: `${request.fullName || request.inscriptionNumber} has been marked as rejected.`,
-                              });
+                              notify('Permission request rejected.', 'danger');
                             } catch (error) {
-                              notifications.notify({
-                                tone: 'error',
-                                title: 'Could not reject request',
-                                message: getErrorMessage(
-                                  error,
-                                  'Unable to reject permission request right now.',
-                                ),
-                              });
+                              setErrorMessage(
+                                error instanceof Error
+                                  ? error.message
+                                  : 'Unable to reject permission request right now.',
+                              );
                             } finally {
                               setActiveRequestId((current) => (current === request.id ? null : current));
                             }
@@ -189,71 +147,15 @@ export default function PermissionRequestsSection({
                         </button>
                       </div>
                     ) : (
-                      request.status === 'APPROVED' ? (
-                        <button
-                          type="button"
-                          disabled={activeRequestId === request.id}
-                          onClick={() => {
-                            setApprovalRequest(request);
-                          }}
-                          className="theme-success rounded-full border px-3 py-1 text-xs font-semibold transition hover:bg-[rgba(37,79,34,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Change Password
-                        </button>
-                      ) : (
-                        <span className="theme-text-muted text-xs">No action needed</span>
-                      )
+                      <span className="theme-text-muted text-xs">No action needed</span>
                     )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </motion.div>
+        </div>
       )}
-
-      <ApprovePermissionRequestModal
-        open={Boolean(approvalRequest)}
-        request={approvalRequest}
-        isSubmitting={Boolean(
-          approvalRequest &&
-            activeRequestId === approvalRequest.id,
-        )}
-        onClose={() => {
-          if (!activeRequestId) {
-            setApprovalRequest(null);
-          }
-        }}
-        onSubmit={async ({ password }) => {
-          if (!approvalRequest) {
-            return;
-          }
-
-          const isPasswordReset = approvalRequest.status === 'APPROVED';
-          setActiveRequestId(approvalRequest.id);
-
-          try {
-            const result = await onUpdateStatus(approvalRequest.id, 'APPROVED', { password });
-            notifications.notify({
-              tone: 'success',
-              title: isPasswordReset ? 'Password updated' : 'Request approved',
-              message: isPasswordReset
-                ? `A new temporary password was saved for ${
-                    approvalRequest.fullName || approvalRequest.inscriptionNumber
-                  }. Login ID: ${result.authUserLoginId || approvalRequest.inscriptionNumber}.`
-                : `${approvalRequest.fullName || approvalRequest.inscriptionNumber} can now sign in with ${
-                    result.authUserLoginId || approvalRequest.inscriptionNumber
-                  } and temporary password ${password}.`,
-              durationMs: 10000,
-            });
-            setApprovalRequest(null);
-          } finally {
-            setActiveRequestId((current) =>
-              current === approvalRequest.id ? null : current,
-            );
-          }
-        }}
-      />
-    </motion.section>
+    </section>
   );
 }

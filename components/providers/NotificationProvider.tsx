@@ -15,6 +15,8 @@ import Button from '@/components/ui/Button';
 import { cn } from '@/components/ui/cn';
 import { getNoticeToneMeta, type NoticeTone } from '@/components/ui/Notice';
 
+type NotificationTone = 'success' | 'info' | 'danger';
+
 type ToastNotificationInput = {
   tone?: NoticeTone;
   title: string;
@@ -44,8 +46,10 @@ type DialogNotification = DialogNotificationInput & {
   closeOnOverlayClick: boolean;
 };
 
+type NotifyFunction = (notification: ToastNotificationInput | string, tone?: NotificationTone) => string;
+
 interface NotificationContextValue {
-  notify: (notification: ToastNotificationInput) => string;
+  notify: NotifyFunction;
   showDialog: (notification: DialogNotificationInput) => void;
   closeDialog: () => void;
 }
@@ -60,6 +64,30 @@ export function useNotifications() {
   }
 
   return context;
+}
+
+export function useNotification() {
+  const context = useContext(NotificationContext);
+
+  if (!context) {
+    return {
+      notify: () => undefined,
+    };
+  }
+
+  return {
+    notify: (message: string, tone?: NotificationTone) => {
+      context.notify(message, tone);
+    },
+  };
+}
+
+function normalizeNotificationTone(tone?: NoticeTone | NotificationTone): NoticeTone {
+  if (tone === 'danger') {
+    return 'error';
+  }
+
+  return tone ?? 'info';
 }
 
 export default function NotificationProvider({ children }: { children: ReactNode }) {
@@ -79,15 +107,18 @@ export default function NotificationProvider({ children }: { children: ReactNode
     setToasts((current) => current.filter((toast) => toast.id !== toastId));
   }, []);
 
-  const notify = useCallback((notification: ToastNotificationInput) => {
+  const notify = useCallback<NotifyFunction>((notification, tone) => {
     toastCounterRef.current += 1;
     const toastId = `notification-${toastCounterRef.current}`;
+    const isMessageNotification = typeof notification === 'string';
     const nextToast: ToastNotification = {
       id: toastId,
-      tone: notification.tone ?? 'info',
-      durationMs: notification.durationMs ?? 4200,
-      title: notification.title,
-      message: notification.message,
+      tone: isMessageNotification
+        ? normalizeNotificationTone(tone ?? 'success')
+        : normalizeNotificationTone(notification.tone),
+      durationMs: isMessageNotification ? 4200 : notification.durationMs ?? 4200,
+      title: isMessageNotification ? notification : notification.title,
+      message: isMessageNotification ? undefined : notification.message,
     };
 
     setToasts((current) => [...current, nextToast]);

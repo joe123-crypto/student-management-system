@@ -48,6 +48,12 @@ export const dashboardPanelMotion = {
   },
 };
 
+export const dashboardPanelClassMotion = {
+  initial: 'translate-y-2 opacity-0',
+  animate: 'translate-y-0 opacity-100',
+  transition: 'transition-all duration-300 ease-out',
+};
+
 export const dashboardHoverLift = {
   scale: 1.02,
   y: -4,
@@ -56,6 +62,10 @@ export const dashboardHoverLift = {
 export const dashboardHoverTransition: Transition = {
   duration: 0.18,
   ease: 'easeOut',
+};
+
+export const dashboardStaggerClassContainer = {
+  className: 'motion-safe:[&>*]:animate-[dashboardItemIn_220ms_ease-out_both]',
 };
 
 interface AnimatedCountProps {

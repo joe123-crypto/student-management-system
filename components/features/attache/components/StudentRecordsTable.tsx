@@ -1,629 +1,171 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import React from 'react';
 import type { StudentProfile } from '@/types';
-import type { StudentReturnField } from '@/components/features/attache/types';
 import Checkbox from '@/components/ui/Checkbox';
 import StatusBadge from '@/components/ui/StatusBadge';
-import {
-  STUDENT_FIELD_DEFINITION_MAP,
-  STUDENT_FIELD_DEFINITIONS,
-  getStudentFieldLabel,
-  getStudentFieldValue,
-} from '@/components/features/attache/utils/studentData';
+import Button from '@/components/ui/Button';
+import { dashboardStaggerContainer } from '@/components/ui/motion';
+import { Eye, SearchX } from 'lucide-react';
 
 interface StudentRecordsTableProps {
   students: StudentProfile[];
   isLoading?: boolean;
-  returnFields: StudentReturnField[];
   selectedStudentIds: Set<string>;
   reviewedStudentIds: Set<string>;
   onToggleSelectAll: (checked: boolean) => void;
   onToggleSelectOne: (studentId: string, checked: boolean) => void;
-  editingStudentId: string | null;
-  onCancelEdit: () => void;
   onManage: (studentId: string) => void;
-  onSaveEdit: (studentId: string, patch: Partial<StudentProfile>) => Promise<void>;
-}
-
-interface TableColumn {
-  key: StudentReturnField;
-  label: string;
-}
-
-type EditStudentDraft = Record<StudentReturnField, string>;
-type SectionPatchMap = {
-  student: Partial<StudentProfile['student']>;
-  passport: Partial<StudentProfile['passport']>;
-  contact: Partial<StudentProfile['contact']>;
-  university: Partial<StudentProfile['university']>;
-  program: Partial<StudentProfile['program']>;
-  bank: Partial<StudentProfile['bank']>;
-  bankAccount: Partial<StudentProfile['bankAccount']>;
-  address: Partial<StudentProfile['address']>;
-};
-
-const FALLBACK_FIELDS: StudentReturnField[] = ['fullName', 'email'];
-const inlineInputClass =
-  'theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none';
-
-function splitFullName(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-
-  if (parts.length === 0) {
-    return {
-      givenName: '',
-      familyName: '',
-    };
-  }
-
-  return {
-    givenName: parts[0],
-    familyName: parts.slice(1).join(' '),
-  };
-}
-
-function createEditDraft(student: StudentProfile): EditStudentDraft {
-  return Object.fromEntries(
-    STUDENT_FIELD_DEFINITIONS.map((definition) => [
-      definition.key,
-      getStudentFieldValue(student, definition.key),
-    ]),
-  ) as EditStudentDraft;
-}
-
-function getColumns(returnFields: StudentReturnField[]): TableColumn[] {
-  const safeFields = returnFields.length > 0 ? returnFields : FALLBACK_FIELDS;
-  return safeFields.map((field) => ({
-    key: field,
-    label: getStudentFieldLabel(field),
-  }));
-}
-
-function normalizeDraftValue(field: StudentReturnField, value: string): string {
-  const trimmed = value.trim();
-
-  if (field === 'inscription') {
-    return trimmed.toUpperCase();
-  }
-
-  if (field === 'email') {
-    return trimmed.toLowerCase();
-  }
-
-  return trimmed;
-}
-
-function createEmptySectionPatches(): SectionPatchMap {
-  return {
-    student: {},
-    passport: {},
-    contact: {},
-    university: {},
-    program: {},
-    bank: {},
-    bankAccount: {},
-    address: {},
-  };
-}
-
-function getValidationError(
-  draft: EditStudentDraft,
-  student: StudentProfile,
-  allStudents: StudentProfile[],
-  visibleFields: StudentReturnField[],
-): string {
-  const visibleFieldSet = new Set(visibleFields);
-  const normalizedFullName = draft.fullName.trim();
-  const normalizedGivenName = draft.givenName.trim();
-  const normalizedFamilyName = draft.familyName.trim();
-  const normalizedInscription = normalizeDraftValue('inscription', draft.inscription);
-  const normalizedEmail = normalizeDraftValue('email', draft.email);
-
-  if (
-    (visibleFieldSet.has('fullName') ||
-      visibleFieldSet.has('givenName') ||
-      visibleFieldSet.has('familyName')) &&
-    !normalizedFullName &&
-    !normalizedGivenName &&
-    !normalizedFamilyName
-  ) {
-    return 'Student name is required.';
-  }
-
-  if (visibleFieldSet.has('inscription') && !normalizedInscription) {
-    return 'Inscription number is required.';
-  }
-
-  if (
-    visibleFieldSet.has('inscription') &&
-    normalizedInscription &&
-    allStudents.some(
-      (entry) =>
-        entry.id !== student.id &&
-        entry.student.inscriptionNumber.trim().toUpperCase() === normalizedInscription,
-    )
-  ) {
-    return 'Another student already uses that inscription number.';
-  }
-
-  if (
-    visibleFieldSet.has('email') &&
-    normalizedEmail &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
-  ) {
-    return 'Enter a valid email address.';
-  }
-
-  return '';
-}
-
-function buildStudentPatch(
-  student: StudentProfile,
-  draft: EditStudentDraft,
-  visibleFields: StudentReturnField[],
-): Partial<StudentProfile> {
-  const visibleFieldSet = new Set(visibleFields);
-  const sectionPatches = createEmptySectionPatches();
-  const patch: Partial<StudentProfile> = {};
-
-  for (const field of visibleFields) {
-    if (field === 'status' || field === 'fullName' || field === 'givenName' || field === 'familyName') {
-      continue;
-    }
-
-    const definition = STUDENT_FIELD_DEFINITION_MAP[field];
-    if (!definition?.patchTarget) {
-      continue;
-    }
-
-    sectionPatches[definition.patchTarget.section][definition.patchTarget.key as never] = normalizeDraftValue(
-      field,
-      draft[field],
-    ) as never;
-  }
-
-  const normalizedFullName = draft.fullName.trim();
-  const normalizedGivenName = draft.givenName.trim();
-  const normalizedFamilyName = draft.familyName.trim();
-  const splitFromFullName = splitFullName(normalizedFullName);
-
-  if (visibleFieldSet.has('fullName')) {
-    sectionPatches.student.fullName = normalizedFullName;
-    if (!visibleFieldSet.has('givenName')) {
-      sectionPatches.student.givenName = splitFromFullName.givenName;
-    }
-    if (!visibleFieldSet.has('familyName')) {
-      sectionPatches.student.familyName = splitFromFullName.familyName;
-    }
-  }
-
-  if (visibleFieldSet.has('givenName')) {
-    sectionPatches.student.givenName = normalizedGivenName;
-  }
-
-  if (visibleFieldSet.has('familyName')) {
-    sectionPatches.student.familyName = normalizedFamilyName;
-  }
-
-  if (!visibleFieldSet.has('fullName') && (visibleFieldSet.has('givenName') || visibleFieldSet.has('familyName'))) {
-    const nextGivenName = visibleFieldSet.has('givenName')
-      ? normalizedGivenName
-      : student.student.givenName.trim();
-    const nextFamilyName = visibleFieldSet.has('familyName')
-      ? normalizedFamilyName
-      : student.student.familyName.trim();
-    sectionPatches.student.fullName = `${nextGivenName} ${nextFamilyName}`.trim();
-  }
-
-  if (visibleFieldSet.has('status')) {
-    patch.status = draft.status as StudentProfile['status'];
-  }
-
-  if (Object.keys(sectionPatches.student).length > 0) {
-    patch.student = sectionPatches.student as StudentProfile['student'];
-  }
-  if (Object.keys(sectionPatches.passport).length > 0) {
-    patch.passport = sectionPatches.passport as StudentProfile['passport'];
-  }
-  if (Object.keys(sectionPatches.contact).length > 0) {
-    patch.contact = sectionPatches.contact as StudentProfile['contact'];
-  }
-  if (Object.keys(sectionPatches.university).length > 0) {
-    patch.university = sectionPatches.university as StudentProfile['university'];
-  }
-  if (Object.keys(sectionPatches.program).length > 0) {
-    patch.program = sectionPatches.program as StudentProfile['program'];
-  }
-  if (Object.keys(sectionPatches.bank).length > 0) {
-    patch.bank = sectionPatches.bank as StudentProfile['bank'];
-  }
-  if (Object.keys(sectionPatches.bankAccount).length > 0) {
-    patch.bankAccount = sectionPatches.bankAccount as StudentProfile['bankAccount'];
-  }
-  if (Object.keys(sectionPatches.address).length > 0) {
-    patch.address = sectionPatches.address as StudentProfile['address'];
-  }
-
-  return patch;
-}
-
-function isMonospaceField(field: StudentReturnField): boolean {
-  return [
-    'inscription',
-    'passportNumber',
-    'bankCode',
-    'branchCode',
-    'accountNumber',
-    'iban',
-  ].includes(field);
-}
-
-function renderReadOnlyCell(student: StudentProfile, field: StudentReturnField) {
-  if (field === 'status') {
-    return (
-      <StatusBadge status={student.status} className="inline-flex" />
-    );
-  }
-
-  const value = getStudentFieldValue(student, field);
-  if (!value) {
-    return <span className="theme-text-muted text-sm">Not provided</span>;
-  }
-
-  const baseClassName = isMonospaceField(field)
-    ? 'text-sm font-mono text-[color:var(--theme-primary-soft)]'
-    : field === 'fullName'
-      ? 'theme-heading text-sm font-semibold'
-      : 'theme-text-muted text-sm';
-
-  return <span className={baseClassName}>{value}</span>;
-}
-
-function EditableCell({
-  field,
-  draft,
-  onFieldChange,
-}: {
-  field: StudentReturnField;
-  draft: EditStudentDraft;
-  onFieldChange: (field: StudentReturnField, value: string) => void;
-}) {
-  const definition = STUDENT_FIELD_DEFINITION_MAP[field];
-
-  if (definition.inputType === 'select') {
-    return (
-      <select
-        className={inlineInputClass}
-        value={draft[field]}
-        onChange={(event) => onFieldChange(field, event.target.value)}
-      >
-        {(definition.options || []).map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
-  return (
-    <input
-      type={definition.inputType || 'text'}
-      className={`${inlineInputClass} ${isMonospaceField(field) ? 'font-mono' : ''}`}
-      value={draft[field]}
-      onChange={(event) => onFieldChange(field, event.target.value)}
-    />
-  );
+  onClearFilters: () => void;
 }
 
 export default function StudentRecordsTable({
   students,
   isLoading = false,
-  returnFields,
   selectedStudentIds,
   reviewedStudentIds,
   onToggleSelectAll,
   onToggleSelectOne,
-  editingStudentId,
-  onCancelEdit,
   onManage,
-  onSaveEdit,
+  onClearFilters,
 }: StudentRecordsTableProps) {
-  const [draft, setDraft] = useState<EditStudentDraft | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState('');
-  const allSelected =
-    students.length > 0 && students.every((student) => selectedStudentIds.has(student.id));
-  const columns = getColumns(returnFields);
-  const safeFields = useMemo<StudentReturnField[]>(
-    () => (returnFields.length > 0 ? returnFields : FALLBACK_FIELDS),
-    [returnFields],
-  );
-  const isInlineEditing = editingStudentId !== null;
-  const tableMinWidth = useMemo(
-    () => Math.max(760, 72 + columns.length * 170),
-    [columns.length],
-  );
-
-  useEffect(() => {
-    if (!editingStudentId) {
-      setDraft(null);
-      setIsSaving(false);
-      setSaveError('');
-      return;
-    }
-
-    const student = students.find((entry) => entry.id === editingStudentId);
-    if (!student) {
-      setDraft(null);
-      setIsSaving(false);
-      setSaveError('');
-      return;
-    }
-
-    setDraft(createEditDraft(student));
-    setIsSaving(false);
-    setSaveError('');
-  }, [editingStudentId, students]);
-
-  const updateDraftField = (field: StudentReturnField, value: string) => {
-    setSaveError('');
-    setDraft((current) =>
-      current
-        ? {
-            ...current,
-            [field]: value,
-          }
-        : current,
-    );
-  };
-
-  const handleSave = async (student: StudentProfile) => {
-    if (!draft || isSaving) {
-      return;
-    }
-
-    const validationError = getValidationError(draft, student, students, safeFields);
-    if (validationError) {
-      setSaveError(validationError);
-      return;
-    }
-
-    setIsSaving(true);
-    setSaveError('');
-
-    try {
-      await onSaveEdit(student.id, buildStudentPatch(student, draft, safeFields));
-    } catch (error) {
-      console.error('[STUDENTS] Failed to save inline student edit:', error);
-      setSaveError(
-        error instanceof Error
-          ? error.message
-          : 'We could not save this student record. Please try again.',
-      );
-      setIsSaving(false);
-    }
-  };
+  const allSelected = students.length > 0 && students.every((student) => selectedStudentIds.has(student.id));
 
   return (
-    <div className="theme-card overflow-hidden rounded-[1.75rem] border">
+    <div className="theme-card overflow-hidden rounded-2xl border">
       {isLoading ? (
-        <div className="h-[400px] overflow-auto">
-          <div className="theme-table-header sticky top-0 z-10 border-b">
-            <div className="grid grid-cols-[56px_repeat(4,minmax(0,1fr))] gap-4 px-4 py-4">
-              <div className="theme-skeleton h-4 w-4 rounded" />
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="theme-skeleton h-3 w-28 rounded" />
-              ))}
+        <div className="h-[400px] overflow-auto animate-pulse">
+          <div className="theme-card-muted sticky top-0 z-10 border-b">
+            <div className="grid grid-cols-[56px_1.3fr_1fr_1.2fr] gap-4 px-4 py-4">
+              <div className="h-4 w-4 rounded bg-[rgba(220,205,166,0.6)]" />
+              <div className="h-3 w-24 rounded bg-[rgba(220,205,166,0.6)]" />
+              <div className="h-3 w-24 rounded bg-[rgba(220,205,166,0.6)]" />
+              <div className="h-3 w-32 rounded bg-[rgba(220,205,166,0.6)]" />
             </div>
           </div>
           <div className="divide-y divide-[rgba(220,205,166,0.55)]">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-[56px_repeat(4,minmax(0,1fr))] gap-4 px-4 py-4"
-              >
-                <div className="theme-skeleton mt-1 h-4 w-4 rounded" />
-                {Array.from({ length: 4 }).map((__, columnIndex) => (
-                  <div key={columnIndex} className="space-y-2">
-                    <div className="theme-skeleton h-3 w-36 rounded" />
-                    <div className="theme-skeleton h-3 w-24 rounded" />
-                  </div>
-                ))}
+              <div key={index} className="grid grid-cols-[56px_1.3fr_1fr_1.2fr] gap-4 px-4 py-4">
+                <div className="mt-1 h-4 w-4 rounded bg-[rgba(220,205,166,0.6)]" />
+                <div className="space-y-2">
+                  <div className="h-3 w-40 rounded bg-[rgba(220,205,166,0.6)]" />
+                  <div className="h-3 w-56 rounded bg-[rgba(220,205,166,0.34)]" />
+                </div>
+                <div className="mt-1 h-3 w-28 rounded bg-[rgba(220,205,166,0.6)]" />
+                <div className="space-y-2">
+                  <div className="h-3 w-36 rounded bg-[rgba(220,205,166,0.6)]" />
+                  <div className="h-3 w-24 rounded bg-[rgba(220,205,166,0.34)]" />
+                </div>
               </div>
             ))}
           </div>
         </div>
+      ) : students.length === 0 ? (
+        <div className="p-10 text-center sm:p-14">
+          <div className="theme-card-muted mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border">
+            <SearchX className="h-8 w-8 text-[color:var(--theme-primary-soft)]" />
+          </div>
+          <h3 className="theme-heading mt-5 text-xl font-bold">No students yet — click Add Student to get started</h3>
+          <p className="theme-text-muted mx-auto mt-3 max-w-md text-base">
+            Clear the current search or add the first student record.
+          </p>
+          <Button variant="secondary" size="sm" className="mt-5" onClick={onClearFilters}>
+            Clear Filters
+          </Button>
+        </div>
       ) : (
-        <div className="h-[400px] overflow-auto">
-          <div className="theme-table-header border-b px-4 py-3 md:hidden">
-            <label className="theme-text-muted inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
+        <div className="min-h-[480px] overflow-auto">
+          <div className="theme-card-muted border-b px-5 py-4 sm:hidden">
+            <label className="theme-text-muted inline-flex items-center gap-2 text-sm font-bold uppercase">
               <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
               Select all
             </label>
           </div>
 
-          <div className="divide-y divide-[rgba(220,205,166,0.55)] md:hidden">
+          <div className={`divide-y divide-[rgba(220,205,166,0.55)] sm:hidden ${dashboardStaggerContainer.className}`}>
             {students.map((student) => {
               const isSelected = selectedStudentIds.has(student.id);
               const isReviewed = reviewedStudentIds.has(student.id);
-              const isEditing = editingStudentId === student.id && draft !== null;
 
               return (
                 <article
                   key={student.id}
-                  className={`space-y-3 p-4 transition-colors hover:bg-[rgba(237,228,194,0.38)] ${
-                    isEditing
-                      ? 'bg-[rgba(236,220,180,0.3)]'
-                      : 'bg-[rgba(255,255,255,0.24)]'
-                  } ${isInlineEditing ? '' : 'cursor-pointer'} ${
-                    isSelected ? 'ring-1 ring-[rgba(160,58,19,0.08)] ring-inset' : ''
-                  }`}
-                  onClick={() => {
-                    if (!isInlineEditing) {
-                      onManage(student.id);
-                    }
-                  }}
+                  className="cursor-pointer space-y-4 p-5 transition-colors hover:bg-[rgba(237,228,194,0.22)]"
+                  onClick={() => onManage(student.id)}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="theme-text-muted type-label">
-                      {isReviewed ? 'Reviewed record' : 'Record'}
+                    <div className="min-w-0">
+                      <p className="theme-heading truncate text-lg font-bold">{student.student.fullName}</p>
+                      <p className="theme-text-muted truncate text-sm">{student.contact.email}</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      {isEditing ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => void handleSave(student)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[color:var(--theme-primary)] text-white transition hover:bg-[color:var(--theme-primary-strong)] disabled:opacity-60"
-                            aria-label={`Save ${student.student.fullName}`}
-                            disabled={isSaving}
-                          >
-                            <Check className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={onCancelEdit}
-                            className="theme-card-muted inline-flex h-9 w-9 items-center justify-center rounded-xl border text-[color:var(--theme-danger)] transition hover:bg-[rgba(183,76,45,0.08)]"
-                            aria-label={`Cancel editing ${student.student.fullName}`}
-                            disabled={isSaving}
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : null}
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={(e) => onToggleSelectOne(student.id, e.target.checked)}
-                      />
+                      <StatusBadge status={student.status} />
+                      <Checkbox checked={isSelected} onChange={(e) => onToggleSelectOne(student.id, e.target.checked)} />
                     </div>
                   </div>
 
-                  <div className="space-y-2 text-sm" onClick={(event) => isEditing && event.stopPropagation()}>
-                    {columns.map((column) => (
-                      <div key={column.key}>
-                        <p className="theme-text-muted type-label mb-1">{column.label}</p>
-                        <div>
-                          {isEditing && draft ? (
-                            <EditableCell
-                              field={column.key}
-                              draft={draft}
-                              onFieldChange={updateDraftField}
-                            />
-                          ) : (
-                            renderReadOnlyCell(student, column.key)
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="space-y-1 text-base">
+                    <p className="font-mono text-[color:var(--theme-primary-soft)]">{student.student.inscriptionNumber}</p>
+                    <p className="theme-heading font-medium">{student.university.universityName}</p>
+                    <p className="theme-text-muted text-sm">{student.program.major}</p>
                   </div>
 
-                  {isEditing && saveError ? (
-                    <div className="theme-danger rounded-2xl border px-3 py-2 text-sm font-medium">
-                      {saveError}
-                    </div>
-                  ) : null}
+                  <div className="flex items-center justify-between gap-3">
+                    {isReviewed ? <span className="theme-success type-label rounded-full px-2 py-1">Reviewed</span> : <span />}
+                    <Button variant="secondary" size="sm" onClick={(event) => {
+                      event.stopPropagation();
+                      onManage(student.id);
+                    }}>
+                      <Eye className="h-4 w-4" />
+                      View
+                    </Button>
+                  </div>
                 </article>
               );
             })}
           </div>
 
-          <table className="hidden w-full text-left md:table" style={{ minWidth: `${tableMinWidth}px` }}>
+          <table className="hidden min-w-[880px] w-full text-left text-base sm:table">
             <thead className="sticky top-0 z-10">
-              <tr className="theme-table-header theme-text-muted type-label shadow-[inset_0_-1px_0_rgba(220,205,166,0.65)]">
-                <th className="px-4 py-4">
+              <tr className="theme-card-muted theme-text-muted type-label">
+                <th className="px-5 py-5">
                   <Checkbox checked={allSelected} onChange={(e) => onToggleSelectAll(e.target.checked)} />
                 </th>
-                {columns.map((column) => (
-                  <th key={column.key} className="px-6 py-4">
-                    {column.label}
-                  </th>
-                ))}
-                <th className="px-6 py-4 text-right">
-                  <span className="sr-only">Row actions</span>
-                </th>
+                <th className="px-7 py-5">Student Name</th>
+                <th className="px-7 py-5">Inscription No.</th>
+                <th className="px-7 py-5">Status</th>
+                <th className="px-7 py-5">University / Program</th>
+                <th className="px-7 py-5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(220,205,166,0.55)]">
+            <tbody className={`divide-y divide-[rgba(220,205,166,0.55)] ${dashboardStaggerContainer.className}`}>
               {students.map((student) => {
                 const isSelected = selectedStudentIds.has(student.id);
                 const isReviewed = reviewedStudentIds.has(student.id);
-                const isEditing = editingStudentId === student.id && draft !== null;
 
                 return (
-                  <tr
-                    key={student.id}
-                    className={`transition-colors odd:bg-[rgba(255,255,255,0.22)] even:bg-[rgba(237,228,194,0.14)] hover:bg-[rgba(237,228,194,0.38)] ${
-                      isEditing
-                        ? 'bg-[rgba(236,220,180,0.3)]'
-                        : ''
-                    } ${isInlineEditing ? '' : 'cursor-pointer'} ${
-                      isSelected ? 'bg-[rgba(255,250,242,0.8)]' : ''
-                    }`}
-                    onClick={() => {
-                      if (!isInlineEditing) {
-                        onManage(student.id);
-                      }
-                    }}
-                  >
-                    <td className="px-4 py-4 align-top" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={(e) => onToggleSelectOne(student.id, e.target.checked)}
-                      />
+                  <tr key={student.id} className="cursor-pointer transition-colors hover:bg-[rgba(237,228,194,0.26)]" onClick={() => onManage(student.id)}>
+                    <td className="px-5 py-6" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={isSelected} onChange={(e) => onToggleSelectOne(student.id, e.target.checked)} />
                     </td>
-                    {columns.map((column, index) => (
-                      <td
-                        key={column.key}
-                        className="px-6 py-4 align-top"
-                        onClick={(event) => isEditing && event.stopPropagation()}
-                      >
-                        {isEditing && draft ? (
-                          <EditableCell
-                            field={column.key}
-                            draft={draft}
-                            onFieldChange={updateDraftField}
-                          />
-                        ) : (
-                          <div className="flex items-start gap-2">
-                            {index === 0 && isReviewed ? (
-                              <span className="theme-success type-label rounded-full px-2 py-1">
-                                Reviewed
-                              </span>
-                            ) : null}
-                            <div>{renderReadOnlyCell(student, column.key)}</div>
-                          </div>
-                        )}
-                      </td>
-                    ))}
-                    <td className="px-6 py-4 text-right align-top" onClick={(event) => event.stopPropagation()}>
-                      {isEditing ? (
-                        <div className="flex items-start justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => void handleSave(student)}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--theme-primary)] text-white transition hover:bg-[color:var(--theme-primary-strong)] disabled:opacity-60"
-                            aria-label={`Save ${student.student.fullName}`}
-                            disabled={isSaving}
-                          >
-                            <Check className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={onCancelEdit}
-                            className="theme-card-muted inline-flex h-10 w-10 items-center justify-center rounded-xl border text-[color:var(--theme-danger)] transition hover:bg-[rgba(183,76,45,0.08)]"
-                            aria-label={`Cancel editing ${student.student.fullName}`}
-                            disabled={isSaving}
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ) : null}
-                      {isEditing && saveError ? (
-                        <p className="theme-danger mt-2 rounded-xl border px-3 py-2 text-left text-xs font-medium">
-                          {saveError}
-                        </p>
-                      ) : null}
+                    <td className="px-7 py-6">
+                      <div className="theme-heading flex items-center gap-2 text-lg font-bold">
+                        {student.student.fullName}
+                        {isReviewed ? <span className="theme-success type-label rounded-full px-2 py-1">Reviewed</span> : null}
+                      </div>
+                      <div className="theme-text-muted mt-1 text-sm">{student.contact.email}</div>
+                    </td>
+                    <td className="px-7 py-6 font-mono text-[color:var(--theme-primary-soft)]">{student.student.inscriptionNumber}</td>
+                    <td className="px-7 py-6">
+                      <StatusBadge status={student.status} />
+                    </td>
+                    <td className="px-7 py-6">
+                      <div className="theme-heading font-semibold">{student.university.universityName}</div>
+                      <div className="theme-text-muted mt-1 text-sm">{student.program.major}</div>
+                    </td>
+                    <td className="px-7 py-6 text-right" onClick={(e) => e.stopPropagation()}>
+                      <Button variant="secondary" size="sm" onClick={() => onManage(student.id)}>
+                        <Eye className="h-4 w-4" />
+                        View
+                      </Button>
                     </td>
                   </tr>
                 );
@@ -632,11 +174,6 @@ export default function StudentRecordsTable({
           </table>
         </div>
       )}
-      {!isLoading && students.length === 0 ? (
-        <div className="p-12 text-center">
-          <p className="theme-text-muted">No students found matching your filters.</p>
-        </div>
-      ) : null}
     </div>
   );
 }

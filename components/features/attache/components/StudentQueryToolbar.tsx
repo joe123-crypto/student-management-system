@@ -23,8 +23,8 @@ export function StudentSearchInput({
     <div className={className ?? 'relative w-full md:w-96 md:flex-shrink-0'}>
       <input
         type="text"
-        placeholder="Search students..."
-        className="theme-input h-14 w-full rounded-2xl border pl-12 pr-4 outline-none"
+        placeholder="Search students by name or number..."
+        className="theme-input h-16 w-full rounded-2xl border pl-12 pr-4 text-base outline-none"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
