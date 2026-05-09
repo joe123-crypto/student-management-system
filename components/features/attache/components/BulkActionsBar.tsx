@@ -29,9 +29,9 @@ export default function BulkActionsBar({
   }
 
   return (
-    <div className="theme-card sticky top-[9rem] z-20 rounded-2xl border p-4 shadow-xl">
+    <div className="theme-card sticky top-[7rem] z-20 rounded-2xl border p-3 shadow-xl">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="theme-heading text-base font-bold">
+        <div className="theme-heading text-sm font-bold">
           {selectedCount} selected
         </div>
         <div className="flex flex-wrap items-center gap-2">

@@ -1,18 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AttacheAgentContext, StudentProfile } from '@/types';
-import StudentQueryToolbar, { StudentSearchInput } from '@/components/features/attache/components/StudentQueryToolbar';
-import StudentAdvancedFilters from '@/components/features/attache/components/StudentAdvancedFilters';
+import type { StudentReturnField } from '@/components/features/attache/types';
+import { StudentSearchInput } from '@/components/features/attache/components/StudentQueryToolbar';
 import BulkActionsBar from '@/components/features/attache/components/BulkActionsBar';
 import StudentRecordsTable from '@/components/features/attache/components/StudentRecordsTable';
 import StudentTablePagination from '@/components/features/attache/components/StudentTablePagination';
-import DatabaseImportSection from '@/components/features/attache/components/DatabaseImportSection';
+import DatabaseQueryBuilder from '@/components/features/attache/components/DatabaseQueryBuilder';
+import ExportRecordsSection from '@/components/features/attache/components/ExportRecordsSection';
 import {
   DataQualityCard,
   DuplicateDetectionCard,
   QuerySummaryCard,
 } from '@/components/features/attache/components/DataInsightsPanel';
 import StudentDetailView from '@/components/features/attache/components/StudentDetailView';
-import ExportRecordsModal from '@/components/features/attache/components/ExportRecordsModal';
 import useStudentFilters from '@/components/features/attache/hooks/useStudentFilters';
 import useStudentSelection from '@/components/features/attache/hooks/useStudentSelection';
 import useStudentTable from '@/components/features/attache/hooks/useStudentTable';
@@ -43,7 +43,7 @@ interface StudentsSectionProps {
   students: StudentProfile[];
   isLoading?: boolean;
   onDeleteStudents: (studentIds: string[]) => void;
-  onImportStudents: (records: StudentProfile[], mode: 'append' | 'replace') => Promise<void>;
+  onOpenImportSettings: () => void;
   onAgentContextChange?: (context: AttacheAgentContext) => void;
 }
 
@@ -55,19 +55,17 @@ export default function StudentsSection({
   students,
   isLoading = false,
   onDeleteStudents,
-  onImportStudents,
+  onOpenImportSettings,
   onAgentContextChange,
 }: StudentsSectionProps) {
   const { notify } = useNotification();
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  const [exportPopupOpen, setExportPopupOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
-  const [activeTool, setActiveTool] = useState<'query' | 'quality' | 'duplicates' | 'import'>('query');
+  const [activeTool, setActiveTool] = useState<'query' | 'quality' | 'duplicates' | 'export'>('query');
 
   const {
     query,
     updateQuery,
-    resetAdvancedFilters,
   } = useStudentFilters(DEFAULT_STUDENT_QUERY);
 
   const duplicateGroups = useMemo(() => getDuplicateGroups(students), [students]);
@@ -89,14 +87,6 @@ export default function StudentsSection({
     () => students.filter((student) => student.status === 'PENDING').length,
     [students],
   );
-  const statusOptions = useMemo(
-    () =>
-      Array.from(new Set(students.map((student) => student.status.trim()).filter(Boolean))).sort((left, right) =>
-        left.localeCompare(right),
-      ),
-    [students],
-  );
-
   const filteredStudents = useMemo(
     () => applyStudentQuery(students, query, duplicateStudentIds),
     [students, query, duplicateStudentIds],
@@ -148,12 +138,15 @@ export default function StudentsSection({
     defaultColumnKeys: DEFAULT_REPORT_COLUMNS,
     filteredStudents,
     selectedStudents,
-    onAfterQuickExport: () => setExportPopupOpen(false),
   });
 
   const selectedStudent = selectedStudentId
     ? students.find((student) => student.id === selectedStudentId) ?? null
     : null;
+  const visibleTableFields = useMemo<StudentReturnField[]>(
+    () => (query.returnFields.length > 0 ? query.returnFields : DEFAULT_STUDENT_QUERY.returnFields),
+    [query.returnFields],
+  );
 
   useEffect(() => {
     onAgentContextChange?.({
@@ -166,22 +159,6 @@ export default function StudentsSection({
       duplicatesOnly: query.duplicatesOnly,
     });
   }, [filteredStudents, onAgentContextChange, query, selectedStudentIds]);
-
-  const uniqueUniversities = useMemo(
-    () => Array.from(new Set(students.map((student) => student.university.universityName))).sort(),
-    [students],
-  );
-  const uniquePrograms = useMemo(
-    () => Array.from(new Set(students.map((student) => student.program.major))).sort(),
-    [students],
-  );
-  const uniqueAcademicYears = useMemo(
-    () =>
-      Array.from(
-        new Set(students.flatMap((student) => (student.academicHistory || []).map((entry) => entry.year))),
-      ).sort(),
-    [students],
-  );
 
   const handleExportSelected = () => {
     exportDataset(selectedStudents, DEFAULT_REPORT_COLUMNS, 'student_records_selected.csv');
@@ -201,10 +178,9 @@ export default function StudentsSection({
     }
   };
 
-  const handleAddStudent = () => {
-    setActiveTool('import');
-    setToolsOpen(true);
-    notify('Opening student import tools.', 'info');
+  const handleOpenImportSettings = () => {
+    onOpenImportSettings();
+    notify('Student import is available in Settings.', 'info');
   };
 
   const handleQuickExportWithToast = (format: 'CSV' | 'TSV' | 'JSON') => {
@@ -222,36 +198,39 @@ export default function StudentsSection({
   }
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-6">
+    <div className="space-y-5">
+      <section className="space-y-4">
         <div>
-          <h1 className="theme-heading text-3xl font-bold">Students</h1>
-          <p className="theme-text-muted mt-2 text-base">Find, review, and update student records.</p>
+          <h1 className="theme-heading text-2xl font-bold">Students</h1>
+          <p className="theme-text-muted mt-1 text-sm">Find, review, and update student records.</p>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
           <StatCard
             label="Total Students"
             value={students.length.toLocaleString()}
             supportingText="All student records"
+            compact
           />
           <StatCard
             label="Active"
             value={activeStudentsCount.toLocaleString()}
             valueClassName="text-[color:var(--theme-primary)]"
             supportingText="Currently enrolled"
+            compact
           />
           <StatCard
             label="Pending"
             value={pendingStudentsCount.toLocaleString()}
             valueClassName="text-[color:var(--theme-primary-soft)]"
             supportingText="Need completion"
+            compact
           />
         </div>
       </section>
 
-      <div className="space-y-6">
-        <div className="theme-panel-glass sticky top-[4.25rem] z-20 rounded-2xl border p-4 shadow-sm">
-          <div className="grid gap-4 lg:grid-cols-[minmax(22rem,1fr)_auto] lg:items-center">
+      <div className="space-y-4">
+        <div className="theme-panel-glass sticky top-[3.5rem] z-20 rounded-2xl border p-3 shadow-sm">
+          <div className="grid gap-3 lg:grid-cols-[minmax(22rem,1fr)_auto] lg:items-center">
             <StudentSearchInput
               value={query.searchQuery}
               onChange={(value) => updateQuery({ searchQuery: value })}
@@ -259,12 +238,12 @@ export default function StudentsSection({
             />
             <Button
               variant="success"
-              size="lg"
-              className="h-16 rounded-2xl px-8 text-base"
-              onClick={handleAddStudent}
+              size="md"
+              className="h-12 rounded-xl px-5 text-sm"
+              onClick={handleOpenImportSettings}
             >
-              <UserPlus className="h-5 w-5" />
-              Add Student
+              <UserPlus className="h-4 w-4" />
+              Import in Settings
             </Button>
           </div>
         </div>
@@ -279,7 +258,7 @@ export default function StudentsSection({
           />
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="theme-text-muted text-sm font-semibold">
             Showing <span className="theme-heading">{paginatedTableStudents.length}</span> of{' '}
             <span className="theme-heading">{tableStudents.length}</span> records
@@ -298,6 +277,7 @@ export default function StudentsSection({
 
         <StudentRecordsTable
           students={paginatedTableStudents}
+          returnFields={visibleTableFields}
           isLoading={isLoading || isStudentTableLoading}
           selectedStudentIds={selectedStudentIds}
           reviewedStudentIds={reviewedStudentIds}
@@ -321,22 +301,11 @@ export default function StudentsSection({
         ) : null}
       </div>
 
-      <ExportRecordsModal
-        open={exportPopupOpen}
-        reportScope={reportScope}
-        reportColumnKeys={reportColumnKeys}
-        exportCount={exportCount}
-        onClose={() => setExportPopupOpen(false)}
-        onReportScopeChange={setReportScope}
-        onToggleReportColumn={onToggleReportColumn}
-        onQuickExport={handleQuickExportWithToast}
-      />
-
       {toolsOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="theme-overlay absolute inset-0" onClick={() => setToolsOpen(false)} />
-          <div className="theme-card relative z-10 grid max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-2xl border shadow-xl lg:grid-cols-[17rem_minmax(0,1fr)]">
-            <div className="theme-card-muted border-b p-4 lg:border-b-0 lg:border-r">
+          <div className="theme-card relative z-10 grid h-[calc(100dvh-2rem)] max-h-[56rem] w-full max-w-6xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-2xl border shadow-xl lg:grid-cols-[17rem_minmax(0,1fr)] lg:grid-rows-1">
+            <div className="theme-card-muted min-h-0 overflow-y-auto border-b p-4 lg:border-b-0 lg:border-r">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="theme-heading text-xl font-bold">Tools</h3>
@@ -356,7 +325,7 @@ export default function StudentsSection({
                   { id: 'query' as const, label: 'Database Query', icon: DatabaseZap },
                   { id: 'quality' as const, label: 'Data Quality', icon: ShieldCheck },
                   { id: 'duplicates' as const, label: 'Duplicate Detection', icon: ScanSearch },
-                  { id: 'import' as const, label: 'Import Students', icon: UserPlus },
+                  { id: 'export' as const, label: 'Export Options', icon: FileDown },
                 ].map((item) => {
                   const Icon = item.icon;
                   const active = activeTool === item.id;
@@ -377,39 +346,31 @@ export default function StudentsSection({
                     </button>
                   );
                 })}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setToolsOpen(false);
-                    setExportPopupOpen(true);
-                  }}
-                  className="theme-card flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left text-sm font-bold text-[color:var(--theme-text)] transition hover:bg-white"
-                >
-                  <FileDown className="h-4 w-4" />
-                  Export Options
-                </button>
               </div>
             </div>
 
-            <div className="overflow-y-auto p-6">
+            <div className="min-h-0 overflow-y-auto p-6">
               {activeTool === 'query' ? (
                 <div className="space-y-6">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
                     <div>
                       <h4 className="theme-heading text-lg font-bold">Database Query</h4>
                       <p className="theme-text-muted mt-1 text-sm">Sort, filter, and see the matching record count.</p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={resetAdvancedFilters}>
-                      Reset
-                    </Button>
                   </div>
-                  <StudentQueryToolbar query={query} statusOptions={statusOptions} onQueryChange={updateQuery} />
-                  <StudentAdvancedFilters
-                    query={query}
-                    universities={uniqueUniversities}
-                    programs={uniquePrograms}
-                    academicYears={uniqueAcademicYears}
-                    onQueryChange={updateQuery}
+                  <DatabaseQueryBuilder
+                    initialQueryClauses={query.queryClauses}
+                    initialReturnFields={query.returnFields}
+                    onApply={({ queryClauses, returnFields }) => {
+                      updateQuery({
+                        ...DEFAULT_STUDENT_QUERY,
+                        queryClauses,
+                        returnFields,
+                      });
+                      setCurrentPage(1);
+                      setToolsOpen(false);
+                      notify('Database query applied to the student table.', 'info');
+                    }}
                   />
                   {isLoading ? (
                     <Skeleton className="h-72 rounded-2xl" />
@@ -418,6 +379,7 @@ export default function StudentsSection({
                       totalCount={students.length}
                       filteredStudents={filteredStudents}
                       searchQuery={query.searchQuery}
+                      queryClauses={query.queryClauses}
                     />
                   )}
                 </div>
@@ -436,8 +398,15 @@ export default function StudentsSection({
                   <DuplicateDetectionCard duplicateGroups={duplicateGroups} />
                 )
               ) : null}
-              {activeTool === 'import' ? (
-                <DatabaseImportSection students={students} onImportStudents={onImportStudents} />
+              {activeTool === 'export' ? (
+                <ExportRecordsSection
+                  reportScope={reportScope}
+                  reportColumnKeys={reportColumnKeys}
+                  exportCount={exportCount}
+                  onReportScopeChange={setReportScope}
+                  onToggleReportColumn={onToggleReportColumn}
+                  onQuickExport={handleQuickExportWithToast}
+                />
               ) : null}
             </div>
           </div>

@@ -34,12 +34,15 @@ function hasUsableGeneratedClient() {
 
 function runPrismaGenerate() {
   return new Promise((resolve) => {
-    const command =
-      process.platform === "win32"
-        ? ["cmd.exe", ["/d", "/s", "/c", "prisma generate"]]
-        : ["prisma", ["generate"]];
+    const prismaCliPath = path.join(
+      repoRoot,
+      "node_modules",
+      "prisma",
+      "build",
+      "index.js",
+    );
 
-    const child = spawn(command[0], command[1], {
+    const child = spawn(process.execPath, [prismaCliPath, "generate"], {
       cwd: repoRoot,
       shell: false,
       stdio: "inherit",

@@ -2,10 +2,23 @@ import Credentials from 'next-auth/providers/credentials';
 import { UserRole as PrismaUserRole } from '@prisma/client';
 import { deriveAuthSubject, findAuthUser, onFailedSignIn, onSuccessfulSignIn, recordAuditLog } from '@/lib/auth/store';
 import { verifyPassword } from '@/lib/auth/passwords';
-import { getSigninLimits, normalizeLoginId, normalizeRole, RawCredentials, toPrismaRole } from '@/lib/auth/shared';
+import {
+  AUTH_SERVICE_UNAVAILABLE_ERROR,
+  getSigninLimits,
+  normalizeLoginId,
+  normalizeRole,
+  RawCredentials,
+  toPrismaRole,
+} from '@/lib/auth/shared';
 import { takeRateLimitToken } from '@/lib/security/rate-limit';
 import { getClientIp } from '@/lib/security/request';
 import { UserRole } from '@/types';
+
+function throwAuthServiceUnavailable(context: string, error: unknown): never {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[AUTH] ${context}:`, message);
+  throw new Error(AUTH_SERVICE_UNAVAILABLE_ERROR);
+}
 
 export const credentialsProvider = Credentials({
   name: 'credentials',
@@ -27,12 +40,17 @@ export const credentialsProvider = Credentials({
       return null;
     }
 
-    const rateLimit = await takeRateLimitToken({
-      bucket: 'signin',
-      key: ip || loginId,
-      limit: 10,
-      windowMs: 15 * 60 * 1000,
-    });
+    let rateLimit;
+    try {
+      rateLimit = await takeRateLimitToken({
+        bucket: 'signin',
+        key: ip || loginId,
+        limit: 10,
+        windowMs: 15 * 60 * 1000,
+      });
+    } catch (error: unknown) {
+      throwAuthServiceUnavailable('Rate limit check failed during authorize', error);
+    }
 
     if (!rateLimit.allowed) {
       return null;
@@ -42,9 +60,7 @@ export const credentialsProvider = Credentials({
     try {
       authUser = await findAuthUser(toPrismaRole(role), loginId);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error('[AUTH] Database connection error during authorize:', message);
-      return null;
+      throwAuthServiceUnavailable('Database connection error during authorize', error);
     }
 
     if (!authUser) {

@@ -1,6 +1,7 @@
 # Logs
 logs
 *.log
+*.txt
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -35,3 +36,9 @@ test/test-db-output-2.txt
 .playwright-cli/
 output/
 security_best_practices_report.md
+
+# Local recovery helpers
+scripts/enable-git-recovery.ps1
+scripts/git-recovery.ps1
+scripts/next-watchpack-scope.cjs
+scripts/next-with-canonical-cwd.mjs

@@ -18,7 +18,25 @@ const securityHeaders = [
   },
 ];
 
+const watchIgnorePatterns = [
+  '**/.git',
+  '**/.git/**',
+  '**/.next/**',
+  '**/node_modules/**',
+  '**/tsconfig.tsbuildinfo',
+];
+
 const nextConfig = {
+  webpack(config, { dev }) {
+    if (dev && config.watchOptions) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: watchIgnorePatterns,
+      };
+    }
+
+    return config;
+  },
   async headers() {
     return [
       {

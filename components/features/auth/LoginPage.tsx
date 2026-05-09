@@ -8,6 +8,7 @@ import FormField from '@/components/ui/FormField';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import { Hash, HelpCircle, Lock, LogIn, Mail, ShieldCheck } from 'lucide-react';
 import { getErrorMessage } from '@/lib/errors';
+import { AUTH_SERVICE_UNAVAILABLE_ERROR } from '@/lib/auth/shared';
 
 const roleOptions = [
   { value: UserRole.STUDENT, label: 'Student' },
@@ -57,6 +58,15 @@ const LoginPage: React.FC = () => {
       });
 
       if (result?.error) {
+        if (result.error === AUTH_SERVICE_UNAVAILABLE_ERROR) {
+          notifications.notify({
+            tone: 'error',
+            title: 'Sign-in service unavailable',
+            message: 'The authentication database could not be reached. Please try again in a moment.',
+          });
+          return;
+        }
+
         notifications.notify({
           tone: 'error',
           title: 'Invalid credentials',

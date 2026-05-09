@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { StudentProfile } from '@/types';
-import type { DuplicateGroup } from '@/components/features/attache/types';
+import type { DatabaseQueryClause, DuplicateGroup } from '@/components/features/attache/types';
 import { AnimatedCount, dashboardHoverLift, dashboardHoverTransition, dashboardStaggerContainer, dashboardStaggerItem } from '@/components/ui/motion';
 import {
   buildStudentStatusCounts,
@@ -12,6 +12,7 @@ interface DataInsightsPanelProps {
   totalCount: number;
   filteredStudents: StudentProfile[];
   searchQuery: string;
+  queryClauses?: DatabaseQueryClause[];
   duplicateGroups: DuplicateGroup[];
   qualityIssueCount: number;
 }
@@ -20,6 +21,7 @@ interface InsightSectionProps {
   totalCount: number;
   filteredStudents: StudentProfile[];
   searchQuery: string;
+  queryClauses?: DatabaseQueryClause[];
   duplicateGroups: DuplicateGroup[];
   qualityIssueCount: number;
 }
@@ -28,11 +30,17 @@ export function QuerySummaryCard({
   totalCount,
   filteredStudents,
   searchQuery,
-}: Pick<InsightSectionProps, 'totalCount' | 'filteredStudents' | 'searchQuery'>) {
+  queryClauses = [],
+}: Pick<InsightSectionProps, 'totalCount' | 'filteredStudents' | 'searchQuery' | 'queryClauses'>) {
   const shouldReduceMotion = useReducedMotion();
   const filteredCount = filteredStudents.length;
   const statusCounts = buildStudentStatusCounts(filteredStudents).slice(0, 3);
   const hasQuery = searchQuery.trim().length > 0;
+  const activeClauses = queryClauses.filter((clause) => clause.value.trim().length > 0);
+  const clauseSummary =
+    activeClauses.length === 1
+      ? `Query: "${activeClauses[0].value.trim()}"`
+      : `${activeClauses.length} query clauses applied`;
 
   return (
     <motion.div
@@ -48,7 +56,9 @@ export function QuerySummaryCard({
             / <AnimatedCount value={totalCount} suffix=" records" />
           </span>
         </p>
-        <p className="theme-text-muted mt-1 text-xs">{hasQuery ? `Search: "${searchQuery.trim()}"` : 'No keyword filter applied'}</p>
+        <p className="theme-text-muted mt-1 text-xs">
+          {hasQuery ? `Search: "${searchQuery.trim()}"` : activeClauses.length > 0 ? clauseSummary : 'No keyword filter applied'}
+        </p>
       </div>
       <div className="grid gap-2 text-center sm:grid-cols-3">
         {statusCounts.length > 0 ? (
@@ -150,12 +160,18 @@ export default function DataInsightsPanel({
   totalCount,
   filteredStudents,
   searchQuery,
+  queryClauses,
   duplicateGroups,
   qualityIssueCount,
 }: DataInsightsPanelProps) {
   return (
     <div className="space-y-4">
-      <QuerySummaryCard totalCount={totalCount} filteredStudents={filteredStudents} searchQuery={searchQuery} />
+      <QuerySummaryCard
+        totalCount={totalCount}
+        filteredStudents={filteredStudents}
+        searchQuery={searchQuery}
+        queryClauses={queryClauses}
+      />
       <DataQualityCard filteredStudents={filteredStudents} qualityIssueCount={qualityIssueCount} />
       <DuplicateDetectionCard duplicateGroups={duplicateGroups} />
     </div>

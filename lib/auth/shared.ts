@@ -9,6 +9,8 @@ export type RawCredentials = {
   password?: string;
 };
 
+export const AUTH_SERVICE_UNAVAILABLE_ERROR = 'AuthServiceUnavailable';
+
 export function getSigninLimits() {
   const maxAttempts = Number(process.env.AUTH_MAX_FAILED_ATTEMPTS ?? '5');
   const lockMinutes = Number(process.env.AUTH_LOCK_MINUTES ?? '15');

@@ -106,14 +106,14 @@ const AttacheDashboard: React.FC<AttacheDashboardProps> = ({
       agentContext={agentContext}
     >
       {section === 'dashboard' ? (
-        <div className="space-y-8">
-          <Tabs items={tabItems} activeTab={activeView} onChange={(tab) => setActiveView(tab as ActiveView)} className="sticky top-0 z-30 -mx-1 bg-[var(--theme-page)]/88 px-1 py-2 backdrop-blur md:top-0" />
+        <div className="space-y-5">
+          <Tabs items={tabItems} activeTab={activeView} onChange={(tab) => setActiveView(tab as ActiveView)} className="sticky top-0 z-30 -mx-1 bg-[var(--theme-page)]/88 px-1 py-1.5 backdrop-blur md:top-0" compact />
           {activeView === 'students' ? (
             <StudentsSection
               students={students}
               isLoading={isStudentsLoading}
               onDeleteStudents={onDeleteStudents}
-              onImportStudents={onImportStudents}
+              onOpenImportSettings={() => onNavigateSection('settings')}
               onAgentContextChange={setAgentContext}
             />
           ) : null}

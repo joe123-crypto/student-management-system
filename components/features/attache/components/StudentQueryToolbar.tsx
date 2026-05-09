@@ -24,11 +24,11 @@ export function StudentSearchInput({
       <input
         type="text"
         placeholder="Search students by name or number..."
-        className="theme-input h-16 w-full rounded-2xl border pl-12 pr-4 text-base outline-none"
+        className="theme-input h-12 w-full rounded-xl border pl-10 pr-4 text-sm outline-none"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
-      <svg className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[color:var(--theme-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--theme-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
     </div>

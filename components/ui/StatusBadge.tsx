@@ -4,6 +4,7 @@ import { cn } from './cn';
 interface StatusBadgeProps {
   status: string;
   className?: string;
+  compact?: boolean;
 }
 
 const statusClassMap: Record<string, string> = {
@@ -12,7 +13,7 @@ const statusClassMap: Record<string, string> = {
   COMPLETED: 'theme-info',
 };
 
-export default function StatusBadge({ status, className }: StatusBadgeProps) {
+export default function StatusBadge({ status, className, compact = false }: StatusBadgeProps) {
   const displayStatus = status
     .toLowerCase()
     .replace(/_/g, ' ')
@@ -21,7 +22,7 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        'rounded-full px-3 py-1.5 text-sm font-bold',
+        compact ? 'rounded-full px-2.5 py-1 text-xs font-bold' : 'rounded-full px-3 py-1.5 text-sm font-bold',
         statusClassMap[status] || 'theme-card-muted theme-text-muted',
         className,
       )}

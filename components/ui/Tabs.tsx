@@ -14,6 +14,7 @@ interface TabsProps<T extends string> {
   onChange: (tab: T) => void;
   className?: string;
   mobileLayout?: 'scroll' | 'grid';
+  compact?: boolean;
 }
 
 export default function Tabs<T extends string>({
@@ -22,6 +23,7 @@ export default function Tabs<T extends string>({
   onChange,
   className,
   mobileLayout = 'scroll',
+  compact = false,
 }: TabsProps<T>) {
   const indicatorId = useId();
   const shouldReduceMotion = useReducedMotion();
@@ -37,7 +39,8 @@ export default function Tabs<T extends string>({
     >
       <div
         className={cn(
-          'rounded-[1.5rem] border border-[rgba(220,205,166,0.72)] bg-[rgba(255,255,255,0.72)] p-1',
+          'border border-[rgba(220,205,166,0.72)] bg-[rgba(255,255,255,0.72)] p-1',
+          compact ? 'rounded-2xl' : 'rounded-[1.5rem]',
           mobileLayout === 'grid'
             ? 'grid min-w-0 gap-1 md:inline-flex md:w-max md:min-w-0'
             : 'inline-flex w-max min-w-full gap-1 pr-6 sm:min-w-0 sm:pr-1',
@@ -57,7 +60,8 @@ export default function Tabs<T extends string>({
               type="button"
               onClick={() => onChange(item.id)}
               className={cn(
-                'relative overflow-hidden rounded-[1.1rem] px-3 py-3 text-center text-xs font-semibold transition-colors md:px-5 md:text-sm',
+                'relative overflow-hidden text-center font-semibold transition-colors',
+                compact ? 'rounded-xl px-3 py-2 text-xs md:px-4' : 'rounded-[1.1rem] px-3 py-3 text-xs md:px-5 md:text-sm',
                 mobileLayout === 'grid'
                   ? 'min-w-0 leading-tight'
                   : 'shrink-0 snap-start whitespace-nowrap',
@@ -70,7 +74,10 @@ export default function Tabs<T extends string>({
               {active ? (
                 <motion.span
                   layoutId={`tabs-indicator-${indicatorId}`}
-                  className="absolute inset-0 rounded-[1.1rem] bg-[var(--theme-card)] shadow-[0_12px_24px_rgba(96,83,55,0.08)]"
+                  className={cn(
+                    'absolute inset-0 bg-[var(--theme-card)] shadow-[0_12px_24px_rgba(96,83,55,0.08)]',
+                    compact ? 'rounded-xl' : 'rounded-[1.1rem]',
+                  )}
                   transition={
                     shouldReduceMotion
                       ? { duration: 0 }

@@ -46,7 +46,8 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const pathname = usePathname();
-  const collapsedSidebarWidth = 'clamp(3.5rem, 5vw, 4.5rem)';
+  const isAttacheDashboardHome = role === UserRole.ATTACHE && activeTab === 'home';
+  const collapsedSidebarWidth = isAttacheDashboardHome ? 'clamp(3rem, 4vw, 3.75rem)' : 'clamp(3.5rem, 5vw, 4.5rem)';
   const expandedSidebarWidth = 'clamp(14rem, 20vw, 18rem)';
   const sidebarWidth = isSidebarExpanded ? expandedSidebarWidth : collapsedSidebarWidth;
   const dashboardHomeTab = 'home';
@@ -224,15 +225,15 @@ const Layout: React.FC<LayoutProps> = ({
         </header>
 
         <main className="flex-1 min-w-0">
-          <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-12">
-            <div className="mb-8 sm:mb-10">
+          <div className={isAttacheDashboardHome ? 'mx-auto max-w-7xl px-4 py-5 sm:px-5 sm:py-6 lg:px-7 lg:py-7' : 'mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-12'}>
+            <div className={isAttacheDashboardHome ? 'mb-4 sm:mb-5' : 'mb-8 sm:mb-10'}>
               <div>
-                <nav className="theme-text-muted type-label mb-3 flex items-center gap-2">
+                <nav className={`theme-text-muted type-label flex items-center gap-2 ${isAttacheDashboardHome ? 'mb-2' : 'mb-3'}`}>
                   <span>{breadcrumbLeft}</span>
                   <ChevronRight className="w-3 h-3" />
                   <span className="theme-accent-soft">{breadcrumbRight}</span>
                 </nav>
-                <h2 className="theme-heading type-page-title break-words">
+                <h2 className={isAttacheDashboardHome ? 'theme-heading break-words text-2xl font-bold leading-tight' : 'theme-heading type-page-title break-words'}>
                   {title}
                 </h2>
               </div>
